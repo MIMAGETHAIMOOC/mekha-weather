@@ -1,8 +1,9 @@
-const CACHE_NAME = 'mekha-weather-v2';
+const CACHE_NAME = 'mekha-weather-v3';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/thai-districts.json',
   '/icon.jpg',
   '/icon-192.png',
   '/icon-512.png'
