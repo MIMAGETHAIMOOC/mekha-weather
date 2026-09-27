@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mekha-weather-v7';
+const CACHE_NAME = 'mekha-weather-v8';
 const ASSETS = [
   '/',
   '/index.html',
@@ -6,7 +6,8 @@ const ASSETS = [
   '/thai-districts.json',
   '/icon.jpg',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/og-hero.jpg'
 ];
 
 self.addEventListener('install', event => {

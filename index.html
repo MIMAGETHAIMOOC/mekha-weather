@@ -7,19 +7,42 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="เมฆา">
+<meta name="author" content="MIX NATTANONT - MIX NATTANONT • ZERODAT">
+<meta name="description" content="เมฆา (Mekha Weather) พยากรณ์อากาศสดแม่นยำสูง เตือนภัยน้ำท่วมรายอำเภอ เรดาร์ฝน 24 ชม. และคุณภาพอากาศ PM2.5 พัฒนาโดย MIX NATTANONT - MIX NATTANONT • ZERODAT">
+
+<!-- Open Graph / Facebook / LINE Hero Image Preview -->
+<meta property="og:type" content="website">
+<meta property="og:locale" content="th_TH">
+<meta property="og:url" content="https://mekha-miximage.netlify.app/">
+<meta property="og:site_name" content="เมฆา · MIXIMAGE WEATHER">
+<meta property="og:title" content="เมฆา (Mekha Weather) — พยากรณ์อากาศ & เตือนภัยน้ำท่วมรายอำเภอ · MIX NATTANONT • ZERODAT">
+<meta property="og:description" content="เช็กสภาพอากาศสดแม่นยำสูง พยากรณ์ฝนรายชั่วโมง เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT - MIX NATTANONT • ZERODAT">
+<meta property="og:image" content="https://mekha-miximage.netlify.app/og-hero.jpg">
+<meta property="og:image:secure_url" content="https://mekha-miximage.netlify.app/og-hero.jpg">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="535">
+<meta property="og:image:alt" content="เมฆา MIXIMAGE WEATHER — MIX NATTANONT - MIX NATTANONT • ZERODAT">
+
+<!-- Twitter / X Large Summary Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="เมฆา (Mekha Weather) — พยากรณ์อากาศ & เตือนภัยน้ำท่วมรายอำเภอ">
+<meta name="twitter:description" content="เช็กสภาพอากาศสดแม่นยำสูง พยากรณ์ฝนรายชั่วโมง เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT - MIX NATTANONT • ZERODAT">
+<meta name="twitter:image" content="https://mekha-miximage.netlify.app/og-hero.jpg">
+
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<title>เมฆา — พยากรณ์อากาศส่วนตัว</title>
+<title>เมฆา — พยากรณ์อากาศส่วนตัว · MIX NATTANONT • ZERODAT</title>
 
 <!-- ฟอนต์ไทย Anuphan: โมเดิร์น สะอาด มีน้ำหนักบางสำหรับตัวเลขอุณหภูมิ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap" rel="stylesheet">
 
-<!-- แผนที่ Leaflet สำหรับปักหมุดเลือกพื้นที่อำเภอ/ตำบลของตัวเอง -->
+<!-- แผนที่ Leaflet สำหรับปักหมุดเลือกพื้นที่อำเภอ/ตำบลของตัวเอง (โหลดแบบ defer ไม่บล็อกหน้าจอหลัก) -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <!-- ============================================================
      ส่วนที่ 2: รูปแบบดีไซน์ (Tailwind CSS + สไตล์เสริมรองรับ 60/120fps บนมือถือ)
@@ -34,54 +57,63 @@ tailwind.config = {
 };
 </script>
 <style>
-  :root{ --glass: rgba(10,16,28,.42); --glass-brd: rgba(255,255,255,.15); }
+  :root{ --glass: rgba(10,16,28,.48); --glass-brd: rgba(255,255,255,.15); }
   html{ scroll-behavior:smooth; -webkit-tap-highlight-color:transparent; }
   body{ min-height:100dvh; overscroll-behavior-y:none; }
   ::selection{ background:rgba(255,209,102,.35); }
 
   /* พื้นหลังท้องฟ้าสองชั้น เร่งความเร็วด้วย GPU (Hardware Acceleration) */
-  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.1s ease; will-change:opacity; transform:translateZ(0); }
+  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.1s ease; transform:translateZ(0); }
   .tint{ position:fixed; inset:0; z-index:-2; pointer-events:none;
          background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.09), transparent 55%); }
-  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; transform:translateZ(0); }
+  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; contain:strict; }
 
-  /* กระจกฝ้า: ปรับลดภาระ GPU บนจอมือถือให้เลื่อนลื่นไหล 60/120Hz */
-  .glass{ background:var(--glass); backdrop-filter:blur(20px) saturate(145%);
-          -webkit-backdrop-filter:blur(20px) saturate(145%);
+  /* กระจกฝ้า: บนจอคอมใช้ backdrop-filter ส่วนจอมือถือใช้เฉดพื้นหลังโปร่งแสงความละเอียดสูงเพื่อตัดภาระ GPU เวลาไถหน้าจอ 100% */
+  .glass{ background:var(--glass); backdrop-filter:blur(18px) saturate(140%);
+          -webkit-backdrop-filter:blur(18px) saturate(140%);
           border:1px solid var(--glass-brd);
-          box-shadow:0 10px 30px rgba(2,6,18,.22), inset 0 1px 0 rgba(255,255,255,.10);
-          transform:translateZ(0); }
+          box-shadow:0 10px 30px rgba(2,6,18,.22), inset 0 1px 0 rgba(255,255,255,.10); }
   @media (max-width: 768px){
-    .glass{ backdrop-filter:blur(12px) saturate(130%); -webkit-backdrop-filter:blur(12px) saturate(130%);
-            box-shadow:0 6px 20px rgba(2,6,18,.20), inset 0 1px 0 rgba(255,255,255,.09); }
+    .glass{ background:linear-gradient(165deg, rgba(14,22,38,.86) 0%, rgba(8,14,26,.92) 100%);
+            backdrop-filter:none; -webkit-backdrop-filter:none;
+            box-shadow:0 6px 18px rgba(2,6,18,.28), inset 0 1px 0 rgba(255,255,255,.10); }
   }
-  .glass-strong{ background:rgba(11,17,29,.95); backdrop-filter:blur(22px);
-                 -webkit-backdrop-filter:blur(22px); border:1px solid rgba(255,255,255,.15); }
+  .glass-strong{ background:rgba(11,17,29,.96); backdrop-filter:blur(16px);
+                 -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.15); }
   .glass-in{ background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); }
   .card-title{ font-size:.82rem; letter-spacing:.04em; color:rgba(255,255,255,.68); font-weight:600; }
 
-  /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header และบังคับซ่อน Modal เมื่อมีคลาส hidden */
-  article[id^="sec"]{ scroll-margin-top: 76px; }
-  #pinModal.hidden, #settingsModal.hidden, #btnSearchClear.hidden, #modeBadge.hidden,
+  /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header และบังคับซ่อนองค์ประกอบที่มีคลาส hidden */
+  article[id^="sec"]{ scroll-margin-top: 94px; }
+  #pinModal.hidden, #btnSearchClear.hidden,
   #searchResults.hidden, #searchSpin.hidden, #searchIcon.hidden, #hourCursor.hidden,
   #hourTip.hidden, #navFloodDot.hidden, #provinceDistrictWrap.hidden { display: none !important; }
 
-  /* อนุภาคบรรยากาศบนพื้นหลัง */
+  /* อนุภาคบรรยากาศบนพื้นหลัง (ใช้ radial-gradient แทน filter:blur เพื่อไม่ให้จอมือถือกระตุก) */
   .star{ position:absolute; border-radius:9999px; background:#fff; animation:twinkle var(--d) ease-in-out infinite; }
-  @keyframes twinkle{ 0%,100%{opacity:.12} 50%{opacity:.9} }
-  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px; will-change:transform;
+  @keyframes twinkle{ 0%,100%{opacity:.15} 50%{opacity:.88} }
+  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px;
              background:linear-gradient(180deg, transparent, rgba(255,255,255,.55));
              animation:rainFall linear infinite; }
-  @keyframes rainFall{ to{ transform:translate3d(0,125vh,0); } }
-  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85); will-change:transform;
+  @keyframes rainFall{ to{ transform:translate3d(0,122vh,0); } }
+  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85);
           animation:snowFall linear infinite; }
-  @keyframes snowFall{ to{ transform:translate3d(5vw,115vh,0); } }
-  .fogband{ position:absolute; height:80px; border-radius:9999px; background:rgba(255,255,255,.10);
-            filter:blur(26px); animation:fogMove ease-in-out infinite alternate; }
-  @keyframes fogMove{ from{transform:translate3d(-6%,0,0)} to{transform:translate3d(6%,0,0)} }
-  .puff{ position:absolute; background:rgba(255,255,255,.09); filter:blur(18px);
-         border-radius:50%; animation:drift linear infinite; }
-  @keyframes drift{ from{ transform:translate3d(-35vw,0,0); } to{ transform:translate3d(120vw,0,0); } }
+  @keyframes snowFall{ to{ transform:translate3d(4vw,112vh,0); } }
+  .fogband{ position:absolute; height:90px; border-radius:9999px;
+            background:radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0));
+            animation:fogMove ease-in-out infinite alternate; }
+  @keyframes fogMove{ from{transform:translate3d(-5%,0,0)} to{transform:translate3d(5%,0,0)} }
+  .puff{ position:absolute; border-radius:50%;
+         background:radial-gradient(closest-side, rgba(255,255,255,.12), rgba(255,255,255,0));
+         animation:drift linear infinite; }
+  @keyframes drift{ from{ transform:translate3d(-35vw,0,0); } to{ transform:translate3d(115vw,0,0); } }
+
+  /* หยุดแอนิเมชันพื้นหลังชั่วคราวขณะนิ้วกำลังไถเลื่อนหน้าจอ เพื่อความลื่นไหลระดับ 120fps */
+  body.is-scrolling #skyLayer *,
+  body.is-scrolling .rays,
+  body.is-scrolling .drip,
+  body.is-scrolling .flash,
+  body.is-scrolling .flood-pulse { animation-play-state: paused !important; }
 
   /* แอนิเมชันไอคอนสภาพอากาศ */
   .rays{ animation:spinSlow 44s linear infinite; }
@@ -96,10 +128,10 @@ tailwind.config = {
   @keyframes floodPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(214,69,69,.40);} 50%{ box-shadow:0 0 0 7px rgba(214,69,69,0);} }
 
   /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App */
-  .rise{ animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes fadeUp{ from{opacity:0; transform:translate3d(0,12px,0)} to{opacity:1; transform:none} }
-  .sheet-up{ animation:sheetUp .36s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes sheetUp{ from{opacity:0; transform:translate3d(0,28px,0)} to{opacity:1; transform:none} }
+  .rise{ animation:fadeUp .42s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeUp{ from{opacity:0; transform:translate3d(0,10px,0)} to{opacity:1; transform:none} }
+  .sheet-up{ animation:sheetUp .32s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes sheetUp{ from{opacity:0; transform:translate3d(0,24px,0)} to{opacity:1; transform:none} }
 
   .nice-scroll{ -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
   .nice-scroll::-webkit-scrollbar{ height:4px; width:4px; }
@@ -126,8 +158,14 @@ tailwind.config = {
 <div class="tint"></div>
 <div id="skyLayer" aria-hidden="true"></div>
 
-<!-- แถบด้านบน: กะทัดรัดเพียง 1 แถวบนจอมือถือ ไม่กินพื้นที่หน้าจอ -->
-<header class="sticky top-0 z-40 bg-slate-950/45 backdrop-blur-xl border-b border-white/10">
+<!-- แถบด้านบน: พร้อมชื่อผู้พัฒนา MIX NATTANONT - MIX NATTANONT • ZERODAT -->
+<header class="sticky top-0 z-40 bg-slate-950/75 backdrop-blur-md border-b border-white/10">
+  <!-- แถบชื่อผู้พัฒนาด้านบนสุด -->
+  <div class="bg-slate-950/60 border-b border-white/5 py-1 px-3 text-center">
+    <p class="text-[10px] sm:text-[11px] font-semibold tracking-wider text-amber-300/95 truncate">
+      DEVELOPED BY <span class="text-white">MIX NATTANONT - MIX NATTANONT • ZERODAT</span>
+    </p>
+  </div>
   <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5">
     <div class="flex items-center gap-2 sm:gap-3">
       <!-- โลโก้และชื่อแอป -->
@@ -144,12 +182,8 @@ tailwind.config = {
         </svg>
         <div class="hidden xs:block sm:block min-w-0">
           <p class="font-semibold leading-none tracking-wide text-sm sm:text-[15px]">เมฆา</p>
-          <p class="hidden sm:block text-[11px] text-white/60 leading-none mt-1">พยากรณ์อากาศส่วนตัว · MixImage</p>
+          <p class="hidden sm:block text-[10px] text-amber-200/80 leading-none mt-1 font-medium">MIX NATTANONT • ZERODAT</p>
         </div>
-        <span id="wapiBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-emerald-300/35 bg-emerald-400/15 text-emerald-200 whitespace-nowrap">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI Live
-        </span>
-        <span id="modeBadge" class="hidden text-[10px] px-2 py-0.5 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-200 whitespace-nowrap">Google</span>
       </div>
 
       <!-- ช่องค้นหาตรงกลาง (อยู่แถวเดียวกับโลโก้ทั้งบนมือถือและคอมพิวเตอร์) -->
@@ -164,7 +198,7 @@ tailwind.config = {
         <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50 shadow-2xl max-h-[65dvh] overflow-y-auto nice-scroll"></div>
       </div>
 
-      <!-- ปุ่มควบคุมมุมขวาบน -->
+      <!-- ปุ่มควบคุมมุมขวาบน (ซ่อนหน้าตั้งค่า API ออกทั้งหมด คงเหลือปุ่มปักหมุด, โหลดแอป .APK และพิกัด GPS) -->
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="btnOpenMapTop" title="ปักหมุดเลือกพื้นที่อำเภอของตัวเองบนแผนที่"
           class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-amber-200 hover:bg-white/15 transition shrink-0">
@@ -172,13 +206,11 @@ tailwind.config = {
           <span class="hidden md:inline">ปักหมุดอำเภอ</span>
         </button>
         <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
-          class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
+          class="flex h-9 w-9 sm:w-auto sm:px-3 rounded-xl glass-in items-center justify-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
           <span id="apkIcon"></span>
           <span class="hidden md:inline">โหลดแอป .APK</span>
         </a>
         <button id="btnLocate" title="ใช้ตำแหน่ง GPS ปัจจุบัน"
-          class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
-        <button id="btnSettings" title="ตั้งค่าระบบและดาวน์โหลดแอป"
           class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
       </div>
     </div>
@@ -213,10 +245,13 @@ tailwind.config = {
               class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
           </div>
         </div>
-        <div class="mt-1 flex flex-wrap items-center gap-2">
+        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
           <p id="clockLine" class="text-xs text-white/55">—</p>
           <span id="heroSourcePill" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-300/30 text-emerald-200">
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF
+          </span>
+          <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-300/30 text-amber-200 font-medium">
+            MIX NATTANONT • ZERODAT
           </span>
         </div>
 
@@ -376,9 +411,12 @@ tailwind.config = {
     </section>
   </div>
 
-  <footer class="mt-6 sm:mt-8 text-center text-[11px] text-white/40 leading-relaxed space-y-1 px-2">
+  <footer class="mt-6 sm:mt-8 text-center text-[11px] text-white/45 leading-relaxed space-y-2 px-2">
+    <div class="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 rounded-full glass-in border border-amber-300/25 text-amber-200 font-semibold text-xs tracking-wide shadow-sm">
+      <span>ผู้พัฒนา: MIX NATTANONT - MIX NATTANONT • ZERODAT</span>
+    </div>
     <p>ข้อมูลพยากรณ์อากาศสดแบบผสมผสานจาก WeatherAPI.com + โมเดล ECMWF (Open-Meteo) · ระดับน้ำจากโมเดล GloFAS (Copernicus)</p>
-    <p>ค้นหาสถานที่ด้วย WeatherAPI · Google Geocoding · OpenStreetMap · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
+    <p>ค้นหาสถานที่ด้วย WeatherAPI · OpenStreetMap · พัฒนาโดย <b class="text-white/80">MIX NATTANONT - MIX NATTANONT • ZERODAT</b> (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/80">GitHub</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/85 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
   </footer>
 </main>
 
@@ -465,76 +503,16 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- หน้าต่างตั้งค่าระบบ & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
-<div id="settingsModal" class="hidden fixed inset-0 z-50">
-  <div class="w-full h-full flex items-end sm:grid sm:place-items-center sm:p-4">
-    <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" data-close></div>
-    <div class="glass-strong relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 sheet-up max-h-[90dvh] overflow-y-auto nice-scroll pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-      <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 sm:hidden"></div>
-      <div class="flex items-center justify-between">
-        <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
-        <button id="btnModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition"></button>
-      </div>
-
-      <div class="mt-3.5 glass-in rounded-2xl p-3.5 flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <p class="text-xs font-semibold text-emerald-300">แอปพลิเคชัน Android (.APK)</p>
-          <p class="text-[11px] text-white/65 mt-0.5 leading-snug">ติดตั้งแอป “เมฆา” ลงบนมือถือ Android ได้โดยตรง</p>
-        </div>
-        <a href="Mekha-Weather.apk" download="Mekha-Weather.apk"
-          class="px-3.5 py-2 rounded-xl bg-emerald-400 text-slate-950 text-xs font-semibold hover:bg-emerald-300 transition shrink-0">
-          ดาวน์โหลด .APK
-        </a>
-      </div>
-
-      <!-- แสดงสถานะคีย์พยากรณ์อากาศที่ฝังในระบบแล้ว -->
-      <div class="mt-3.5 glass-in rounded-2xl p-3.5 border border-emerald-400/25">
-        <div class="flex items-center justify-between">
-          <p class="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>ระบบพยากรณ์อากาศ: WeatherAPI.com + ECMWF</span>
-          </p>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 border border-emerald-300/30">ฝังคีย์ในระบบแล้ว</span>
-        </div>
-        <p class="mt-1.5 text-[11px] text-white/65 leading-relaxed">
-          เชื่อมต่อคีย์ <b class="text-white/90">WeatherAPI.com</b> ถาวรในโค้ด ผสานกับโมเดล <b class="text-white/90">ECMWF (Open-Meteo)</b> และ <b class="text-white/90">GloFAS</b> โดยอัตโนมัติทุกอุปกรณ์ ไม่ต้องตั้งค่าเพิ่ม
-        </p>
-      </div>
-
-      <!-- คีย์ทางเลือกเสริม: Google Maps Platform API Key -->
-      <div class="mt-4 pt-3.5 border-t border-white/10">
-        <label class="block text-xs text-white/75 font-medium">Google Maps Platform API Key (ทางเลือกเสริม)</label>
-        <div class="mt-1.5 relative">
-          <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
-            class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
-            placeholder="วางคีย์ Google Maps ของคุณที่นี่ (ถ้ามี)…">
-          <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" id="keyIcon"></span>
-          <button id="toggleKey" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-white/60 hover:text-white transition"></button>
-        </div>
-      </div>
-
-      <div class="mt-3 flex flex-col gap-1.5 text-[11px] text-white/75">
-        <span id="keyStatus" class="flex items-center gap-2"></span>
-      </div>
-
-      <div class="mt-4 flex gap-2.5">
-        <button id="btnKeySave" class="flex-1 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold py-2.5 hover:bg-amber-300 transition">บันทึกคีย์</button>
-        <button id="btnKeyClear" class="rounded-xl glass-in text-xs sm:text-sm px-3.5 py-2.5 hover:bg-white/15 transition">ล้างค่า</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- กล่องข้อความแจ้งเตือน (อยู่เหนือแถบเมนูด้านล่างบนมือถือ) -->
 <div id="toasts" class="fixed bottom-20 lg:bottom-5 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
 <!-- ============================================================
-     ส่วนที่ 3: ระบบการทำงาน (Vanilla JavaScript)
+     ส่วนที่ 3: ระบบการทำงาน (Vanilla JavaScript · ซ่อนคีย์ API ในระบบอัตโนมัติ)
      ============================================================ -->
 <script>
 'use strict';
 
-/* ---------- ค่าคงที่และตัวช่วยพื้นฐาน (ฝังคีย์ WeatherAPI.com ถาวรในระบบ) ---------- */
+/* ---------- ค่าคงที่และตัวช่วยพื้นฐาน (ฝังคีย์ WeatherAPI.com ถาวรในระบบโดยไม่แสดงหน้าตั้งค่า) ---------- */
 const WAPI_KEY = '859b56d0bda84487a9f131237262709';
 const LS_API = 'mekhaGoogleKey';
 const LS_PLACE = 'mekhaLastPlace';
@@ -548,15 +526,11 @@ const isMobile = () => window.innerWidth < 768;
 
 const els = {
   bgA:$('#bgA'), bgB:$('#bgB'), skyLayer:$('#skyLayer'),
-  wapiBadge:$('#wapiBadge'), heroSourcePill:$('#heroSourcePill'),
-  modeBadge:$('#modeBadge'), searchInput:$('#searchInput'), searchSpin:$('#searchSpin'),
+  heroSourcePill:$('#heroSourcePill'),
+  searchInput:$('#searchInput'), searchSpin:$('#searchSpin'),
   searchIcon:$('#searchIcon'), btnSearchClear:$('#btnSearchClear'), searchResults:$('#searchResults'),
   btnOpenMapTop:$('#btnOpenMapTop'), mapTopIcon:$('#mapTopIcon'), btnQuickPinHero:$('#btnQuickPinHero'),
-  btnLocate:$('#btnLocate'), btnSettings:$('#btnSettings'), apkIcon:$('#apkIcon'),
-  settingsModal:$('#settingsModal'),
-  apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
-  keyStatus:$('#keyStatus'), btnKeySave:$('#btnKeySave'), btnKeyClear:$('#btnKeyClear'),
-  btnModalClose:$('#btnModalClose'), keyIcon:$('#keyIcon'),
+  btnLocate:$('#btnLocate'), apkIcon:$('#apkIcon'),
   pinModal:$('#pinModal'), btnPinModalClose:$('#btnPinModalClose'),
   selectProvince:$('#selectProvince'), selectDistrict:$('#selectDistrict'),
   btnMapMyGps:$('#btnMapMyGps'), pinMapContainer:$('#pinMapContainer'),
@@ -587,7 +561,7 @@ const els = {
 };
 
 const state = {
-  place:null, w:null, a:null, wapi:null, hourList:[], hourW:0, busy:false, lastFetch:0,
+  place:null, w:null, a:null, wapi:null, hourList:[], hourW:0, reqToken:0, lastFetch:0,
   thaiDistricts:null, map:null, mapMarker:null, pendingPin:null
 };
 
@@ -797,14 +771,16 @@ const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?l
 const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
 
 /* แปลงรหัสสภาพอากาศของ WeatherAPI.com (1000-1282) เป็นรหัสมาตรฐาน WMO */
-function wapiCodeToWmo(code){
+function wapiCodeToWmo(code, precipMm=0, chanceOfRain=0){
   switch(code){
     case 1000: return 0;  // ท้องฟ้าแจ่มใส
     case 1003: return 2;  // มีเมฆบางส่วน
     case 1006: case 1009: return 3; // มีเมฆมากปกคลุม
     case 1030: case 1135: return 45; // มีหมอกบาง
     case 1147: return 48; // มีหมอกลงจัด
-    case 1063: case 1150: case 1153: case 1180: return 51; // มีฝนละอองเล็กน้อย
+    case 1063: // Patchy rain nearby — แสดงเป็นฝนละอองเฉพาะเมื่อมีปริมาณฝนจริงหรือโอกาสฝนสูง
+      return (precipMm >= 0.15 || chanceOfRain >= 55) ? 51 : 2;
+    case 1150: case 1153: case 1180: return 51; // มีฝนละอองเล็กน้อย
     case 1168: case 1171: return 56;
     case 1183: return 61; // ฝนตกเล็กน้อย
     case 1240: return 80; // ฝนซู่เป็นระยะเล็กน้อย
@@ -833,7 +809,7 @@ function mergeWeatherApiData(w, a, wapi){
     apparent_temperature: cur.feelslike_c ?? w.current.apparent_temperature,
     relative_humidity_2m: cur.humidity ?? w.current.relative_humidity_2m,
     is_day: cur.is_day ?? w.current.is_day,
-    weather_code: cur.condition?.code != null ? wapiCodeToWmo(cur.condition.code) : w.current.weather_code,
+    weather_code: cur.condition?.code != null ? wapiCodeToWmo(cur.condition.code, cur.precip_mm ?? 0, 0) : w.current.weather_code,
     wind_speed_10m: cur.wind_kph ?? w.current.wind_speed_10m,
     wind_direction_10m: cur.wind_degree ?? w.current.wind_direction_10m,
     wind_gusts_10m: cur.gust_kph ?? w.current.wind_gusts_10m,
@@ -856,7 +832,7 @@ function mergeWeatherApiData(w, a, wapi){
         if(hr.temp_c != null) w.hourly.temperature_2m[idx] = hr.temp_c;
         if(hr.feelslike_c != null) w.hourly.apparent_temperature[idx] = hr.feelslike_c;
         if(hr.humidity != null) w.hourly.relative_humidity_2m[idx] = hr.humidity;
-        if(hr.condition?.code != null) w.hourly.weather_code[idx] = wapiCodeToWmo(hr.condition.code);
+        if(hr.condition?.code != null) w.hourly.weather_code[idx] = wapiCodeToWmo(hr.condition.code, hr.precip_mm ?? 0, hr.chance_of_rain ?? 0);
         if(hr.chance_of_rain != null){
           w.hourly.precipitation_probability[idx] = Math.max(hr.chance_of_rain, w.hourly.precipitation_probability[idx] ?? 0);
         }
@@ -878,7 +854,7 @@ function mergeWeatherApiData(w, a, wapi){
       const d = fd.day;
       if(d.maxtemp_c != null) w.daily.temperature_2m_max[idx] = d.maxtemp_c;
       if(d.mintemp_c != null) w.daily.temperature_2m_min[idx] = d.mintemp_c;
-      if(d.condition?.code != null) w.daily.weather_code[idx] = wapiCodeToWmo(d.condition.code);
+      if(d.condition?.code != null) w.daily.weather_code[idx] = wapiCodeToWmo(d.condition.code, d.totalprecip_mm ?? 0, d.daily_chance_of_rain ?? 0);
       if(d.daily_chance_of_rain != null){
         w.daily.precipitation_probability_max[idx] = Math.max(d.daily_chance_of_rain, w.daily.precipitation_probability_max[idx] ?? 0);
       }
@@ -1184,11 +1160,11 @@ function locate(silent=false){
 
 /* ---------- โหลดและแสดงผลข้อมูลพยากรณ์ (ผสาน WeatherAPI.com + ECMWF) ---------- */
 async function loadWeather(place){
-  if(state.busy) return; state.busy=true;
+  const reqId = ++state.reqToken;
   state.place=place;
   els.placeName.textContent=place.name;
   els.placeMeta.textContent=[place.admin, `${place.lat.toFixed(2)}°, ${place.lon.toFixed(2)}°`].filter(Boolean).join(' · ');
-  document.title=`${place.name} · เมฆา — พยากรณ์อากาศส่วนตัว`;
+  document.title=`${place.name} · เมฆา — MIX NATTANONT • ZERODAT`;
   if(!state.w) els.skyText.textContent='กำลังโหลดข้อมูล…';
   try{
     const wapiKey = getWapiKey();
@@ -1198,6 +1174,7 @@ async function loadWeather(place){
       wapiKey ? jget(weatherApiUrl(place.lat,place.lon)).catch(()=>null) : Promise.resolve(null),
       enrichPlaceWithAdmin(place)
     ]);
+    if(reqId !== state.reqToken) return;
     const merged = mergeWeatherApiData(rawW, rawA, wapi);
     localStorage.setItem(LS_PLACE, JSON.stringify(place));
     els.placeName.textContent=place.name;
@@ -1205,10 +1182,12 @@ async function loadWeather(place){
     state.w=merged.w; state.a=merged.a; state.wapi=wapi; state.lastFetch=Date.now();
     renderAll(merged.isHybrid);
     renderDistrictSelector(place);
-    renderFlood(place);
+    setTimeout(()=>{ if(reqId === state.reqToken) renderFlood(place); }, 60);
   }catch(e){
-    toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error',3600);
-  } finally{ state.busy=false; }
+    if(reqId === state.reqToken){
+      toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error',3600);
+    }
+  }
 }
 
 function renderAll(isHybrid=false){
@@ -1494,7 +1473,8 @@ async function renderFlood(place){
     const key=place.lat.toFixed(2)+','+place.lon.toFixed(2);
     let hs=floodHistCache.get(key);
     if(!hs){
-      hs=await jget(floodUrl(place.lat,place.lon,'2004-01-01', dISO(new Date(Date.now()-86400000))),15000);
+      const startHist = dISO(new Date(Date.now() - 5*365*86400000));
+      hs=await jget(floodUrl(place.lat,place.lon,startHist, dISO(new Date(Date.now()-86400000))),12000);
       if(myTok!==floodToken) return;
       floodHistCache.set(key,hs);
       if(floodHistCache.size>12) floodHistCache.delete(floodHistCache.keys().next().value);
@@ -1502,7 +1482,7 @@ async function renderFlood(place){
     const byMonth=Array.from({length:12},()=>[]);
     ((hs.daily||{}).river_discharge||[]).forEach((v,i)=>{ if(v!=null) byMonth[+hs.daily.time[i].slice(5,7)-1].push(v); });
     byMonth.forEach(a=>a.sort((x,y)=>x-y));
-    const levelOf=(v,m)=>{ const a=byMonth[m]; if(!a||a.length<60) return 0;
+    const levelOf=(v,m)=>{ const a=byMonth[m]; if(!a||a.length<25) return 0;
       return v>=qPct(a,.995)?3 : v>=qPct(a,.97)?2 : v>=qPct(a,.90)?1 : 0; };
 
     const localToday=dISO(new Date(Date.now()+(state.w?state.w.utc_offset_seconds:0)*1000));
@@ -1542,7 +1522,7 @@ async function renderFlood(place){
         noteParts.push(`ด้านปริมาณฝนในเขต ${areaName}: คาดการณ์ฝนสูงสุด ${rainRisk.maxMm.toFixed(1)} มม. (${rainRisk.maxDay}) และสะสม 3 วันราว ${rainRisk.day3Sum.toFixed(1)} มม. ควรระวังน้ำท่วมขังรอการระบายในพื้นที่ลุ่มต่ำของอำเภอ`);
       }
       if(riverLv >= 1){
-        noteParts.push(`ด้านลำน้ำในเขต ${areaName}: อัตราการไหลคาดการณ์สูงสุด ${fmtFlow(maxVal)} ลบ.ม./วินาที ในวันที่ ${dThai} ซึ่งสูงกว่าค่าปกติรายเดือนของพื้นที่นี้ (สถิติย้อนหลัง 20 ปี) พื้นที่ริมน้ำในอำเภอควรเฝ้าระวังระดับน้ำ`);
+        noteParts.push(`ด้านลำน้ำในเขต ${areaName}: อัตราการไหลคาดการณ์สูงสุด ${fmtFlow(maxVal)} ลบ.ม./วินาที ในวันที่ ${dThai} ซึ่งสูงกว่าค่าปกติรายเดือนของพื้นที่นี้ พื้นที่ริมน้ำในอำเภอควรเฝ้าระวังระดับน้ำ`);
       }
     }
     T.textContent = noteParts.join(' · ');
@@ -1809,22 +1789,6 @@ function toast(msg, type='info', ms=2800){
   }, ms);
 }
 
-/* ---------- หน้าต่างตั้งค่าและ LocalStorage ---------- */
-function renderKeyStatus(){
-  if(els.wapiBadge) els.wapiBadge.classList.remove('hidden');
-  const k=getKey();
-  els.keyStatus.innerHTML = k
-    ? `<span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span> Google Maps API บันทึกแล้ว · ลงท้ายด้วย “…${k.slice(-4)}”`
-    : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> Google Maps API: ใช้บริการค้นหา OpenStreetMap + Open-Meteo อัตโนมัติ`;
-  els.modeBadge.classList.toggle('hidden', !k);
-}
-const openModal=()=>{
-  els.apiKeyInput.value=getKey();
-  renderKeyStatus();
-  els.settingsModal.classList.remove('hidden');
-};
-const closeModal=()=>els.settingsModal.classList.add('hidden');
-
 /* ---------- ระบบค้นหาในช่องด้านบน ---------- */
 let searchTimer=null, lastResults=[];
 function doSearch(q){
@@ -1901,12 +1865,8 @@ function bindEvents(){
   els.floodPinBtnIcon.innerHTML=uiIcon('mapPin','w-3.5 h-3.5');
   els.apkIcon.innerHTML=uiIcon('download','w-4 h-4');
   els.btnLocate.innerHTML=uiIcon('locate','w-[18px] h-[18px]');
-  els.btnSettings.innerHTML=uiIcon('sliders','w-[18px] h-[18px]');
   els.btnRefresh.innerHTML=uiIcon('refresh','w-4 h-4');
-  els.btnModalClose.innerHTML=uiIcon('x','w-4 h-4');
   els.btnPinModalClose.innerHTML=uiIcon('x','w-4 h-4');
-  els.keyIcon.innerHTML=uiIcon('key','w-4 h-4');
-  els.toggleKey.innerHTML=uiIcon('eye','w-4 h-4');
   els.hiWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowUp','w-3.5 h-3.5 text-amber-200/80'));
   els.loWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowDown','w-3.5 h-3.5 text-sky-200/80'));
 
@@ -1916,6 +1876,18 @@ function bindEvents(){
   els.navIconPin.innerHTML=uiIcon('mapPin','w-5 h-5');
   els.navIconDaily.innerHTML=uiIcon('calendar','w-5 h-5');
   els.navIconDetails.innerHTML=uiIcon('thermo','w-5 h-5');
+
+  // พักแอนิเมชันพื้นหลังชั่วคราวขณะนิ้วกำลังไถเลื่อนหน้าจอบนมือถือ เพื่อความลื่นไหลสูงสุด
+  let scrollIdleTimer = null;
+  window.addEventListener('scroll', () => {
+    if(!document.body.classList.contains('is-scrolling')){
+      document.body.classList.add('is-scrolling');
+    }
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      document.body.classList.remove('is-scrolling');
+    }, 140);
+  }, { passive: true });
 
   els.searchInput.addEventListener('input', ()=>{
     const q=els.searchInput.value.trim();
@@ -1955,6 +1927,7 @@ function bindEvents(){
   els.btnNavPin.addEventListener('click', openPinModal);
   els.btnPinModalClose.addEventListener('click', closePinModal);
   els.pinModal.querySelector('[data-close-pin]').addEventListener('click', closePinModal);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePinModal(); });
 
   els.selectProvince.addEventListener('change', ()=>{
     const prov = els.selectProvince.value;
@@ -2015,29 +1988,6 @@ function bindEvents(){
     loadWeather(state.place);
   });
 
-  els.btnSettings.addEventListener('click', openModal);
-  els.btnModalClose.addEventListener('click', closeModal);
-  els.settingsModal.querySelector('[data-close]').addEventListener('click', closeModal);
-  document.addEventListener('keydown', e=>{ if(e.key==='Escape'){ closeModal(); closePinModal(); } });
-  els.toggleKey.addEventListener('click', ()=>{
-    const show=els.apiKeyInput.type==='password';
-    els.apiKeyInput.type=show?'text':'password';
-    els.toggleKey.innerHTML=uiIcon(show?'eyeOff':'eye','w-4 h-4');
-  });
-  els.btnKeySave.addEventListener('click', ()=>{
-    const k=els.apiKeyInput.value.trim();
-    if(k) localStorage.setItem(LS_API, k);
-    else localStorage.removeItem(LS_API);
-    renderKeyStatus(); closeModal();
-    toast('บันทึกการตั้งค่าเรียบร้อยแล้ว','success',3000);
-  });
-  els.btnKeyClear.addEventListener('click', ()=>{
-    localStorage.removeItem(LS_API);
-    els.apiKeyInput.value='';
-    renderKeyStatus();
-    toast('ล้างคีย์ Google Maps แล้ว','info');
-  });
-
   initMobileScrollSpy();
 
   if('serviceWorker' in navigator){
@@ -2058,7 +2008,6 @@ function bindEvents(){
 /* ---------- เริ่มต้นการทำงาน ---------- */
 (function boot(){
   bindEvents();
-  renderKeyStatus();
   loadThaiDistricts();
   const saved=localStorage.getItem(LS_PLACE);
   if(saved){
