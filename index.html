@@ -460,13 +460,13 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- หน้าต่างตั้งค่า WeatherAPI.com Key, Google API Key & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
+<!-- หน้าต่างตั้งค่าระบบ & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
 <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-end sm:grid sm:place-items-center sm:p-4">
   <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" data-close></div>
   <div class="glass-strong relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 sheet-up max-h-[90dvh] overflow-y-auto nice-scroll pb-[max(1.25rem,env(safe-area-inset-bottom))]">
     <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 sm:hidden"></div>
     <div class="flex items-center justify-between">
-      <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าคีย์พยากรณ์อากาศ & ดาวน์โหลดแอป</h2>
+      <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
       <button id="btnModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition"></button>
     </div>
 
@@ -481,25 +481,23 @@ tailwind.config = {
       </a>
     </div>
 
-    <!-- คีย์ที่ 1: WeatherAPI.com Key (ตั้งค่าเริ่มต้นให้พร้อมใช้งานทันที) -->
-    <div class="mt-4">
+    <!-- แสดงสถานะคีย์พยากรณ์อากาศที่ฝังในระบบแล้ว -->
+    <div class="mt-3.5 glass-in rounded-2xl p-3.5 border border-emerald-400/25">
       <div class="flex items-center justify-between">
-        <label class="text-xs text-emerald-300 font-semibold">1. WeatherAPI.com Key (พยากรณ์อากาศสดความแม่นยำสูง)</label>
-        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 border border-emerald-300/30">เปิดใช้งานแล้ว</span>
+        <p class="text-xs font-semibold text-emerald-300 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>ระบบพยากรณ์อากาศ: WeatherAPI.com + ECMWF</span>
+        </p>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 border border-emerald-300/30">ฝังคีย์ในระบบแล้ว</span>
       </div>
-      <div class="mt-1.5 relative">
-        <input id="wapiKeyInput" type="text" autocomplete="off" spellcheck="false"
-          class="glass-in w-full rounded-xl pl-3.5 pr-3.5 py-2.5 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-emerald-300/40 font-mono"
-          placeholder="วางคีย์ WeatherAPI.com ที่นี่…">
-      </div>
-      <p class="mt-1.5 text-[11px] text-white/60 leading-relaxed">
-        ผสานข้อมูลสถานีตรวจวัดสด โอกาสเกิดฝนเขตร้อนรายชั่วโมง และค่าฝุ่น PM2.5 จาก <b class="text-white/85">WeatherAPI.com</b> เข้ากับโมเดล <b class="text-white/85">ECMWF (Open-Meteo)</b>
+      <p class="mt-1.5 text-[11px] text-white/65 leading-relaxed">
+        เชื่อมต่อคีย์ <b class="text-white/90">WeatherAPI.com</b> ถาวรในโค้ด ผสานกับโมเดล <b class="text-white/90">ECMWF (Open-Meteo)</b> และ <b class="text-white/90">GloFAS</b> โดยอัตโนมัติทุกอุปกรณ์ ไม่ต้องตั้งค่าเพิ่ม
       </p>
     </div>
 
-    <!-- คีย์ที่ 2: Google Maps Platform API Key (ทางเลือก) -->
+    <!-- คีย์ทางเลือกเสริม: Google Maps Platform API Key -->
     <div class="mt-4 pt-3.5 border-t border-white/10">
-      <label class="block text-xs text-white/75 font-medium">2. Google Maps Platform API Key (ทางเลือกเสริม)</label>
+      <label class="block text-xs text-white/75 font-medium">Google Maps Platform API Key (ทางเลือกเสริม)</label>
       <div class="mt-1.5 relative">
         <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
           class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
@@ -509,14 +507,13 @@ tailwind.config = {
       </div>
     </div>
 
-    <div class="mt-3.5 flex flex-col gap-1.5 text-[11px] text-white/75">
-      <span id="wapiStatus" class="flex items-center gap-2"></span>
+    <div class="mt-3 flex flex-col gap-1.5 text-[11px] text-white/75">
       <span id="keyStatus" class="flex items-center gap-2"></span>
     </div>
 
     <div class="mt-4 flex gap-2.5">
-      <button id="btnKeySave" class="flex-1 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold py-2.5 hover:bg-amber-300 transition">บันทึกการตั้งค่า</button>
-      <button id="btnKeyClear" class="rounded-xl glass-in text-xs sm:text-sm px-3.5 py-2.5 hover:bg-white/15 transition">คืนค่าเริ่มต้น</button>
+      <button id="btnKeySave" class="flex-1 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold py-2.5 hover:bg-amber-300 transition">บันทึกคีย์</button>
+      <button id="btnKeyClear" class="rounded-xl glass-in text-xs sm:text-sm px-3.5 py-2.5 hover:bg-white/15 transition">ล้างค่า</button>
     </div>
   </div>
 </div>
@@ -530,10 +527,9 @@ tailwind.config = {
 <script>
 'use strict';
 
-/* ---------- ค่าคงที่และตัวช่วยพื้นฐาน ---------- */
+/* ---------- ค่าคงที่และตัวช่วยพื้นฐาน (ฝังคีย์ WeatherAPI.com ถาวรในระบบ) ---------- */
+const WAPI_KEY = '859b56d0bda84487a9f131237262709';
 const LS_API = 'mekhaGoogleKey';
-const LS_WAPI = 'mekhaWeatherApiKey';
-const DEFAULT_WAPI_KEY = '859b56d0bda84487a9f131237262709';
 const LS_PLACE = 'mekhaLastPlace';
 const LS_DIST_COORDS = 'mekhaDistCoords';
 const DEFAULT_PLACE = { name:'กรุงเทพมหานคร', district:'พระนคร', province:'กรุงเทพมหานคร', admin:'เขตพระนคร · กรุงเทพมหานคร', lat:13.7563, lon:100.5018 };
@@ -550,7 +546,7 @@ const els = {
   searchIcon:$('#searchIcon'), btnSearchClear:$('#btnSearchClear'), searchResults:$('#searchResults'),
   btnOpenMapTop:$('#btnOpenMapTop'), mapTopIcon:$('#mapTopIcon'), btnQuickPinHero:$('#btnQuickPinHero'),
   btnLocate:$('#btnLocate'), btnSettings:$('#btnSettings'), apkIcon:$('#apkIcon'),
-  settingsModal:$('#settingsModal'), wapiKeyInput:$('#wapiKeyInput'), wapiStatus:$('#wapiStatus'),
+  settingsModal:$('#settingsModal'),
   apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
   keyStatus:$('#keyStatus'), btnKeySave:$('#btnKeySave'), btnKeyClear:$('#btnKeyClear'),
   btnModalClose:$('#btnModalClose'), keyIcon:$('#keyIcon'),
@@ -782,10 +778,7 @@ async function jget(url, ms=9000){
   } finally{ clearTimeout(t); }
 }
 const getKey = () => localStorage.getItem(LS_API) || '';
-const getWapiKey = () => {
-  const saved = localStorage.getItem(LS_WAPI);
-  return (saved !== null ? saved : DEFAULT_WAPI_KEY).trim();
-};
+const getWapiKey = () => WAPI_KEY;
 
 function forecastUrl(lat,lon){
   return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&forecast_days=8`
@@ -1811,15 +1804,7 @@ function toast(msg, type='info', ms=2800){
 
 /* ---------- หน้าต่างตั้งค่าและ LocalStorage ---------- */
 function renderKeyStatus(){
-  const wk = getWapiKey();
-  if(els.wapiStatus){
-    els.wapiStatus.innerHTML = wk
-      ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> WeatherAPI.com เชื่อมต่อแล้ว · ลงท้ายด้วย “…${wk.slice(-6)}”`
-      : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> ปิดใช้งาน WeatherAPI.com — ใช้เฉพาะ Open-Meteo`;
-  }
-  if(els.wapiBadge){
-    els.wapiBadge.classList.toggle('hidden', !wk);
-  }
+  if(els.wapiBadge) els.wapiBadge.classList.remove('hidden');
   const k=getKey();
   els.keyStatus.innerHTML = k
     ? `<span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span> Google Maps API บันทึกแล้ว · ลงท้ายด้วย “…${k.slice(-4)}”`
@@ -1827,7 +1812,6 @@ function renderKeyStatus(){
   els.modeBadge.classList.toggle('hidden', !k);
 }
 const openModal=()=>{
-  if(els.wapiKeyInput) els.wapiKeyInput.value=getWapiKey();
   els.apiKeyInput.value=getKey();
   renderKeyStatus();
   els.settingsModal.classList.remove('hidden');
@@ -2034,23 +2018,17 @@ function bindEvents(){
     els.toggleKey.innerHTML=uiIcon(show?'eyeOff':'eye','w-4 h-4');
   });
   els.btnKeySave.addEventListener('click', ()=>{
-    const wk = els.wapiKeyInput ? els.wapiKeyInput.value.trim() : DEFAULT_WAPI_KEY;
-    localStorage.setItem(LS_WAPI, wk);
     const k=els.apiKeyInput.value.trim();
     if(k) localStorage.setItem(LS_API, k);
     else localStorage.removeItem(LS_API);
     renderKeyStatus(); closeModal();
-    if(state.place) loadWeather(state.place);
-    toast('บันทึกคีย์พยากรณ์อากาศเรียบร้อยแล้ว','success',3200);
+    toast('บันทึกการตั้งค่าเรียบร้อยแล้ว','success',3000);
   });
   els.btnKeyClear.addEventListener('click', ()=>{
-    localStorage.removeItem(LS_WAPI);
     localStorage.removeItem(LS_API);
-    if(els.wapiKeyInput) els.wapiKeyInput.value=DEFAULT_WAPI_KEY;
     els.apiKeyInput.value='';
     renderKeyStatus();
-    if(state.place) loadWeather(state.place);
-    toast('คืนค่าคีย์เริ่มต้น (WeatherAPI.com + ECMWF) เรียบร้อยแล้ว','info');
+    toast('ล้างคีย์ Google Maps แล้ว','info');
   });
 
   initMobileScrollSpy();
