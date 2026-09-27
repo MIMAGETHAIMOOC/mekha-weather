@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 <meta name="theme-color" content="#0b111d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -22,7 +22,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <!-- ============================================================
-     ส่วนที่ 2: รูปแบบดีไซน์ (Tailwind CSS + สไตล์เสริม)
+     ส่วนที่ 2: รูปแบบดีไซน์ (Tailwind CSS + สไตล์เสริมรองรับ 60/120fps บนมือถือ)
      ============================================================ -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -34,43 +34,51 @@ tailwind.config = {
 };
 </script>
 <style>
-  :root{ --glass: rgba(10,16,28,.38); --glass-brd: rgba(255,255,255,.16); }
-  html{ scroll-behavior:smooth; }
-  body{ min-height:100dvh; }
+  :root{ --glass: rgba(10,16,28,.42); --glass-brd: rgba(255,255,255,.15); }
+  html{ scroll-behavior:smooth; -webkit-tap-highlight-color:transparent; }
+  body{ min-height:100dvh; overscroll-behavior-y:none; }
   ::selection{ background:rgba(255,209,102,.35); }
 
-  /* พื้นหลังท้องฟ้าสองชั้น ไว้ทำการเฟดข้ามระหว่างเฉด */
-  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.2s ease; }
+  /* พื้นหลังท้องฟ้าสองชั้น เร่งความเร็วด้วย GPU (Hardware Acceleration) */
+  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.1s ease; will-change:opacity; transform:translateZ(0); }
   .tint{ position:fixed; inset:0; z-index:-2; pointer-events:none;
          background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.09), transparent 55%); }
-  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; transform:translateZ(0); }
 
-  /* กระจกฝ้า */
-  .glass{ background:var(--glass); backdrop-filter:blur(22px) saturate(150%);
-          -webkit-backdrop-filter:blur(22px) saturate(150%);
+  /* กระจกฝ้า: ปรับลดภาระ GPU บนจอมือถือให้เลื่อนลื่นไหล 60/120Hz */
+  .glass{ background:var(--glass); backdrop-filter:blur(20px) saturate(145%);
+          -webkit-backdrop-filter:blur(20px) saturate(145%);
           border:1px solid var(--glass-brd);
-          box-shadow:0 12px 36px rgba(2,6,18,.25), inset 0 1px 0 rgba(255,255,255,.10); }
-  .glass-strong{ background:rgba(11,17,29,.94); backdrop-filter:blur(26px);
-                 -webkit-backdrop-filter:blur(26px); border:1px solid rgba(255,255,255,.15); }
+          box-shadow:0 10px 30px rgba(2,6,18,.22), inset 0 1px 0 rgba(255,255,255,.10);
+          transform:translateZ(0); }
+  @media (max-width: 768px){
+    .glass{ backdrop-filter:blur(12px) saturate(130%); -webkit-backdrop-filter:blur(12px) saturate(130%);
+            box-shadow:0 6px 20px rgba(2,6,18,.20), inset 0 1px 0 rgba(255,255,255,.09); }
+  }
+  .glass-strong{ background:rgba(11,17,29,.95); backdrop-filter:blur(22px);
+                 -webkit-backdrop-filter:blur(22px); border:1px solid rgba(255,255,255,.15); }
   .glass-in{ background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); }
   .card-title{ font-size:.82rem; letter-spacing:.04em; color:rgba(255,255,255,.68); font-weight:600; }
+
+  /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header */
+  article[id^="sec"]{ scroll-margin-top: 76px; }
 
   /* อนุภาคบรรยากาศบนพื้นหลัง */
   .star{ position:absolute; border-radius:9999px; background:#fff; animation:twinkle var(--d) ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.12} 50%{opacity:.9} }
-  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px;
+  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px; will-change:transform;
              background:linear-gradient(180deg, transparent, rgba(255,255,255,.55));
              animation:rainFall linear infinite; }
-  @keyframes rainFall{ to{ transform:translateY(125vh); } }
-  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85);
+  @keyframes rainFall{ to{ transform:translate3d(0,125vh,0); } }
+  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85); will-change:transform;
           animation:snowFall linear infinite; }
-  @keyframes snowFall{ to{ transform:translateY(115vh) translateX(5vw); } }
+  @keyframes snowFall{ to{ transform:translate3d(5vw,115vh,0); } }
   .fogband{ position:absolute; height:80px; border-radius:9999px; background:rgba(255,255,255,.10);
-            filter:blur(30px); animation:fogMove ease-in-out infinite alternate; }
-  @keyframes fogMove{ from{transform:translateX(-6%)} to{transform:translateX(6%)} }
-  .puff{ position:absolute; background:rgba(255,255,255,.09); filter:blur(20px);
+            filter:blur(26px); animation:fogMove ease-in-out infinite alternate; }
+  @keyframes fogMove{ from{transform:translate3d(-6%,0,0)} to{transform:translate3d(6%,0,0)} }
+  .puff{ position:absolute; background:rgba(255,255,255,.09); filter:blur(18px);
          border-radius:50%; animation:drift linear infinite; }
-  @keyframes drift{ from{ transform:translateX(-35vw); } to{ transform:translateX(120vw); } }
+  @keyframes drift{ from{ transform:translate3d(-35vw,0,0); } to{ transform:translate3d(120vw,0,0); } }
 
   /* แอนิเมชันไอคอนสภาพอากาศ */
   .rays{ animation:spinSlow 44s linear infinite; }
@@ -84,36 +92,46 @@ tailwind.config = {
   .flood-pulse{ animation:floodPulse 2.4s ease-in-out infinite; }
   @keyframes floodPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(214,69,69,.40);} 50%{ box-shadow:0 0 0 7px rgba(214,69,69,0);} }
 
-  /* ประสิทธิภาพและรายละเอียดเล็ก ๆ */
-  .rise{ animation:fadeUp .6s cubic-bezier(.2,.7,.3,1) both; }
-  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
-  .nice-scroll::-webkit-scrollbar{ height:6px; width:6px; }
+  /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App */
+  .rise{ animation:fadeUp .5s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes fadeUp{ from{opacity:0; transform:translate3d(0,12px,0)} to{opacity:1; transform:none} }
+  .sheet-up{ animation:sheetUp .36s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes sheetUp{ from{opacity:0; transform:translate3d(0,28px,0)} to{opacity:1; transform:none} }
+
+  .nice-scroll{ -webkit-overflow-scrolling:touch; scroll-behavior:smooth; }
+  .nice-scroll::-webkit-scrollbar{ height:4px; width:4px; }
   .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.22); border-radius:99px; }
   .nice-scroll::-webkit-scrollbar-track{ background:transparent; }
-  input::placeholder{ color:rgba(255,255,255,.4); }
+  @media (max-width: 640px){
+    .nice-scroll::-webkit-scrollbar{ display:none; }
+    .nice-scroll{ scrollbar-width:none; }
+  }
+  input::placeholder{ color:rgba(255,255,255,.42); }
   select option{ background:#0f172a; color:#fff; }
-  button:active{ transform:scale(.96); }
-  .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; }
+  button, a{ transition:transform .15s cubic-bezier(.22,1,.36,1), background-color .2s ease, opacity .2s ease; }
+  button:active, a:active{ transform:scale(.95); }
+  .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; touch-action:none; }
 </style>
 </head>
 
 <!-- ============================================================
-     ส่วนที่ 1: โครงสร้าง HTML
+     ส่วนที่ 1: โครงสร้าง HTML (ปรับลำดับการ์ดอัตโนมัติสำหรับจอมือถือ + Bottom Bar)
      ============================================================ -->
-<body class="font-sans text-white antialiased overflow-x-hidden">
+<body class="font-sans text-white antialiased overflow-x-hidden pb-24 lg:pb-6">
 
 <div id="bgA" style="opacity:1"></div><div id="bgB" style="opacity:0"></div>
 <div class="tint"></div>
 <div id="skyLayer" aria-hidden="true"></div>
 
-<!-- แถบด้านบน: ชิดขอบบนพร้อมฉากกั้นเบลอป้องกันเนื้อหาด้านล่างแลบทะลุเวลาเลื่อนจอ -->
-<header class="sticky top-0 z-40 bg-slate-950/35 backdrop-blur-xl border-b border-white/10">
-  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
-    <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
-      <div class="flex items-center gap-2.5 mr-auto min-w-0">
-        <img src="icon-192.png" alt="เมฆา" class="w-9 h-9 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
+<!-- แถบด้านบน: กะทัดรัดเพียง 1 แถวบนจอมือถือ ไม่กินพื้นที่หน้าจอ -->
+<header class="sticky top-0 z-40 bg-slate-950/45 backdrop-blur-xl border-b border-white/10">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5">
+    <div class="flex items-center gap-2 sm:gap-3">
+      <!-- โลโก้และชื่อแอป -->
+      <div class="flex items-center gap-2 shrink-0">
+        <img src="icon-192.png" alt="เมฆา" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
              onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
-        <svg viewBox="0 0 40 40" class="hidden w-9 h-9 shrink-0" aria-hidden="true">
+        <svg viewBox="0 0 40 40" class="hidden w-8 h-8 sm:w-9 sm:h-9 shrink-0" aria-hidden="true">
           <circle cx="27" cy="13" r="5.4" fill="#ffd166"/>
           <g stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" opacity=".9">
             <line x1="27" y1="3.6" x2="27" y2="6"/><line x1="36.4" y1="13" x2="39" y2="13"/><line x1="33.8" y1="6.2" x2="35.6" y2="4.4"/>
@@ -121,82 +139,95 @@ tailwind.config = {
           <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
                 transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
         </svg>
-        <div class="min-w-0">
-          <p class="font-semibold leading-none tracking-wide text-[15px]">เมฆา</p>
-          <p class="text-[11px] text-white/60 leading-none mt-1">พยากรณ์อากาศส่วนตัว · MixImage</p>
+        <div class="hidden xs:block sm:block min-w-0">
+          <p class="font-semibold leading-none tracking-wide text-sm sm:text-[15px]">เมฆา</p>
+          <p class="hidden sm:block text-[11px] text-white/60 leading-none mt-1">พยากรณ์อากาศส่วนตัว · MixImage</p>
         </div>
-        <span id="modeBadge" class="hidden text-[10px] px-2 py-1 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-200 whitespace-nowrap">โหมด Google</span>
+        <span id="modeBadge" class="hidden sm:inline-block text-[10px] px-2 py-0.5 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-200 whitespace-nowrap">Google</span>
       </div>
 
-      <div class="relative order-last w-full sm:order-none sm:w-auto sm:flex-1 sm:max-w-md">
+      <!-- ช่องค้นหาตรงกลาง (อยู่แถวเดียวกับโลโก้ทั้งบนมือถือและคอมพิวเตอร์) -->
+      <div class="relative flex-1 max-w-md mx-auto">
         <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
-        <input id="searchInput" type="text" autocomplete="off"
-          class="glass-in w-full rounded-xl pl-9 pr-3 py-2 text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25 transition"
-          placeholder="ค้นหาตำบล อำเภอ หรือจังหวัด…">
-        <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50"></div>
+        <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
+          class="glass-in w-full rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-amber-300/40 transition"
+          placeholder="ค้นหาตำบล อำเภอ จังหวัด…">
+        <button id="btnSearchClear" type="button" aria-label="ล้างคำค้นหา"
+          class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/50 hover:text-white grid place-items-center"></button>
+        <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50 shadow-2xl max-h-[65dvh] overflow-y-auto nice-scroll"></div>
       </div>
 
-      <button id="btnOpenMapTop" title="ปักหมุดเลือกพื้นที่อำเภอของตัวเองบนแผนที่"
-        class="h-9 px-3 rounded-xl glass-in flex items-center gap-1.5 text-xs font-medium text-amber-200 hover:bg-white/15 transition shrink-0">
-        <span id="mapTopIcon"></span>
-        <span class="hidden md:inline">ปักหมุดอำเภอ</span>
-      </button>
-      <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
-        class="h-9 px-3 rounded-xl glass-in flex items-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
-        <span id="apkIcon"></span>
-        <span class="hidden md:inline">โหลดแอป .APK</span>
-      </a>
-      <button id="btnLocate" title="ใช้ตำแหน่ง GPS ปัจจุบัน"
-        class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
-      <button id="btnSettings" title="ตั้งค่าระบบ"
-        class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+      <!-- ปุ่มควบคุมมุมขวาบน -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button id="btnOpenMapTop" title="ปักหมุดเลือกพื้นที่อำเภอของตัวเองบนแผนที่"
+          class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-amber-200 hover:bg-white/15 transition shrink-0">
+          <span id="mapTopIcon"></span>
+          <span class="hidden md:inline">ปักหมุดอำเภอ</span>
+        </button>
+        <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
+          class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
+          <span id="apkIcon"></span>
+          <span class="hidden md:inline">โหลดแอป .APK</span>
+        </a>
+        <button id="btnLocate" title="ใช้ตำแหน่ง GPS ปัจจุบัน"
+          class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+        <button id="btnSettings" title="ตั้งค่าระบบและดาวน์โหลดแอป"
+          class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+      </div>
     </div>
   </div>
 </header>
 
-<main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-10 pt-4">
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+<main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-8 pt-3 sm:pt-4">
+  <!-- ใช้ contents บนมือถือเพื่อเรียงลำดับการ์ดให้เหมาะกับการไถนิ้วบนมือถือโดยเฉพาะ และแยก 2 คอลัมน์สมดุลบนจอใหญ่ -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
 
     <!-- ============================================================
-         คอลัมน์ซ้าย (4 ส่วน): การ์ดหลัก · เตือนภัยน้ำท่วมรายอำเภอ · ฝุ่น PM2.5 · เส้นทางดวงอาทิตย์
+         คอลัมน์ซ้ายบนจอคอม (4 ส่วน): การ์ดหลัก · เตือนภัยน้ำท่วม · ฝุ่น PM2.5 · เส้นทางดวงอาทิตย์
          ============================================================ -->
-    <section class="lg:col-span-4 flex flex-col gap-4">
+    <section class="contents lg:col-span-4 lg:flex lg:flex-col lg:gap-4">
 
-      <!-- 1. การ์ดสภาพอากาศหลัก -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise">
-        <div class="flex items-start justify-between gap-3">
+      <!-- ลำดับมือถือ 1: การ์ดสภาพอากาศหลัก -->
+      <article id="secWeather" class="order-1 lg:order-none glass rounded-3xl p-4 sm:p-6 rise">
+        <div class="flex items-start justify-between gap-2.5">
           <div class="min-w-0">
-            <div class="flex items-center gap-1.5 text-white/90 min-w-0">
-              <span id="pinIcon" class="shrink-0"></span>
-              <h1 id="placeName" class="text-lg font-semibold truncate">กำลังโหลด…</h1>
+            <div class="flex items-center gap-1.5 text-white/95 min-w-0">
+              <span id="pinIcon" class="shrink-0 text-amber-300"></span>
+              <h1 id="placeName" class="text-lg sm:text-xl font-semibold truncate">กำลังโหลด…</h1>
             </div>
-            <p id="placeMeta" class="text-xs text-white/60 mt-0.5 leading-snug">—</p>
+            <p id="placeMeta" class="text-xs text-white/65 mt-0.5 leading-snug">—</p>
           </div>
-          <button id="btnRefresh" title="ดึงข้อมูลล่าสุด"
-            class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <button id="btnQuickPinHero" title="เปลี่ยนอำเภอหรือปักหมุดใหม่"
+              class="lg:hidden h-8 px-2.5 rounded-xl glass-in text-[11px] text-amber-200 font-medium flex items-center gap-1">
+              <span>ปักหมุด</span>
+            </button>
+            <button id="btnRefresh" title="ดึงข้อมูลล่าสุด"
+              class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+          </div>
         </div>
-        <p id="clockLine" class="mt-1.5 text-xs text-white/55">—</p>
+        <p id="clockLine" class="mt-1 text-xs text-white/55">—</p>
 
-        <div class="mt-5 flex items-center gap-5 sm:gap-7">
-          <div id="bigIcon" class="w-24 h-24 sm:w-28 sm:h-28 shrink-0"></div>
+        <div class="mt-4 sm:mt-5 flex items-center gap-4 sm:gap-6">
+          <div id="bigIcon" class="w-20 h-20 sm:w-28 sm:h-28 shrink-0"></div>
           <div class="min-w-0">
             <div class="flex items-start">
-              <span id="bigTemp" class="text-[5.2rem] sm:text-[6.2rem] leading-[.95] font-extralight tracking-tighter">--</span>
-              <span class="text-2xl font-light text-white/75 mt-2 ml-1">°C</span>
+              <span id="bigTemp" class="text-[4.5rem] sm:text-[6rem] leading-[.92] font-extralight tracking-tighter">--</span>
+              <span class="text-xl sm:text-2xl font-light text-white/75 mt-1.5 ml-1">°C</span>
             </div>
-            <p id="skyText" class="mt-1.5 text-base sm:text-lg text-white/90 font-medium">กำลังโหลดข้อมูล…</p>
+            <p id="skyText" class="mt-1 text-base sm:text-lg text-white/95 font-medium">กำลังโหลดข้อมูล…</p>
           </div>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
-          <span class="flex items-center gap-1.5 text-white/70" id="hiWrap">สูงสุด <b id="hiTemp" class="text-white font-semibold">--</b></span>
-          <span class="flex items-center gap-1.5 text-white/70" id="loWrap">ต่ำสุด <b id="loTemp" class="text-white font-semibold">--</b></span>
-          <span class="text-white/70">โอกาสฝนวันนี้ <b id="popToday" class="text-sky-200 font-semibold">--</b></span>
+        <div class="mt-4 sm:mt-5 flex flex-wrap items-center gap-x-4 sm:gap-x-5 gap-y-1.5 text-xs sm:text-sm">
+          <span class="flex items-center gap-1 text-white/75" id="hiWrap">สูงสุด <b id="hiTemp" class="text-white font-semibold">--</b></span>
+          <span class="flex items-center gap-1 text-white/75" id="loWrap">ต่ำสุด <b id="loTemp" class="text-white font-semibold">--</b></span>
+          <span class="text-white/75">โอกาสฝนวันนี้ <b id="popToday" class="text-sky-200 font-semibold">--</b></span>
         </div>
 
         <!-- กล่องสรุปสภาพอากาศและคำแนะนำประจำวัน -->
-        <div id="dailySummaryBox" class="mt-4 glass-in rounded-2xl p-3.5 text-xs text-white/85 leading-relaxed space-y-1">
+        <div id="dailySummaryBox" class="mt-3.5 sm:mt-4 glass-in rounded-2xl p-3 sm:p-3.5 text-xs text-white/85 leading-relaxed space-y-1">
           <p class="font-semibold text-amber-200/95 flex items-center gap-1.5">
             <span id="summaryIcon"></span>
             <span>สรุปสภาพอากาศและคำแนะนำวันนี้</span>
@@ -204,14 +235,14 @@ tailwind.config = {
           <p id="dailySummaryText" class="text-white/75">กำลังวิเคราะห์ข้อมูลสภาพอากาศในพื้นที่ของคุณ…</p>
         </div>
 
-        <p id="updatedAt" class="mt-3 text-[11px] text-white/40"></p>
+        <p id="updatedAt" class="mt-2.5 text-[11px] text-white/40"></p>
       </article>
 
-      <!-- 2. การ์ดเตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.06s">
+      <!-- ลำดับมือถือ 3: การ์ดเตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด -->
+      <article id="secFlood" class="order-3 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.06s">
         <div class="flex items-center justify-between gap-2">
           <h2 class="card-title">เตือนภัยน้ำท่วม · อำเภอที่ปักหมุด</h2>
-          <button id="btnFloodPinMap" class="text-[11px] px-2.5 py-1 rounded-lg glass-in text-amber-200 hover:bg-white/15 transition flex items-center gap-1 shrink-0">
+          <button id="btnFloodPinMap" class="text-[11px] px-2.5 py-1.5 rounded-xl glass-in text-amber-200 hover:bg-white/15 transition flex items-center gap-1 shrink-0 font-medium">
             <span id="floodPinBtnIcon"></span>
             <span>เลือกอำเภอ / ปักหมุด</span>
           </button>
@@ -231,19 +262,19 @@ tailwind.config = {
           </div>
 
           <div id="provinceDistrictWrap" class="mt-2.5 pt-2.5 border-t border-white/10 hidden">
-            <p id="provinceDistrictLabel" class="text-[11px] text-white/55 mb-1.5">สลับดูอำเภอในจังหวัดเดียวกัน:</p>
-            <div id="districtPills" class="flex gap-1.5 overflow-x-auto nice-scroll pb-1"></div>
+            <p id="provinceDistrictLabel" class="text-[11px] text-white/55 mb-1.5">แตะสลับดูอำเภอในจังหวัดเดียวกัน:</p>
+            <div id="districtPills" class="flex gap-1.5 overflow-x-auto nice-scroll pb-1" style="touch-action:pan-x"></div>
           </div>
         </div>
 
         <!-- สถานะความเสี่ยงรวมของอำเภอที่ปักหมุด -->
-        <div class="mt-3.5 flex items-center justify-between gap-2 min-w-0">
+        <div class="mt-3 flex items-center justify-between gap-2 min-w-0">
           <span id="floodBadge" class="text-xs font-medium px-2.5 py-1 rounded-full border border-white/15 bg-white/10 whitespace-nowrap">กำลังประเมิน…</span>
           <span id="floodNow" class="text-xs text-white/75 truncate text-right">—</span>
         </div>
 
         <!-- แยกประเมิน 2 มิติในเขตอำเภอ -->
-        <div class="mt-3 grid grid-cols-2 gap-2 text-xs">
+        <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
           <div class="glass-in rounded-xl p-2.5">
             <p class="text-[10px] text-white/55">ฝนสะสมในอำเภอ (น้ำท่วมขัง)</p>
             <p id="floodRainVal" class="text-sm font-semibold mt-0.5">—</p>
@@ -261,8 +292,8 @@ tailwind.config = {
         <p id="floodNote" class="mt-2 text-xs text-white/75 leading-relaxed">—</p>
       </article>
 
-      <!-- 3. การ์ดคุณภาพอากาศ PM2.5 -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.10s">
+      <!-- ลำดับมือถือ 6: การ์ดคุณภาพอากาศ PM2.5 -->
+      <article id="secPM" class="order-6 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.10s">
         <h2 class="card-title">คุณภาพอากาศ · ฝุ่นละออง PM2.5</h2>
         <div class="mt-3 flex items-end gap-2.5">
           <span id="pmValue" class="text-4xl font-light leading-none">--</span>
@@ -279,11 +310,11 @@ tailwind.config = {
         <p id="pmAdvice" class="mt-3 text-xs text-white/75 leading-relaxed">—</p>
       </article>
 
-      <!-- 4. การ์ดเส้นทางดวงอาทิตย์ (จัดวางฝั่งซ้ายให้สองคอลัมน์ยาวเท่ากันพอดี) -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.14s">
+      <!-- ลำดับมือถือ 7: การ์ดเส้นทางดวงอาทิตย์ -->
+      <article id="secSun" class="order-7 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.14s">
         <h2 class="card-title">เส้นทางดวงอาทิตย์และช่วงเวลาแสง</h2>
         <div class="mt-2">
-          <svg id="sunSvg" viewBox="0 0 260 112" class="w-full max-w-[290px] mx-auto block"></svg>
+          <svg id="sunSvg" viewBox="0 0 260 112" class="w-full max-w-[280px] mx-auto block"></svg>
           <div class="flex justify-between text-xs text-white/60 -mt-1 px-2">
             <span>ขึ้น <b id="sunriseTime" class="text-white/90 font-medium">--:--</b></span>
             <span>กลางวัน <b id="sunDayLength" class="text-amber-200 font-medium">—</b></span>
@@ -295,86 +326,116 @@ tailwind.config = {
     </section>
 
     <!-- ============================================================
-         คอลัมน์ขวา (8 ส่วน): รายชั่วโมง 24 ชม. · พยากรณ์ 7 วัน · รายละเอียดสภาพอากาศ (Bento Grid 2 คอลัมน์)
+         คอลัมน์ขวาบนจอคอม (8 ส่วน): รายชั่วโมง 24 ชม. · พยากรณ์ 7 วัน · รายละเอียดสภาพอากาศ
          ============================================================ -->
-    <section class="lg:col-span-8 flex flex-col gap-4">
+    <section class="contents lg:col-span-8 lg:flex lg:flex-col lg:gap-4">
 
-      <!-- 1. พยากรณ์รายชั่วโมง 24 ชม. -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.06s">
-        <div class="flex items-center justify-between gap-3">
-          <h2 class="card-title">พยากรณ์รายชั่วโมง · 24 ชั่วโมงข้างหน้า</h2>
-          <p class="text-[11px] text-white/45 whitespace-nowrap">แตะที่แต่ละชั่วโมงเพื่อดูรายละเอียด</p>
+      <!-- ลำดับมือถือ 2: พยากรณ์รายชั่วโมง 24 ชม. (อยู่ต่อจากการ์ดหลักทันทีบนมือถือ!) -->
+      <article id="secHourly" class="order-2 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.04s">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">พยากรณ์รายชั่วโมง · 24 ชม. ข้างหน้า</h2>
+          <p class="text-[11px] text-white/45 whitespace-nowrap">เลื่อนหรือแตะดูแต่ละชั่วโมง</p>
         </div>
-        <div class="mt-4 overflow-x-auto nice-scroll -mx-2 px-2">
+        <div class="mt-3.5 overflow-x-auto nice-scroll -mx-2 px-2" style="touch-action:pan-x">
           <div id="hourInner" class="relative cursor-pointer select-none">
-            <svg id="hourSvg" height="238" display="block"></svg>
-            <div id="hourCursor" class="hidden absolute w-px bg-white/50 transition-all duration-300" style="top:36px;height:168px"></div>
-            <div id="hourTip" class="hidden absolute top-0 glass-strong rounded-xl px-3.5 py-2.5 whitespace-nowrap z-10 transition-all duration-200 shadow-2xl" style="transform:translateX(-50%)"></div>
+            <svg id="hourSvg" height="232" display="block"></svg>
+            <div id="hourCursor" class="hidden absolute w-px bg-amber-300/70 transition-all duration-150 pointer-events-none" style="top:36px;height:164px"></div>
+            <div id="hourTip" class="hidden absolute top-0 glass-strong rounded-xl px-3 py-2 whitespace-nowrap z-10 transition-all duration-150 shadow-2xl pointer-events-none" style="transform:translateX(-50%)"></div>
           </div>
         </div>
       </article>
 
-      <!-- 2. พยากรณ์ล่วงหน้า 7 วัน -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.10s">
+      <!-- ลำดับมือถือ 4: พยากรณ์ล่วงหน้า 7 วัน -->
+      <article id="secDaily" class="order-4 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.08s">
         <div class="flex items-center justify-between gap-2">
           <h2 class="card-title">พยากรณ์ล่วงหน้า 7 วัน</h2>
-          <span class="text-[11px] text-white/45 hidden sm:inline">สภาพอากาศ · โอกาสและปริมาณฝน · ช่วงอุณหภูมิ</span>
+          <span class="text-[11px] text-white/45">โอกาสฝน · ปริมาณฝน · อุณหภูมิ</span>
         </div>
-        <div id="dailyList" class="mt-3"></div>
+        <div id="dailyList" class="mt-2.5 divide-y divide-white/10"></div>
       </article>
 
-      <!-- 3. รายละเอียดสภาพอากาศและคำอธิบาย (Bento Grid 2 คอลัมน์ กว้าง อ่านง่าย ไม่ซ้อนทับ) -->
-      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.14s">
+      <!-- ลำดับมือถือ 5: รายละเอียดสภาพอากาศและคำอธิบายเชิงลึก -->
+      <article id="secDetails" class="order-5 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.12s">
         <div class="flex items-center justify-between gap-2">
-          <h2 class="card-title">รายละเอียดสภาพอากาศและคำอธิบายเชิงลึก</h2>
-          <span class="text-[11px] text-white/45">วิเคราะห์จากสภาพอากาศปัจจุบัน</span>
+          <h2 class="card-title">รายละเอียดสภาพอากาศและคำอธิบาย</h2>
+          <span class="text-[11px] text-white/45">ข้อมูลปัจจุบัน</span>
         </div>
-        <div id="detailGrid" class="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        <div id="detailGrid" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3"></div>
       </article>
     </section>
   </div>
 
-  <footer class="mt-8 text-center text-[11px] text-white/40 leading-relaxed space-y-1">
+  <footer class="mt-6 sm:mt-8 text-center text-[11px] text-white/40 leading-relaxed space-y-1 px-2">
     <p>ข้อมูลพยากรณ์อากาศและคุณภาพอากาศจาก Open-Meteo · ระดับน้ำในแม่น้ำจากโมเดล GloFAS (Copernicus · ECMWF)</p>
-    <p>ค้นหาสถานที่ด้วย Google Geocoding API (เมื่อใส่คีย์) พร้อมบริการสำรองอัตโนมัติ · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub Repository</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
+    <p>ค้นหาสถานที่ด้วย Google Geocoding API (เมื่อใส่คีย์) พร้อมบริการสำรองอัตโนมัติ · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
   </footer>
 </main>
 
-<!-- หน้าต่างปักหมุดบนแผนที่ & เลือกจังหวัด/อำเภอของตัวเอง -->
-<div id="pinModal" class="hidden fixed inset-0 z-50 grid place-items-center p-3 sm:p-4">
+<!-- แถบเมนูนำทางด้านล่างสำหรับจอมือถือ (Mobile Bottom Navigation Bar) -->
+<nav id="mobileNav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/15 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))]">
+  <div class="grid grid-cols-5 items-center max-w-md mx-auto text-[10px]">
+    <button type="button" data-nav="secWeather" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-amber-300 font-medium">
+      <span id="navIconWeather"></span>
+      <span>หน้าหลัก</span>
+    </button>
+    <button type="button" data-nav="secFlood" class="nav-btn relative flex flex-col items-center gap-0.5 py-1 text-white/65">
+      <span id="navFloodDot" class="hidden absolute top-1 right-5 w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+      <span id="navIconFlood"></span>
+      <span>น้ำท่วม</span>
+    </button>
+    <button type="button" id="btnNavPin" class="flex flex-col items-center justify-center -mt-3">
+      <span class="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/25 grid place-items-center border-2 border-white/30">
+        <span id="navIconPin"></span>
+      </span>
+      <span class="text-[10px] font-semibold text-amber-200 mt-0.5">ปักหมุดอำเภอ</span>
+    </button>
+    <button type="button" data-nav="secDaily" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-white/65">
+      <span id="navIconDaily"></span>
+      <span>7 วัน</span>
+    </button>
+    <button type="button" data-nav="secDetails" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-white/65">
+      <span id="navIconDetails"></span>
+      <span>ข้อมูล/ฝุ่น</span>
+    </button>
+  </div>
+</nav>
+
+<!-- หน้าต่างปักหมุดบนแผนที่ & เลือกจังหวัด/อำเภอ (Bottom Sheet บนมือถือ / Modal บนคอม) -->
+<div id="pinModal" class="hidden fixed inset-0 z-50 flex items-end sm:grid sm:place-items-center sm:p-4">
   <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" data-close-pin></div>
-  <div class="glass-strong relative w-full max-w-xl rounded-3xl p-5 sm:p-6 rise max-h-[92dvh] overflow-y-auto nice-scroll">
+  <div class="glass-strong relative w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl p-4 sm:p-6 sheet-up max-h-[90dvh] overflow-y-auto nice-scroll pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+    <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 sm:hidden"></div>
     <div class="flex items-center justify-between gap-2">
       <div>
-        <h2 class="text-base sm:text-lg font-semibold">เลือกพื้นที่อำเภอ / ปักหมุดตำแหน่งของคุณ</h2>
-        <p class="text-xs text-white/60 mt-0.5">เลือกจังหวัดและอำเภอ หรือแตะปักหมุดบนแผนที่เพื่อดูพยากรณ์อากาศและเตือนภัยน้ำท่วมเฉพาะพื้นที่</p>
+        <h2 class="text-base sm:text-lg font-semibold">เลือกพื้นที่อำเภอ / ปักหมุดของคุณ</h2>
+        <p class="text-xs text-white/60 mt-0.5">เลือกจังหวัดและอำเภอ หรือแตะบนแผนที่เพื่อเฝ้าระวังน้ำท่วมและสภาพอากาศ</p>
       </div>
       <button id="btnPinModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
     </div>
 
     <!-- ตัวเลือกจังหวัด (77 จังหวัด) และอำเภอ (930 อำเภอ) -->
-    <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+    <div class="mt-3.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
       <div>
         <label class="block text-[11px] text-white/65 mb-1">1. เลือกจังหวัด</label>
-        <select id="selectProvince" class="glass-in w-full rounded-xl px-3 py-2.5 text-sm bg-slate-900/80 outline-none focus:ring-2 focus:ring-amber-300/40">
+        <select id="selectProvince" class="glass-in w-full rounded-xl px-3 py-2.5 text-sm bg-slate-900/85 outline-none focus:ring-2 focus:ring-amber-300/40">
           <option value="">— เลือกจังหวัด —</option>
         </select>
       </div>
       <div>
         <label class="block text-[11px] text-white/65 mb-1">2. เลือกอำเภอ / เขต</label>
-        <select id="selectDistrict" class="glass-in w-full rounded-xl px-3 py-2.5 text-sm bg-slate-900/80 outline-none focus:ring-2 focus:ring-amber-300/40">
+        <select id="selectDistrict" class="glass-in w-full rounded-xl px-3 py-2.5 text-sm bg-slate-900/85 outline-none focus:ring-2 focus:ring-amber-300/40">
           <option value="">— เลือกอำเภอ —</option>
         </select>
       </div>
     </div>
 
     <!-- แผนที่อินเทอร์แอคทีฟสำหรับจิ้มปักหมุดจุดที่ต้องการ -->
-    <div class="mt-4">
+    <div class="mt-3.5">
       <div class="flex items-center justify-between text-[11px] text-white/65 mb-1.5">
-        <span>หรือแตะ / ลากหมุดบนแผนที่เพื่อเลือกจุดพิกัดในอำเภอของคุณโดยตรง:</span>
-        <button id="btnMapMyGps" class="text-amber-300 hover:underline font-medium">เลื่อนไปพิกัด GPS ของฉัน</button>
+        <span>แตะหรือลากหมุดบนแผนที่เพื่อเลือกจุดพิกัดโดยตรง:</span>
+        <button id="btnMapMyGps" class="text-amber-300 hover:underline font-medium">ใช้พิกัด GPS ของฉัน</button>
       </div>
-      <div id="pinMapContainer" class="w-full h-64 sm:h-72 rounded-2xl overflow-hidden border border-white/15"></div>
+      <div id="pinMapContainer" class="w-full h-56 sm:h-72 rounded-2xl overflow-hidden border border-white/15"></div>
     </div>
 
     <!-- แสดงรายละเอียดของหมุดที่เลือก -->
@@ -384,19 +445,20 @@ tailwind.config = {
         <p id="pinPreviewTitle" class="text-sm font-semibold text-amber-200 truncate mt-0.5">—</p>
         <p id="pinPreviewSub" class="text-[11px] text-white/60 truncate">—</p>
       </div>
-      <button id="btnConfirmPin" class="px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 transition shrink-0">
+      <button id="btnConfirmPin" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300 transition shrink-0">
         ยืนยันใช้พื้นที่นี้
       </button>
     </div>
   </div>
 </div>
 
-<!-- หน้าต่างตั้งค่า Google API Key -->
-<div id="settingsModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
+<!-- หน้าต่างตั้งค่า Google API Key & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
+<div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-end sm:grid sm:place-items-center sm:p-4">
   <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" data-close></div>
-  <div class="glass-strong relative w-full max-w-md rounded-3xl p-6 rise">
+  <div class="glass-strong relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 sheet-up pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+    <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 sm:hidden"></div>
     <div class="flex items-center justify-between">
-      <h2 class="text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
+      <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
       <button id="btnModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition"></button>
     </div>
 
@@ -411,7 +473,7 @@ tailwind.config = {
       </a>
     </div>
 
-    <label class="block mt-5 text-xs text-white/70 font-medium">Google Maps Platform API Key (ทางเลือก)</label>
+    <label class="block mt-4 text-xs text-white/70 font-medium">Google Maps Platform API Key (ทางเลือก)</label>
     <div class="mt-2 relative">
       <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
         class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
@@ -420,25 +482,24 @@ tailwind.config = {
       <button id="toggleKey" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-white/60 hover:text-white transition"></button>
     </div>
 
-    <p class="mt-3 text-[11px] text-white/55 leading-relaxed">
-      คีย์นี้ใช้เรียก <b class="text-white/80">Google Geocoding API</b> เพื่อค้นหาและแปลงชื่อสถานที่เป็นภาษาไทยอย่างแม่นยำระดับตำบล/หมู่บ้าน
-      ระบบบันทึกคีย์ไว้ในเบราว์เซอร์ของคุณเท่านั้น (LocalStorage) ไม่มีการส่งไปยังเซิร์ฟเวอร์อื่น
+    <p class="mt-2.5 text-[11px] text-white/55 leading-relaxed">
+      คีย์นี้ใช้เรียก <b class="text-white/80">Google Geocoding API</b> เพื่อค้นหาและแปลงชื่อสถานที่เป็นภาษาไทยระดับตำบล/หมู่บ้าน
       หากไม่กรอกคีย์ ระบบจะใช้บริการค้นหาสำรองของ OpenStreetMap และ Open-Meteo ให้อัตโนมัติ
     </p>
 
-    <div class="mt-4 flex items-center gap-2 text-[11px] text-white/70">
+    <div class="mt-3.5 flex items-center gap-2 text-[11px] text-white/70">
       <span id="keyStatus" class="flex items-center gap-2"></span>
     </div>
 
-    <div class="mt-5 flex gap-2.5">
+    <div class="mt-4 flex gap-2.5">
       <button id="btnKeySave" class="flex-1 rounded-xl bg-white text-slate-900 text-sm font-semibold py-2.5 hover:bg-white/90 transition">บันทึกคีย์</button>
       <button id="btnKeyClear" class="rounded-xl glass-in text-sm px-4 py-2.5 hover:bg-white/15 transition">ล้างค่า</button>
     </div>
   </div>
 </div>
 
-<!-- กล่องข้อความแจ้งเตือน -->
-<div id="toasts" class="fixed bottom-4 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+<!-- กล่องข้อความแจ้งเตือน (อยู่เหนือแถบเมนูด้านล่างบนมือถือ) -->
+<div id="toasts" class="fixed bottom-20 lg:bottom-5 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
 
 <!-- ============================================================
      ส่วนที่ 3: ระบบการทำงาน (Vanilla JavaScript)
@@ -447,20 +508,21 @@ tailwind.config = {
 'use strict';
 
 /* ---------- ค่าคงที่และตัวช่วยพื้นฐาน ---------- */
-const LS_API = 'mekhaGoogleKey';        // ชื่อคีย์บันทึก API Key ใน LocalStorage
-const LS_PLACE = 'mekhaLastPlace';      // สถานที่ล่าสุด เพื่อเปิดครั้งต่อไปได้ทันที
-const LS_DIST_COORDS = 'mekhaDistCoords'; // แคชพิกัดอำเภอที่เคยค้นหาแล้ว
+const LS_API = 'mekhaGoogleKey';
+const LS_PLACE = 'mekhaLastPlace';
+const LS_DIST_COORDS = 'mekhaDistCoords';
 const DEFAULT_PLACE = { name:'กรุงเทพมหานคร', district:'พระนคร', province:'กรุงเทพมหานคร', admin:'เขตพระนคร · กรุงเทพมหานคร', lat:13.7563, lon:100.5018 };
-const AUTO_REFRESH_MS = 15 * 60 * 1000; // อัปเดตข้อมูลสภาพอากาศอัตโนมัติทุก 15 นาที
+const AUTO_REFRESH_MS = 15 * 60 * 1000;
 const $ = s => document.querySelector(s);
 const clamp = (v,a,b) => Math.min(Math.max(v,a),b);
 const nv = (v,d='—') => (v===null||v===undefined||Number.isNaN(v)) ? d : v;
+const isMobile = () => window.innerWidth < 768;
 
 const els = {
   bgA:$('#bgA'), bgB:$('#bgB'), skyLayer:$('#skyLayer'),
   modeBadge:$('#modeBadge'), searchInput:$('#searchInput'), searchSpin:$('#searchSpin'),
-  searchIcon:$('#searchIcon'), searchResults:$('#searchResults'),
-  btnOpenMapTop:$('#btnOpenMapTop'), mapTopIcon:$('#mapTopIcon'),
+  searchIcon:$('#searchIcon'), btnSearchClear:$('#btnSearchClear'), searchResults:$('#searchResults'),
+  btnOpenMapTop:$('#btnOpenMapTop'), mapTopIcon:$('#mapTopIcon'), btnQuickPinHero:$('#btnQuickPinHero'),
   btnLocate:$('#btnLocate'), btnSettings:$('#btnSettings'), apkIcon:$('#apkIcon'),
   settingsModal:$('#settingsModal'), apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
   keyStatus:$('#keyStatus'), btnKeySave:$('#btnKeySave'), btnKeyClear:$('#btnKeyClear'),
@@ -488,6 +550,9 @@ const els = {
   dailyList:$('#dailyList'),
   sunSvg:$('#sunSvg'), sunriseTime:$('#sunriseTime'), sunsetTime:$('#sunsetTime'),
   sunDayLength:$('#sunDayLength'), sunStatus:$('#sunStatus'),
+  mobileNav:$('#mobileNav'), btnNavPin:$('#btnNavPin'), navFloodDot:$('#navFloodDot'),
+  navIconWeather:$('#navIconWeather'), navIconFlood:$('#navIconFlood'),
+  navIconPin:$('#navIconPin'), navIconDaily:$('#navIconDaily'), navIconDetails:$('#navIconDetails'),
   toasts:$('#toasts'),
 };
 
@@ -543,7 +608,7 @@ const PM_LEVELS = [
 ];
 const pmLevelOf = v => PM_LEVELS.find(l => v<=l.max) || PM_LEVELS[4];
 
-/* ---------- ชุดไอคอนเวกเตอร์ (SVG เขียนในไฟล์ ไม่พึ่งรูปภายนอก) ---------- */
+/* ---------- ชุดไอคอนเวกเตอร์ ---------- */
 const UI = {
   search:'<circle cx="11" cy="11" r="7"/><path d="m20.2 20.2-4-4"/>',
   locate:'<circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
@@ -570,11 +635,13 @@ const UI = {
   download:'<path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
   sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/>',
   mapPin:'<path d="M12 21s-6-5.2-6-9.6a6 6 0 1 1 12 0C18 15.8 12 21 12 21Z"/><circle cx="12" cy="11" r="2.2"/>',
+  waves:'<path d="M2 8c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M2 13c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/><path d="M2 18c2-1.5 4-1.5 6 0s4 1.5 6 0 4-1.5 6 0"/>',
+  calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/>',
 };
 const uiIcon = (n, cls='w-4 h-4') =>
   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="${cls}">${UI[n]||''}</svg>`;
 
-/* ---------- ไอคอนสภาพอากาศเวกเตอร์ (มีแอนิเมชันในตัว) ---------- */
+/* ---------- ไอคอนสภาพอากาศเวกเตอร์ ---------- */
 let _uid = 0; const uid = () => 'wg' + (++_uid);
 function weatherIcon(kind, isDay){
   const id = uid();
@@ -620,7 +687,7 @@ function weatherIcon(kind, isDay){
   return `<svg viewBox="0 0 24 24" width="100%" height="100%" role="img" aria-label="ไอคอนสภาพอากาศ">${defs}${body}</svg>`;
 }
 
-/* ---------- เฉดท้องฟ้าตามสภาพอากาศและช่วงเวลา ---------- */
+/* ---------- เฉดท้องฟ้าตามสภาพอากาศและช่วงเวลา (ลดจำนวนอนุภาคบนมือถือเพื่อความลื่นไหล) ---------- */
 const THEMES = {
   clear:   { day:['#1e5fa8','#3b7fc4','#7db3dd'], night:['#070b18','#111a30','#1d2942'] },
   partly:  { day:['#2a5e94','#4a7fb0','#7fa9cc'], night:['#080d1a','#131c33','#202b48'] },
@@ -648,19 +715,33 @@ function applyTheme(){
 }
 function buildSky(kind,isDay){
   const L=els.skyLayer; let s='';
+  const mob = isMobile();
   if(!isDay){
-    for(let i=0;i<90;i++){ const sz=(Math.random()*1.8+.6).toFixed(1);
+    const starCount = mob ? 38 : 85;
+    for(let i=0;i<starCount;i++){ const sz=(Math.random()*1.8+.6).toFixed(1);
       s+=`<i class="star" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*60).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2+Math.random()*4).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s"></i>`; }
   }
-  const rain=(n,op)=>{ for(let i=0;i<n;i++)
-    s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(9+Math.random()*7).toFixed(1)}vh;opacity:${(op*(.5+Math.random()*.5)).toFixed(2)};animation-duration:${(.7+Math.random()*.5).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`; };
-  if(kind==='rain') rain(85,1); else if(kind==='thunder') rain(70,1); else if(kind==='drizzle') rain(45,.55);
-  if(kind==='snow'){ for(let i=0;i<55;i++)
-    s+=`<i class="flake" style="left:${(Math.random()*100).toFixed(1)}%;width:${(2+Math.random()*3).toFixed(1)}px;height:${(2+Math.random()*3).toFixed(1)}px;animation-duration:${(6+Math.random()*6).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;opacity:${(.35+Math.random()*.5).toFixed(2)}"></i>`; }
-  if(kind==='fog'){ for(let i=0;i<4;i++)
-    s+=`<i class="fogband" style="left:-10%;top:${(12+i*22).toFixed(0)}%;width:120%;animation-duration:${(9+i*3).toFixed(1)}s;animation-delay:${(-i*2).toFixed(1)}s"></i>`; }
-  if(kind==='partly'||kind==='cloud'){ for(let i=0;i<(kind==='cloud'?5:3);i++)
-    s+=`<i class="puff" style="top:${(6+Math.random()*40).toFixed(0)}%;width:${(110+Math.random()*140).toFixed(0)}px;height:${(46+Math.random()*44).toFixed(0)}px;animation-duration:${(80+Math.random()*70).toFixed(0)}s;animation-delay:${(-Math.random()*90).toFixed(0)}s"></i>`; }
+  const rain=(n,op)=>{
+    const cnt = mob ? Math.round(n*0.45) : n;
+    for(let i=0;i<cnt;i++)
+      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(9+Math.random()*7).toFixed(1)}vh;opacity:${(op*(.5+Math.random()*.5)).toFixed(2)};animation-duration:${(.7+Math.random()*.5).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
+  };
+  if(kind==='rain') rain(80,1); else if(kind==='thunder') rain(68,1); else if(kind==='drizzle') rain(42,.55);
+  if(kind==='snow'){
+    const cnt = mob ? 24 : 50;
+    for(let i=0;i<cnt;i++)
+      s+=`<i class="flake" style="left:${(Math.random()*100).toFixed(1)}%;width:${(2+Math.random()*3).toFixed(1)}px;height:${(2+Math.random()*3).toFixed(1)}px;animation-duration:${(6+Math.random()*6).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;opacity:${(.35+Math.random()*.5).toFixed(2)}"></i>`;
+  }
+  if(kind==='fog'){
+    const cnt = mob ? 2 : 4;
+    for(let i=0;i<cnt;i++)
+      s+=`<i class="fogband" style="left:-10%;top:${(12+i*24).toFixed(0)}%;width:120%;animation-duration:${(9+i*3).toFixed(1)}s;animation-delay:${(-i*2).toFixed(1)}s"></i>`;
+  }
+  if(kind==='partly'||kind==='cloud'){
+    const cnt = mob ? 2 : (kind==='cloud'?5:3);
+    for(let i=0;i<cnt;i++)
+      s+=`<i class="puff" style="top:${(6+Math.random()*40).toFixed(0)}%;width:${(110+Math.random()*140).toFixed(0)}px;height:${(46+Math.random()*44).toFixed(0)}px;animation-duration:${(80+Math.random()*70).toFixed(0)}s;animation-delay:${(-Math.random()*90).toFixed(0)}s"></i>`;
+  }
   L.innerHTML=s;
 }
 
@@ -765,7 +846,7 @@ async function enrichPlaceWithAdmin(place){
   return place;
 }
 
-/* ---------- แถบปุ่มเลือกอำเภอในการ์ดเตือนน้ำท่วม ---------- */
+/* ---------- แถบปุ่มเลือกอำเภอในการ์ดเตือนน้ำท่วม (เลื่อนโฟกัสอำเภอที่ปักหมุดอัตโนมัติ) ---------- */
 function renderDistrictSelector(place){
   const db = state.thaiDistricts || {};
   const prov = cleanProv(place.province || '');
@@ -788,12 +869,12 @@ function renderDistrictSelector(place){
     return;
   }
   els.provinceDistrictWrap.classList.remove('hidden');
-  els.provinceDistrictLabel.textContent = `สลับดู${isBkk?'เขต':'อำเภอ'}ใน${pPrefix}${prov} (${list.length} พื้นที่):`;
+  els.provinceDistrictLabel.textContent = `แตะสลับดู${isBkk?'เขต':'อำเภอ'}ใน${pPrefix}${prov} (${list.length} พื้นที่):`;
   els.districtPills.innerHTML = list.map(d => {
     const cd = cleanDist(d);
     const active = cd === dist;
-    return `<button data-prov="${prov}" data-dist="${cd}"
-      class="px-2.5 py-1 rounded-xl text-xs whitespace-nowrap transition border ${
+    return `<button type="button" data-prov="${prov}" data-dist="${cd}" ${active?'data-active-pill="1"':''}
+      class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition border ${
         active
           ? 'bg-amber-400 text-slate-950 font-semibold border-amber-300 shadow'
           : 'bg-white/5 text-white/80 border-white/12 hover:bg-white/15'
@@ -801,6 +882,15 @@ function renderDistrictSelector(place){
       ${active?'📍 ':''}${dPrefix}${cd}
     </button>`;
   }).join('');
+
+  // เลื่อนแถบปุ่มอำเภอให้เห็นอำเภอที่ปักหมุดอยู่ตรงกลางอัตโนมัติ
+  setTimeout(()=>{
+    const activeBtn = els.districtPills.querySelector('[data-active-pill="1"]');
+    if(activeBtn){
+      const left = activeBtn.offsetLeft - els.districtPills.clientWidth/2 + activeBtn.clientWidth/2;
+      els.districtPills.scrollTo({ left: Math.max(0, left), behavior: 'smooth' });
+    }
+  }, 60);
 }
 
 async function selectDistrictByName(prov, dist){
@@ -890,11 +980,11 @@ async function openMeteoSearch(q){
   });
 }
 async function geocodeSearch(q){
-  if(getKey()){ try{ const r=await googleSearch(q); if(r.length) return r; }catch(e){ /* สลับไปบริการสำรอง */ } }
+  if(getKey()){ try{ const r=await googleSearch(q); if(r.length) return r; }catch(e){} }
   return openMeteoSearch(q);
 }
 
-/* ---------- ระบุตำแหน่งจากพิกัด GPS (Google + Nominatim + บริการสำรอง) ---------- */
+/* ---------- ระบุตำแหน่งจากพิกัด GPS ---------- */
 async function reverseGeocode(lat,lon){
   if(getKey()){
     try{
@@ -935,7 +1025,7 @@ function locate(silent=false){
     loadWeather(place);
   }, err=>{
     els.btnLocate.classList.remove('animate-spin');
-    if(err.code===1){ toast('กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือกดปุ่ม “ปักหมุดอำเภอ” เพื่อเลือกอำเภอของคุณ','error',4200); if(!state.w) loadWeather(DEFAULT_PLACE); }
+    if(err.code===1){ toast('กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือกดปุ่ม “ปักหมุดอำเภอ” ด้านล่าง','error',4200); if(!state.w) loadWeather(DEFAULT_PLACE); }
     else { toast('ไม่สามารถระบุตำแหน่งได้ กรุณาลองอีกครั้ง','error'); if(!state.w) loadWeather(DEFAULT_PLACE); }
   }, { enableHighAccuracy:true, timeout:10000, maximumAge:120000 });
 }
@@ -985,9 +1075,9 @@ function buildDailyAdvisory(){
   const diff=feel-temp;
 
   let tempNote = `ขณะนี้${sky} อุณหภูมิ ${temp}°C`;
-  if(diff>=3) tempNote += ` (แต่รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
+  if(diff>=3) tempNote += ` (รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
   else if(diff<=-2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
-  tempNote += ` โดยวันนี้มีช่วงอุณหภูมิ ${lo}°–${hi}°C`;
+  tempNote += ` ช่วงอุณหภูมิวันนี้ ${lo}°–${hi}°C`;
   parts.push(tempNote);
 
   const next12 = state.hourList.slice(0, 13);
@@ -998,7 +1088,7 @@ function buildDailyAdvisory(){
     const firstH = rainyHrs[0].t.slice(11,16);
     const lastH = rainyHrs[rainyHrs.length-1].t.slice(11,16);
     const rangeTxt = firstH === lastH ? `ช่วงเวลาประมาณ ${firstH} น.` : `ตั้งแต่ช่วง ${firstH} ถึง ${lastH} น.`;
-    parts.push(`มีแนวโน้มเกิดฝนตก (${popMax}% · ปริมาณฝนรวมราว ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว และเพิ่มความระมัดระวังในการขับขี่`);
+    parts.push(`มีแนวโน้มเกิดฝนตก (${popMax}% · ปริมาณฝนรวมราว ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว`);
   } else if(popMax >= 40){
     parts.push(`วันนี้มีโอกาสเกิดฝนร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
   } else {
@@ -1022,7 +1112,7 @@ function renderMain(){
   els.hiTemp.textContent=Math.round(D.temperature_2m_max[0])+'°';
   els.loTemp.textContent=Math.round(D.temperature_2m_min[0])+'°';
   els.popToday.textContent=(D.precipitation_probability_max?.[0]??0)+'%';
-  els.pinIcon.innerHTML=uiIcon('pin','w-4 h-4 text-white/70');
+  els.pinIcon.innerHTML=uiIcon('pin','w-4 h-4');
   els.btnRefresh.innerHTML=uiIcon('refresh','w-4 h-4');
   els.summaryIcon.innerHTML=uiIcon('sparkle','w-4 h-4 text-amber-300');
   els.dailySummaryText.textContent=buildDailyAdvisory();
@@ -1035,21 +1125,21 @@ function tickClock(){
   els.clockLine.textContent=`${d} · เวลาท้องถิ่น ${t} น.`;
 }
 
-/* ---------- รายละเอียดสภาพอากาศ (Bento Grid 2 คอลัมน์ ไม่เบียด ไม่ตัดคำ) ---------- */
-const bar=(pct,color)=>`<span class="w-24 shrink-0"><span class="block h-2 rounded-full bg-white/15 overflow-hidden"><span class="block h-full rounded-full" style="width:${clamp(pct,4,100)}%;background:${color}"></span></span></span>`;
+/* ---------- รายละเอียดสภาพอากาศ (Bento Grid อ่านง่ายทั้งบนมือถือและคอม) ---------- */
+const bar=(pct,color)=>`<span class="w-20 sm:w-24 shrink-0"><span class="block h-2 rounded-full bg-white/15 overflow-hidden"><span class="block h-full rounded-full" style="width:${clamp(pct,4,100)}%;background:${color}"></span></span></span>`;
 const compassEl=d=>`<span class="w-8 h-8 shrink-0 rounded-full bg-white/10 border border-white/15 grid place-items-center" title="ทิศทางลม"><span class="text-white/90 block" style="transform:rotate(${Math.round(d)}deg)">${uiIcon('compass','w-4 h-4')}</span></span>`;
 
 function detailCard({ic,label,value,badge,desc,extra,span2}){
-  return `<div class="glass-in rounded-2xl p-4 flex flex-col justify-between gap-2 ${span2?'sm:col-span-2':''}">
+  return `<div class="glass-in rounded-2xl p-3.5 sm:p-4 flex flex-col justify-between gap-1.5 sm:gap-2 ${span2?'sm:col-span-2':''}">
     <div class="flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 min-w-0">
-        <span class="w-8 h-8 rounded-xl bg-white/10 grid place-items-center text-white/85 shrink-0">${uiIcon(ic,'w-4 h-4')}</span>
-        <span class="text-xs text-white/70 font-medium">${label}</span>
+        <span class="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-white/10 grid place-items-center text-white/85 shrink-0">${uiIcon(ic,'w-4 h-4')}</span>
+        <span class="text-xs text-white/70 font-medium truncate">${label}</span>
       </div>
-      ${badge?`<span class="text-[11px] px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/90 whitespace-nowrap shrink-0">${badge}</span>`:''}
+      ${badge?`<span class="text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/90 whitespace-nowrap shrink-0">${badge}</span>`:''}
     </div>
     <div class="flex items-center justify-between gap-3 mt-0.5">
-      <p class="text-xl font-semibold text-white leading-none">${value}</p>
+      <p class="text-lg sm:text-xl font-semibold text-white leading-none">${value}</p>
       ${extra||''}
     </div>
     <p class="text-xs text-white/70 leading-relaxed">${desc}</p>
@@ -1171,7 +1261,7 @@ function renderPM(){
   els.pmNeedle.style.left=`calc(${clamp(pm,0,100)}% - 1.5px)`;
 }
 
-/* ---------- เตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด (ฝนสะสมในอำเภอ + ระดับน้ำ GloFAS v4) ---------- */
+/* ---------- เตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด ---------- */
 const FLOOD_PAST = 5;
 const FLOOD_LEVELS = [
   { t:'ปกติ (ไม่พบความเสี่ยง)', c:'#4fae6a' },
@@ -1207,6 +1297,7 @@ async function renderFlood(place){
   const myTok=++floodToken;
   const B=els.floodBadge, N=els.floodNow, S=els.floodSvg, T=els.floodNote;
   S.innerHTML=''; B.classList.remove('flood-pulse');
+  els.navFloodDot.classList.add('hidden');
   B.textContent='กำลังประเมินพื้นที่อำเภอ…'; B.style.color=''; B.style.borderColor=''; B.style.background='';
   N.textContent='—'; T.textContent='—';
 
@@ -1215,7 +1306,6 @@ async function renderFlood(place){
   const isBkk = prov === 'กรุงเทพมหานคร';
   const areaName = dist ? `${isBkk?'เขต':'อ.'}${dist}${prov?` ${isBkk?prov:'จ.'+prov}`:''}` : place.name;
 
-  // 1) ประเมินความเสี่ยงน้ำท่วมขังจากฝนสะสมในเขตอำเภอที่ปักหมุด
   const rainRisk = assessDistrictRainfallFlood();
   els.floodRainVal.textContent = `วันนี้ ${rainRisk.todayMm.toFixed(1)} มม.`;
   const rainStatusLabels = ['เกณฑ์ปกติ (<35 มม.)', 'ฝนตกหนัก (ระวังน้ำขัง)', 'เฝ้าระวังน้ำท่วมขัง', 'เสี่ยงน้ำท่วมฉับพลัน'];
@@ -1223,7 +1313,6 @@ async function renderFlood(place){
   els.floodRainStatus.style.color = FLOOD_LEVELS[rainRisk.lv].c;
 
   try{
-    // 2) ประเมินระดับน้ำในลำน้ำ/แม่น้ำของอำเภอที่ปักหมุดจาก GloFAS v4
     const fc=await jget(floodUrl(place.lat,place.lon,
       dISO(new Date(Date.now()-FLOOD_PAST*86400000)), dISO(new Date(Date.now()+7*86400000))));
     if(myTok!==floodToken) return;
@@ -1235,7 +1324,7 @@ async function renderFlood(place){
       const L = FLOOD_LEVELS[rainRisk.lv];
       B.textContent = L.t;
       B.style.color = L.c; B.style.borderColor = L.c+'66'; B.style.background = L.c+'1f';
-      if(rainRisk.lv>=2) B.classList.add('flood-pulse');
+      if(rainRisk.lv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
       N.innerHTML = `ฝนสะสม 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`;
       T.textContent = `พื้นที่ ${areaName} ไม่ได้ทับแนวแม่น้ำสายหลักในโมเดล GloFAS ระบบจึงประเมินความเสี่ยงน้ำท่วมขังและน้ำรอการระบายจากปริมาณฝนสะสมในเขตอำเภอโดยตรง`;
       return;
@@ -1279,7 +1368,7 @@ async function renderFlood(place){
     const L = FLOOD_LEVELS[finalLv];
     B.textContent = L.t;
     B.style.color = L.c; B.style.borderColor = L.c+'66'; B.style.background = L.c+'1f';
-    if(finalLv>=2) B.classList.add('flood-pulse');
+    if(finalLv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
     if(finalLv===3) toast(`แจ้งเตือน: พบความเสี่ยงน้ำท่วมในเขต ${areaName} ภายใน 7 วันข้างหน้า`,'error',6000);
 
     N.innerHTML=`ฝน 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)}</b> มม.`;
@@ -1408,52 +1497,55 @@ function renderHourly(){
     });
   }
   state.hourList=list;
-  const step=64, W=list.length*step; state.hourW=W;
+  const step=62, W=list.length*step; state.hourW=W;
   els.hourInner.style.width=W+'px';
   const temps=list.map(o=>o.temp), tmin=Math.min(...temps), tmax=Math.max(...temps);
-  const y=t=> tmax===tmin ? 102 : 132-((t-tmin)/(tmax-tmin))*60;
+  const y=t=> tmax===tmin ? 100 : 128-((t-tmin)/(tmax-tmin))*56;
   const pts=list.map((o,i)=>({ x:i*step+step/2, y:y(o.temp) }));
   const curve=smoothPath(pts);
-  const area=curve+`L${pts[pts.length-1].x} 150L${pts[0].x} 150Z`;
+  const area=curve+`L${pts[pts.length-1].x} 148L${pts[0].x} 148Z`;
   const gid=uid();
   let s=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0" stop-color="rgba(255,255,255,.20)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>`;
-  s+=`<line x1="0" y1="201" x2="${W}" y2="201" stroke="rgba(255,255,255,.14)" stroke-width="1"/>`;
+  s+=`<line x1="0" y1="196" x2="${W}" y2="196" stroke="rgba(255,255,255,.14)" stroke-width="1"/>`;
   list.forEach((o,i)=>{
-    const bh=o.pop/100*34, x=i*step+step/2;
-    if(bh>0.5) s+=`<rect x="${x-9}" y="${196-bh}" width="18" height="${bh}" rx="3" fill="rgba(150,200,255,.38)"/>`;
-    if(o.pop>=25) s+=`<text x="${x}" y="${190-bh-3}" text-anchor="middle" font-size="9" fill="#a9cdf5">${o.pop}%</text>`;
+    const bh=o.pop/100*32, x=i*step+step/2;
+    if(bh>0.5) s+=`<rect x="${x-9}" y="${191-bh}" width="18" height="${bh}" rx="3" fill="rgba(150,200,255,.38)"/>`;
+    if(o.pop>=25) s+=`<text x="${x}" y="${185-bh-3}" text-anchor="middle" font-size="9" fill="#a9cdf5">${o.pop}%</text>`;
   });
   s+=`<path d="${area}" fill="url(#${gid})"/>`;
   s+=`<path d="${curve}" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round"/>`;
   list.forEach((o,i)=>{
     const x=i*step+step/2, py=pts[i].y, gid2=uid();
     const ic=weatherIcon(wmoKind(o.code), o.isDay).replace(/id="(wg\d+)([abc])"/g, (m,_,n)=>`id="${gid2}_${n}"`).replace(/url\(#(wg\d+)([abc])\)/g, (m,_,n)=>`url(#${gid2}_${n})`);
-    s+=`<svg x="${x-13}" y="5" width="26" height="26" viewBox="0 0 24 24" overflow="visible">${ic.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</svg>`;
+    s+=`<svg x="${x-13}" y="4" width="26" height="26" viewBox="0 0 24 24" overflow="visible">${ic.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</svg>`;
     s+=`<text x="${x}" y="${(py-10).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#fff">${Math.round(o.temp)}°</text>`;
     s+=`<circle cx="${x}" cy="${py.toFixed(1)}" r="3" fill="#fff" stroke="rgba(20,30,50,.5)" stroke-width="1.2"/>`;
     const label=i===0?'ตอนนี้':o.t.slice(11,13)+':00';
-    s+=`<text x="${x}" y="227" text-anchor="middle" font-size="11" fill="${i===0?'#ffd166':'rgba(255,255,255,.62)'}" font-weight="${i===0?'600':'400'}">${label}</text>`;
-    s+=`<rect data-h="${i}" x="${i*step}" y="0" width="${step}" height="238" fill="transparent"/>`;
+    s+=`<text x="${x}" y="221" text-anchor="middle" font-size="11" fill="${i===0?'#ffd166':'rgba(255,255,255,.62)'}" font-weight="${i===0?'600':'400'}">${label}</text>`;
+    s+=`<rect data-h="${i}" x="${i*step}" y="0" width="${step}" height="232" fill="transparent"/>`;
   });
   els.hourSvg.setAttribute('width', W);
   els.hourSvg.innerHTML=s;
   els.hourTip.classList.add('hidden'); els.hourCursor.classList.add('hidden');
 }
-els.hourInner.addEventListener('click', e=>{
-  const r=e.target.closest('[data-h]'); if(!r) return;
-  const i=+r.dataset.h, o=state.hourList[i]; if(!o) return;
-  const x=i*64+32;
+function showHourDetail(i){
+  const o=state.hourList[i]; if(!o) return;
+  const step=62, x=i*step+step/2;
   els.hourCursor.style.left=x+'px'; els.hourCursor.classList.remove('hidden');
   els.hourTip.style.left=clamp(x,125,state.hourW-125)+'px';
   els.hourTip.classList.remove('hidden');
   els.hourTip.innerHTML=`<p class="text-[11px] text-amber-200 font-medium">${i===0?'สภาพอากาศตอนนี้':`เวลา ${o.t.slice(11,16)} น.`}</p>
-    <p class="text-sm font-semibold mt-0.5">${Math.round(o.temp)}°C (รู้สึกจริง ${Math.round(o.feel)}°C) · ${wmoText(o.code)}</p>
+    <p class="text-xs sm:text-sm font-semibold mt-0.5">${Math.round(o.temp)}°C (รู้สึก ${Math.round(o.feel)}°C) · ${wmoText(o.code)}</p>
     <p class="text-[11px] text-sky-200 mt-0.5">โอกาสฝน ${o.pop}%${o.pr>0?` · ปริมาณฝน ${o.pr} มม.`:' · ไม่มีฝนสะสม'}</p>
     <p class="text-[11px] text-white/65 mt-0.5">ความชื้น ${o.hum!=null?Math.round(o.hum)+'%':'—'} · ลม ${o.wind!=null?Math.round(o.wind)+' กม./ชม.':'—'}</p>`;
+}
+els.hourInner.addEventListener('click', e=>{
+  const r=e.target.closest('[data-h]'); if(!r) return;
+  showHourDetail(+r.dataset.h);
 });
 
-/* ---------- พยากรณ์ล่วงหน้า 7 วัน พร้อมคำอธิบายสภาพอากาศแต่ละวัน ---------- */
+/* ---------- พยากรณ์ล่วงหน้า 7 วัน (จัดแถวกระชับ ไม่ตกบรรทัดซ้อนทับบนจอมือถือ) ---------- */
 function tempColor(t){
   const stops=[[0,'#7cc6f2'],[15,'#8fd3a8'],[25,'#f2d16b'],[32,'#f2a35c'],[38,'#e86a5c']];
   if(t<=stops[0][0]) return stops[0][1];
@@ -1485,27 +1577,27 @@ function renderDaily(){
     const pop=D.precipitation_probability_max?.[i]??0;
     const psum=D.precipitation_sum?.[i]??0;
     const condText=wmoText(D.weather_code[i]);
-    html+=`<div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3.5 py-2.5 border-b border-white/10 last:border-0 rounded-lg px-2 -mx-2 hover:bg-white/[.06] transition-colors">
-      <div class="w-[82px] sm:w-[96px] shrink-0">
-        <p class="text-sm font-medium leading-tight">${name}</p>
-        <p class="text-[11px] text-white/50 leading-tight mt-0.5">${dateStr}</p>
+    html+=`<div class="grid grid-cols-12 items-center gap-2 py-2.5 px-1.5 -mx-1.5 rounded-xl hover:bg-white/[.05] transition-colors">
+      <div class="col-span-4 sm:col-span-3 min-w-0">
+        <div class="flex items-baseline gap-1.5">
+          <p class="text-xs sm:text-sm font-semibold truncate">${name}</p>
+          <span class="text-[10px] sm:text-[11px] text-white/45 shrink-0">${dateStr}</span>
+        </div>
+        <p class="text-[11px] text-white/70 truncate mt-0.5">${condText}</p>
       </div>
-      <div class="flex items-center gap-2.5 min-w-[155px] sm:w-[215px] shrink-0">
-        <div class="w-8 h-8 shrink-0">${weatherIcon(wmoKind(D.weather_code[i]), true)}</div>
-        <div class="min-w-0">
-          <p class="text-xs font-medium text-white/90 leading-snug">${condText}</p>
-          <p class="text-[11px] ${pop>=30?'text-sky-200':'text-white/50'} leading-snug flex items-center gap-1 mt-0.5">
-            ${uiIcon('umbrella','w-3 h-3 shrink-0')}
-            <span>ฝน ${pop}%${psum>0?` (${psum.toFixed(1)} มม.)`:''}</span>
-          </p>
+      <div class="col-span-3 sm:col-span-3 flex items-center gap-1.5 sm:gap-2">
+        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0">${weatherIcon(wmoKind(D.weather_code[i]), true)}</div>
+        <div class="min-w-0 leading-tight">
+          <p class="text-[11px] font-medium ${pop>=30?'text-sky-200':'text-white/55'}">${pop}%</p>
+          <p class="text-[10px] text-white/45 truncate">${psum>0?`${psum.toFixed(1)} มม.`:'ไร้ฝน'}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2.5 flex-1 min-w-[140px]">
-        <span class="w-8 text-right text-sm text-white/70">${Math.round(lo)}°</span>
+      <div class="col-span-5 sm:col-span-6 flex items-center gap-2">
+        <span class="w-7 text-right text-xs sm:text-sm text-white/70">${Math.round(lo)}°</span>
         <div class="relative h-1.5 rounded-full bg-white/15 flex-1 overflow-hidden">
-          <div class="absolute inset-y-0 rounded-full" style="left:${left.toFixed(1)}%;width:${Math.max(width,4).toFixed(1)}%;background:linear-gradient(90deg,${tempColor(lo)},${tempColor(hi)})"></div>
+          <div class="absolute inset-y-0 rounded-full" style="left:${left.toFixed(1)}%;width:${Math.max(width,6).toFixed(1)}%;background:linear-gradient(90deg,${tempColor(lo)},${tempColor(hi)})"></div>
         </div>
-        <span class="w-8 text-sm font-semibold">${Math.round(hi)}°</span>
+        <span class="w-7 text-xs sm:text-sm font-semibold">${Math.round(hi)}°</span>
       </div>
     </div>`;
   }
@@ -1542,17 +1634,17 @@ function renderSun(){
 }
 
 /* ---------- ข้อความแจ้งเตือน (Toast) ---------- */
-function toast(msg, type='info', ms=3000){
+function toast(msg, type='info', ms=2800){
   const map={ info:'info', error:'alert', success:'check' };
   const cls=type==='error'?'text-red-300':type==='success'?'text-emerald-300':'text-sky-200';
   const el=document.createElement('div');
-  el.className='glass-strong rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-sm shadow-xl rise pointer-events-auto max-w-[92vw]';
+  el.className='glass-strong rounded-2xl px-4 py-2.5 flex items-center gap-2.5 text-xs sm:text-sm shadow-2xl rise pointer-events-auto max-w-[92vw]';
   el.innerHTML=uiIcon(map[type]||'info','w-4 h-4 shrink-0 '+cls)+`<span>${msg}</span>`;
   els.toasts.appendChild(el);
   setTimeout(()=>{
-    el.style.transition='opacity .4s, transform .4s';
+    el.style.transition='opacity .35s, transform .35s';
     el.style.opacity='0'; el.style.transform='translateY(8px)';
-    setTimeout(()=>el.remove(), 420);
+    setTimeout(()=>el.remove(), 380);
   }, ms);
 }
 
@@ -1564,7 +1656,7 @@ function renderKeyStatus(){
     : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> ยังไม่มีคีย์ — ระบบใช้บริการค้นหาสำรองอัตโนมัติ`;
   els.modeBadge.classList.toggle('hidden', !k);
 }
-const openModal=()=>{ els.apiKeyInput.value=getKey(); renderKeyStatus(); els.settingsModal.classList.remove('hidden'); els.apiKeyInput.focus(); };
+const openModal=()=>{ els.apiKeyInput.value=getKey(); renderKeyStatus(); els.settingsModal.classList.remove('hidden'); };
 const closeModal=()=>els.settingsModal.classList.add('hidden');
 
 /* ---------- ระบบค้นหาในช่องด้านบน ---------- */
@@ -1577,10 +1669,10 @@ function doSearch(q){
     els.searchSpin.classList.add('hidden'); els.searchIcon.classList.remove('hidden');
     if(!res.length){ els.searchResults.innerHTML=`<p class="px-4 py-3.5 text-sm text-white/70">ไม่พบข้อมูลสถานที่ กรุณาลองคำอื่น</p>`; els.searchResults.classList.remove('hidden'); return; }
     els.searchResults.innerHTML=res.map((r,i)=>`
-      <button data-i="${i}" class="w-full text-left px-4 py-2.5 hover:bg-white/10 transition flex items-start gap-2.5">
-        <span class="text-white/45 mt-0.5">${uiIcon('pin','w-3.5 h-3.5')}</span>
+      <button type="button" data-i="${i}" class="w-full text-left px-4 py-3 hover:bg-white/10 active:bg-white/15 transition flex items-start gap-2.5 border-b border-white/5 last:border-0">
+        <span class="text-amber-300/80 mt-0.5">${uiIcon('pin','w-3.5 h-3.5')}</span>
         <span class="min-w-0"><span class="block text-sm font-medium truncate">${r.name}</span>
-        <span class="block text-[11px] text-white/50 truncate">${r.admin||''}</span></span>
+        <span class="block text-[11px] text-white/55 truncate">${r.admin||''}</span></span>
       </button>`).join('');
     els.searchResults.classList.remove('hidden');
   }).catch(()=>{
@@ -1591,13 +1683,54 @@ function doSearch(q){
 function chooseResult(r){
   els.searchResults.classList.add('hidden');
   els.searchInput.value=r.name;
+  els.searchInput.blur();
+  els.btnSearchClear.classList.remove('hidden');
   loadWeather(r);
   toast(`ปักหมุดพื้นที่ “${r.name}” เรียบร้อยแล้ว`,'success');
+}
+
+/* ---------- ระบบไฮไลต์เมนูด้านล่างตามตำแหน่งการเลื่อนหน้าจอบนมือถือ ---------- */
+function initMobileScrollSpy(){
+  const navBtns = document.querySelectorAll('.nav-btn[data-nav]');
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.nav;
+      const el = document.getElementById(targetId);
+      if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      navBtns.forEach(b => {
+        const active = b === btn;
+        b.classList.toggle('text-amber-300', active);
+        b.classList.toggle('font-medium', active);
+        b.classList.toggle('text-white/65', !active);
+      });
+    });
+  });
+
+  if(!('IntersectionObserver' in window)) return;
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if(!en.isIntersecting) return;
+      const id = en.target.id;
+      const mapId = (id === 'secHourly') ? 'secWeather' : (id === 'secPM' || id === 'secSun') ? 'secDetails' : id;
+      navBtns.forEach(b => {
+        const active = b.dataset.nav === mapId;
+        b.classList.toggle('text-amber-300', active);
+        b.classList.toggle('font-medium', active);
+        b.classList.toggle('text-white/65', !active);
+      });
+    });
+  }, { rootMargin: '-25% 0px -60% 0px', threshold: 0 });
+
+  ['secWeather','secFlood','secDaily','secDetails','secPM'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) obs.observe(el);
+  });
 }
 
 /* ---------- เชื่อมเหตุการณ์ทั้งหมด ---------- */
 function bindEvents(){
   els.searchIcon.innerHTML=uiIcon('search','w-4 h-4');
+  els.btnSearchClear.innerHTML=uiIcon('x','w-3.5 h-3.5');
   els.mapTopIcon.innerHTML=uiIcon('mapPin','w-4 h-4');
   els.floodPinBtnIcon.innerHTML=uiIcon('mapPin','w-3.5 h-3.5');
   els.apkIcon.innerHTML=uiIcon('download','w-4 h-4');
@@ -1611,11 +1744,25 @@ function bindEvents(){
   els.hiWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowUp','w-3.5 h-3.5 text-amber-200/80'));
   els.loWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowDown','w-3.5 h-3.5 text-sky-200/80'));
 
+  // ไอคอนบนแถบเมนูด้านล่างสำหรับจอมือถือ
+  els.navIconWeather.innerHTML=uiIcon('uv','w-5 h-5');
+  els.navIconFlood.innerHTML=uiIcon('waves','w-5 h-5');
+  els.navIconPin.innerHTML=uiIcon('mapPin','w-5 h-5');
+  els.navIconDaily.innerHTML=uiIcon('calendar','w-5 h-5');
+  els.navIconDetails.innerHTML=uiIcon('thermo','w-5 h-5');
+
   els.searchInput.addEventListener('input', ()=>{
     const q=els.searchInput.value.trim();
+    els.btnSearchClear.classList.toggle('hidden', !q);
     clearTimeout(searchTimer);
     if(q.length<2){ els.searchResults.classList.add('hidden'); return; }
-    searchTimer=setTimeout(()=>doSearch(q), 450);
+    searchTimer=setTimeout(()=>doSearch(q), 400);
+  });
+  els.btnSearchClear.addEventListener('click', ()=>{
+    els.searchInput.value='';
+    els.btnSearchClear.classList.add('hidden');
+    els.searchResults.classList.add('hidden');
+    els.searchInput.focus();
   });
   els.searchInput.addEventListener('keydown', e=>{
     if(e.key==='Enter'&&lastResults.length){ chooseResult(lastResults[0]); }
@@ -1625,7 +1772,9 @@ function bindEvents(){
     const b=e.target.closest('[data-i]'); if(b) chooseResult(lastResults[+b.dataset.i]);
   });
   document.addEventListener('pointerdown', e=>{
-    if(!e.target.closest('#searchResults')&&e.target!==els.searchInput) els.searchResults.classList.add('hidden');
+    if(!e.target.closest('#searchResults')&&e.target!==els.searchInput&&e.target!==els.btnSearchClear){
+      els.searchResults.classList.add('hidden');
+    }
   });
 
   els.districtPills.addEventListener('click', e=>{
@@ -1635,7 +1784,9 @@ function bindEvents(){
   });
 
   els.btnOpenMapTop.addEventListener('click', openPinModal);
+  els.btnQuickPinHero.addEventListener('click', openPinModal);
   els.btnFloodPinMap.addEventListener('click', openPinModal);
+  els.btnNavPin.addEventListener('click', openPinModal);
   els.btnPinModalClose.addEventListener('click', closePinModal);
   els.pinModal.querySelector('[data-close-pin]').addEventListener('click', closePinModal);
 
@@ -1712,13 +1863,15 @@ function bindEvents(){
     if(!k){ toast('กรุณากรอกคีย์ก่อนบันทึก','error'); return; }
     localStorage.setItem(LS_API, k);
     renderKeyStatus(); closeModal();
-    toast('บันทึก Google API Key เรียบร้อยแล้ว ระบบจะใช้ค้นหาสถานที่ด้วย Google ตั้งแต่บัดนี้','success',3600);
+    toast('บันทึก Google API Key เรียบร้อยแล้ว','success',3200);
   });
   els.btnKeyClear.addEventListener('click', ()=>{
     localStorage.removeItem(LS_API);
     els.apiKeyInput.value=''; renderKeyStatus();
     toast('ล้างคีย์แล้ว ระบบจะใช้บริการค้นหาสำรองอัตโนมัติ','info');
   });
+
+  initMobileScrollSpy();
 
   if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
@@ -1757,7 +1910,7 @@ function bindEvents(){
     },
     err=>{
       loadWeather(DEFAULT_PLACE);
-      toast(err.code===1?'กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือกดปุ่มปักหมุดอำเภอด้านบน':'ไม่สามารถระบุตำแหน่งได้ แสดงข้อมูลกรุงเทพมหานครเป็นค่าเริ่มต้น','info',4200);
+      toast(err.code===1?'กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือกดปุ่มปักหมุดอำเภอด้านล่าง':'ไม่สามารถระบุตำแหน่งได้ แสดงข้อมูลกรุงเทพมหานครเป็นค่าเริ่มต้น','info',4200);
     },
     { enableHighAccuracy:true, timeout:9000, maximumAge:300000 }
   );
