@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "app.netlify.mekha_miximage.twa",
+        "sha256_cert_fingerprints": ["51:73:26:7B:B3:4F:FE:6B:4B:98:C6:BE:27:59:E5:C7:C7:68:99:C0:47:05:7E:99:15:B6:50:EF:CE:C8:AC:A4"]
+      }
+    }]
