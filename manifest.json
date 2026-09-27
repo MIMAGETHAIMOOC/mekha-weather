@@ -1,0 +1,29 @@
+{
+  "id": "/",
+  "name": "เมฆา — พยากรณ์อากาศส่วนตัว (MixImage)",
+  "short_name": "เมฆา",
+  "description": "แอปพยากรณ์อากาศส่วนตัวแบบเรียลไทม์ วิเคราะห์สภาพอากาศเชิงลึก คุณภาพอากาศ PM2.5 และประเมินความเสี่ยงน้ำท่วมล้นตลิ่ง",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b111d",
+  "theme_color": "#0b111d",
+  "lang": "th",
+  "dir": "ltr",
+  "categories": ["weather", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

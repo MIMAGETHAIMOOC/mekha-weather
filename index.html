@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b111d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="เมฆา">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<title>เมฆา — พยากรณ์อากาศส่วนตัว</title>
+
+<!-- ฟอนต์ไทย Anuphan: โมเดิร์น สะอาด มีน้ำหนักบางสำหรับตัวเลขอุณหภูมิ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     ส่วนที่ 2: รูปแบบดีไซน์ (Tailwind CSS + สไตล์เสริม)
+     ============================================================ -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Anuphan', 'sans-serif'] },
+    colors: { gold: '#ffd166' }
+  }}
+};
+</script>
+<style>
+  :root{ --glass: rgba(10,16,28,.34); --glass-brd: rgba(255,255,255,.16); }
+  html{ scroll-behavior:smooth; }
+  body{ min-height:100dvh; }
+  ::selection{ background:rgba(255,209,102,.35); }
+
+  /* พื้นหลังท้องฟ้าสองชั้น ไว้ทำการเฟดข้ามระหว่างเฉด */
+  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.2s ease; }
+  .tint{ position:fixed; inset:0; z-index:-2; pointer-events:none;
+         background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.09), transparent 55%); }
+  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; }
+
+  /* กระจกฝ้า */
+  .glass{ background:var(--glass); backdrop-filter:blur(22px) saturate(150%);
+          -webkit-backdrop-filter:blur(22px) saturate(150%);
+          border:1px solid var(--glass-brd);
+          box-shadow:0 12px 36px rgba(2,6,18,.25), inset 0 1px 0 rgba(255,255,255,.10); }
+  .glass-strong{ background:rgba(11,17,29,.9); backdrop-filter:blur(26px);
+                 -webkit-backdrop-filter:blur(26px); border:1px solid rgba(255,255,255,.15); }
+  .glass-in{ background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); }
+  .card-title{ font-size:.8rem; letter-spacing:.05em; color:rgba(255,255,255,.62); font-weight:600; }
+
+  /* อนุภาคบรรยากาศบนพื้นหลัง */
+  .star{ position:absolute; border-radius:9999px; background:#fff; animation:twinkle var(--d) ease-in-out infinite; }
+  @keyframes twinkle{ 0%,100%{opacity:.12} 50%{opacity:.9} }
+  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px;
+             background:linear-gradient(180deg, transparent, rgba(255,255,255,.55));
+             animation:rainFall linear infinite; }
+  @keyframes rainFall{ to{ transform:translateY(125vh); } }
+  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85);
+          animation:snowFall linear infinite; }
+  @keyframes snowFall{ to{ transform:translateY(115vh) translateX(5vw); } }
+  .fogband{ position:absolute; height:80px; border-radius:9999px; background:rgba(255,255,255,.10);
+            filter:blur(30px); animation:fogMove ease-in-out infinite alternate; }
+  @keyframes fogMove{ from{transform:translateX(-6%)} to{transform:translateX(6%)} }
+  .puff{ position:absolute; background:rgba(255,255,255,.09); filter:blur(20px);
+         border-radius:50%; animation:drift linear infinite; }
+  @keyframes drift{ from{ transform:translateX(-35vw); } to{ transform:translateX(120vw); } }
+
+  /* แอนิเมชันไอคอนสภาพอากาศ */
+  .rays{ animation:spinSlow 44s linear infinite; }
+  @keyframes spinSlow{ to{ transform:rotate(360deg); } }
+  .drip{ animation:drip 1.7s ease-in infinite; }
+  @keyframes drip{ 0%{transform:translateY(0);opacity:0} 22%{opacity:1} 100%{transform:translateY(4.5px);opacity:0} }
+  .flash{ animation:flash 2.8s ease-in-out infinite; }
+  @keyframes flash{ 0%,86%,100%{opacity:1} 91%{opacity:.2} 94%{opacity:1} 96%{opacity:.35} }
+
+  /* ป้ายเตือนน้ำท่วม: เต้นเรืองแสงเมื่อเข้าโซนเฝ้าระวังขึ้นไป */
+  .flood-pulse{ animation:floodPulse 2.4s ease-in-out infinite; }
+  @keyframes floodPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(214,69,69,.40);} 50%{ box-shadow:0 0 0 7px rgba(214,69,69,0);} }
+
+  /* ประสิทธิภาพและรายละเอียดเล็ก ๆ */
+  .rise{ animation:fadeUp .6s cubic-bezier(.2,.7,.3,1) both; }
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+  .nice-scroll::-webkit-scrollbar{ height:6px; }
+  .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.22); border-radius:99px; }
+  .nice-scroll::-webkit-scrollbar-track{ background:transparent; }
+  input::placeholder{ color:rgba(255,255,255,.4); }
+  button:active{ transform:scale(.96); }
+</style>
+</head>
+
+<!-- ============================================================
+     ส่วนที่ 1: โครงสร้าง HTML
+     ============================================================ -->
+<body class="font-sans text-white antialiased overflow-x-hidden">
+
+<div id="bgA" style="opacity:1"></div><div id="bgB" style="opacity:0"></div>
+<div class="tint"></div>
+<div id="skyLayer" aria-hidden="true"></div>
+
+<!-- แถบด้านบน: ชื่อแอป · ช่องค้นหา · ปุ่มดาวน์โหลด APK · ปุ่มตำแหน่ง · ปุ่มตั้งค่า -->
+<header class="sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 pt-3 sm:pt-4 pb-2">
+    <div class="glass rounded-2xl px-4 py-3 flex flex-wrap items-center gap-2.5 sm:gap-3">
+      <div class="flex items-center gap-2.5 mr-auto min-w-0">
+        <img src="icon-192.png" alt="เมฆา" class="w-9 h-9 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
+             onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
+        <svg viewBox="0 0 40 40" class="hidden w-9 h-9 shrink-0" aria-hidden="true">
+          <circle cx="27" cy="13" r="5.4" fill="#ffd166"/>
+          <g stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" opacity=".9">
+            <line x1="27" y1="3.6" x2="27" y2="6"/><line x1="36.4" y1="13" x2="39" y2="13"/><line x1="33.8" y1="6.2" x2="35.6" y2="4.4"/>
+          </g>
+          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
+                transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
+        </svg>
+        <div class="min-w-0">
+          <p class="font-semibold leading-none tracking-wide text-[15px]">เมฆา</p>
+          <p class="text-[11px] text-white/60 leading-none mt-1">พยากรณ์อากาศส่วนตัว · MixImage</p>
+        </div>
+        <span id="modeBadge" class="hidden text-[10px] px-2 py-1 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-200 whitespace-nowrap">โหมด Google</span>
+      </div>
+
+      <div class="relative order-last w-full sm:order-none sm:w-auto sm:flex-1 sm:max-w-md">
+        <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+        <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+        <input id="searchInput" type="text" autocomplete="off"
+          class="glass-in w-full rounded-xl pl-9 pr-3 py-2.5 text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25 transition"
+          placeholder="ค้นหาตำบล อำเภอ หรือจังหวัด…">
+        <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50"></div>
+      </div>
+
+      <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
+        class="h-10 px-3 rounded-xl glass-in flex items-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
+        <span id="apkIcon"></span>
+        <span class="hidden md:inline">โหลดแอป .APK</span>
+      </a>
+      <button id="btnLocate" title="ใช้ตำแหน่งปัจจุบัน"
+        class="w-10 h-10 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+      <button id="btnSettings" title="ตั้งค่าระบบ"
+        class="w-10 h-10 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+    </div>
+  </div>
+</header>
+
+<main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-10 pt-2">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+    <!-- คอลัมน์ซ้าย: การ์ดหลัก · รายละเอียด · ฝุ่น PM2.5 · ความเสี่ยงน้ำท่วม -->
+    <section class="lg:col-span-4 flex flex-col gap-4">
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise">
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 text-white/90 min-w-0">
+              <span id="pinIcon" class="shrink-0"></span>
+              <h1 id="placeName" class="text-lg font-semibold truncate">กำลังโหลด…</h1>
+            </div>
+            <p id="placeMeta" class="text-xs text-white/55 mt-0.5 truncate">—</p>
+          </div>
+          <button id="btnRefresh" title="ดึงข้อมูลล่าสุด"
+            class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+        </div>
+        <p id="clockLine" class="mt-1.5 text-xs text-white/55">—</p>
+
+        <div class="mt-5 flex items-center gap-5 sm:gap-7">
+          <div id="bigIcon" class="w-24 h-24 sm:w-28 sm:h-28 shrink-0"></div>
+          <div class="min-w-0">
+            <div class="flex items-start">
+              <span id="bigTemp" class="text-[5.2rem] sm:text-[6.2rem] leading-[.95] font-extralight tracking-tighter">--</span>
+              <span class="text-2xl font-light text-white/75 mt-2 ml-1">°C</span>
+            </div>
+            <p id="skyText" class="mt-1.5 text-base sm:text-lg text-white/90 font-medium">กำลังโหลดข้อมูล…</p>
+          </div>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1.5 text-sm">
+          <span class="flex items-center gap-1.5 text-white/70" id="hiWrap">สูงสุด <b id="hiTemp" class="text-white font-semibold">--</b></span>
+          <span class="flex items-center gap-1.5 text-white/70" id="loWrap">ต่ำสุด <b id="loTemp" class="text-white font-semibold">--</b></span>
+          <span class="text-white/70">โอกาสฝนวันนี้ <b id="popToday" class="text-sky-200 font-semibold">--</b></span>
+        </div>
+
+        <!-- กล่องสรุปสภาพอากาศและคำแนะนำประจำวันเชิงลึก -->
+        <div id="dailySummaryBox" class="mt-4 glass-in rounded-2xl p-3.5 text-xs text-white/85 leading-relaxed space-y-1.5">
+          <p class="font-semibold text-amber-200/95 flex items-center gap-1.5">
+            <span id="summaryIcon"></span>
+            <span>สรุปสภาพอากาศและคำแนะนำวันนี้</span>
+          </p>
+          <p id="dailySummaryText" class="text-white/75">กำลังวิเคราะห์ข้อมูลสภาพอากาศในพื้นที่ของคุณ…</p>
+        </div>
+
+        <p id="updatedAt" class="mt-3 text-[11px] text-white/40"></p>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.08s">
+        <h2 class="card-title">รายละเอียดสภาพอากาศและคำอธิบาย</h2>
+        <div id="detailGrid" class="mt-3 flex flex-col"></div>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.14s">
+        <h2 class="card-title">คุณภาพอากาศ · ฝุ่นละออง PM2.5</h2>
+        <div class="mt-3 flex items-end gap-2.5">
+          <span id="pmValue" class="text-4xl font-light leading-none">--</span>
+          <span class="text-white/60 text-sm mb-0.5">µg/m³</span>
+          <span id="pmLevel" class="ml-auto text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/10">--</span>
+        </div>
+        <div class="mt-4 relative">
+          <div id="pmBar" class="h-2.5 rounded-full flex overflow-hidden opacity-100 transition-opacity"></div>
+          <div id="pmNeedle" class="absolute -top-[3px] w-[3px] h-[17px] rounded-full bg-white shadow transition-all duration-700" style="left:0%"></div>
+        </div>
+        <div class="flex justify-between text-[10px] text-white/45 mt-1.5">
+          <span>0 (ดีมาก)</span><span>15</span><span>25</span><span>37.5</span><span>75+ (อันตราย)</span>
+        </div>
+        <p id="pmAdvice" class="mt-3 text-xs text-white/75 leading-relaxed">—</p>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.18s">
+        <h2 class="card-title">ระดับน้ำในแม่น้ำ · ความเสี่ยงน้ำท่วมล้นตลิ่ง</h2>
+        <div class="mt-3 flex items-center gap-2.5 min-w-0">
+          <span id="floodBadge" class="text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/10 whitespace-nowrap">กำลังประเมิน…</span>
+          <span id="floodNow" class="ml-auto text-xs text-white/70 truncate text-right">—</span>
+        </div>
+        <svg id="floodSvg" viewBox="0 0 320 110" class="w-full mt-3 block" role="img"
+             aria-label="กราฟระดับน้ำในแม่น้ำ ย้อนหลังและพยากรณ์"></svg>
+        <p id="floodNote" class="mt-2 text-xs text-white/75 leading-relaxed">—</p>
+      </article>
+    </section>
+
+    <!-- คอลัมน์ขวา: รายชั่วโมง · 7 วัน · เส้นทางดวงอาทิตย์ -->
+    <section class="lg:col-span-8 flex flex-col gap-4">
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.06s">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="card-title">พยากรณ์รายชั่วโมง · 24 ชั่วโมงข้างหน้า</h2>
+          <p class="text-[11px] text-white/45 whitespace-nowrap">แตะที่แต่ละชั่วโมงเพื่อดูรายละเอียด</p>
+        </div>
+        <div class="mt-4 overflow-x-auto nice-scroll -mx-2 px-2">
+          <div id="hourInner" class="relative cursor-pointer select-none">
+            <svg id="hourSvg" height="238" display="block"></svg>
+            <div id="hourCursor" class="hidden absolute w-px bg-white/50 transition-all duration-300" style="top:36px;height:168px"></div>
+            <div id="hourTip" class="hidden absolute top-0 glass-strong rounded-xl px-3.5 py-2.5 whitespace-nowrap z-10 transition-all duration-200 shadow-2xl" style="transform:translateX(-50%)"></div>
+          </div>
+        </div>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.1s">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">พยากรณ์ล่วงหน้า 7 วัน</h2>
+          <span class="text-[11px] text-white/45">สภาพอากาศ · โอกาสและปริมาณฝน · ช่วงอุณหภูมิ</span>
+        </div>
+        <div id="dailyList" class="mt-3"></div>
+      </article>
+
+      <article class="glass rounded-3xl p-5 sm:p-6 rise" style="animation-delay:.14s">
+        <h2 class="card-title">เส้นทางดวงอาทิตย์และช่วงเวลาแสง</h2>
+        <div class="mt-2 flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+          <div class="w-full max-w-[320px]">
+            <svg id="sunSvg" viewBox="0 0 260 112" class="w-full"></svg>
+            <div class="flex justify-between text-[11px] text-white/55 -mt-1 px-1">
+              <span>ขึ้น <b id="sunriseTime" class="text-white/85 font-medium">--:--</b></span>
+              <span>ตก <b id="sunsetTime" class="text-white/85 font-medium">--:--</b></span>
+            </div>
+          </div>
+          <div class="sm:border-l sm:border-white/12 sm:pl-8 flex-1">
+            <p class="text-[11px] text-white/55">ความยาวเวลากลางวันวันนี้</p>
+            <p id="sunDayLength" class="text-xl font-medium mt-0.5">—</p>
+            <p id="sunStatus" class="text-xs text-white/70 mt-1.5 leading-relaxed">—</p>
+          </div>
+        </div>
+      </article>
+    </section>
+  </div>
+
+  <footer class="mt-8 text-center text-[11px] text-white/40 leading-relaxed space-y-1">
+    <p>ข้อมูลพยากรณ์อากาศและคุณภาพอากาศจาก Open-Meteo · ระดับน้ำในแม่น้ำจากโมเดล GloFAS (Copernicus · ECMWF)</p>
+    <p>ค้นหาสถานที่ด้วย Google Geocoding API (เมื่อใส่คีย์) พร้อมบริการสำรองอัตโนมัติ · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub Repository</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
+  </footer>
+</main>
+
+<!-- หน้าต่างตั้งค่า Google API Key -->
+<div id="settingsModal" class="hidden fixed inset-0 z-50 grid place-items-center p-4">
+  <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" data-close></div>
+  <div class="glass-strong relative w-full max-w-md rounded-3xl p-6 rise">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
+      <button id="btnModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition"></button>
+    </div>
+
+    <div class="mt-4 glass-in rounded-2xl p-3.5 flex items-center justify-between gap-3">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold text-emerald-300">แอปพลิเคชัน Android (.APK)</p>
+        <p class="text-[11px] text-white/65 mt-0.5 leading-snug">ติดตั้งแอป “เมฆา” ลงบนมือถือ Android ได้โดยตรง</p>
+      </div>
+      <a href="Mekha-Weather.apk" download="Mekha-Weather.apk"
+        class="px-3.5 py-2 rounded-xl bg-emerald-400 text-slate-950 text-xs font-semibold hover:bg-emerald-300 transition shrink-0">
+        ดาวน์โหลด .APK
+      </a>
+    </div>
+
+    <label class="block mt-5 text-xs text-white/70 font-medium">Google Maps Platform API Key (ทางเลือก)</label>
+    <div class="mt-2 relative">
+      <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
+        class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
+        placeholder="วางคีย์ของคุณที่นี่…">
+      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" id="keyIcon"></span>
+      <button id="toggleKey" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-white/60 hover:text-white transition"></button>
+    </div>
+
+    <p class="mt-3 text-[11px] text-white/55 leading-relaxed">
+      คีย์นี้ใช้เรียก <b class="text-white/80">Google Geocoding API</b> เพื่อค้นหาและแปลงชื่อสถานที่เป็นภาษาไทยอย่างแม่นยำระดับตำบล/หมู่บ้าน
+      ระบบบันทึกคีย์ไว้ในเบราว์เซอร์ของคุณเท่านั้น (LocalStorage) ไม่มีการส่งไปยังเซิร์ฟเวอร์อื่น
+      หากไม่กรอกคีย์ ระบบจะใช้บริการค้นหาสำรองของ Open-Meteo ให้อัตโนมัติ
+    </p>
+
+    <div class="mt-4 flex items-center gap-2 text-[11px] text-white/70">
+      <span id="keyStatus" class="flex items-center gap-2"></span>
+    </div>
+
+    <div class="mt-5 flex gap-2.5">
+      <button id="btnKeySave" class="flex-1 rounded-xl bg-white text-slate-900 text-sm font-semibold py-2.5 hover:bg-white/90 transition">บันทึกคีย์</button>
+      <button id="btnKeyClear" class="rounded-xl glass-in text-sm px-4 py-2.5 hover:bg-white/15 transition">ล้างค่า</button>
+    </div>
+  </div>
+</div>
+
+<!-- กล่องข้อความแจ้งเตือน -->
+<div id="toasts" class="fixed bottom-4 inset-x-0 z-[60] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
+<!-- ============================================================
+     ส่วนที่ 3: ระบบการทำงาน (Vanilla JavaScript)
+     ============================================================ -->
+<script>
+'use strict';
+
+/* ---------- ค่าคงที่และตัวช่วยพื้นฐาน ---------- */
+const LS_API = 'mekhaGoogleKey';        // ชื่อคีย์บันทึก API Key ใน LocalStorage
+const LS_PLACE = 'mekhaLastPlace';      // สถานที่ล่าสุด เพื่อเปิดครั้งต่อไปได้ทันที
+const DEFAULT_PLACE = { name:'กรุงเทพมหานคร', admin:'ประเทศไทย', lat:13.7563, lon:100.5018 };
+const AUTO_REFRESH_MS = 15 * 60 * 1000; // อัปเดตข้อมูลสภาพอากาศอัตโนมัติทุก 15 นาที
+const $ = s => document.querySelector(s);
+const clamp = (v,a,b) => Math.min(Math.max(v,a),b);
+const nv = (v,d='—') => (v===null||v===undefined||Number.isNaN(v)) ? d : v;
+
+const els = {
+  bgA:$('#bgA'), bgB:$('#bgB'), skyLayer:$('#skyLayer'),
+  modeBadge:$('#modeBadge'), searchInput:$('#searchInput'), searchSpin:$('#searchSpin'),
+  searchIcon:$('#searchIcon'), searchResults:$('#searchResults'),
+  btnLocate:$('#btnLocate'), btnSettings:$('#btnSettings'), apkIcon:$('#apkIcon'),
+  settingsModal:$('#settingsModal'), apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
+  keyStatus:$('#keyStatus'), btnKeySave:$('#btnKeySave'), btnKeyClear:$('#btnKeyClear'),
+  btnModalClose:$('#btnModalClose'), keyIcon:$('#keyIcon'),
+  placeName:$('#placeName'), placeMeta:$('#placeMeta'), clockLine:$('#clockLine'),
+  pinIcon:$('#pinIcon'), btnRefresh:$('#btnRefresh'), bigIcon:$('#bigIcon'),
+  bigTemp:$('#bigTemp'), skyText:$('#skyText'), hiTemp:$('#hiTemp'), loTemp:$('#loTemp'),
+  popToday:$('#popToday'), hiWrap:$('#hiWrap'), loWrap:$('#loWrap'),
+  summaryIcon:$('#summaryIcon'), dailySummaryText:$('#dailySummaryText'), updatedAt:$('#updatedAt'),
+  detailGrid:$('#detailGrid'),
+  pmValue:$('#pmValue'), pmLevel:$('#pmLevel'), pmBar:$('#pmBar'), pmNeedle:$('#pmNeedle'), pmAdvice:$('#pmAdvice'),
+  floodBadge:$('#floodBadge'), floodNow:$('#floodNow'), floodSvg:$('#floodSvg'), floodNote:$('#floodNote'),
+  hourInner:$('#hourInner'), hourSvg:$('#hourSvg'), hourTip:$('#hourTip'), hourCursor:$('#hourCursor'),
+  dailyList:$('#dailyList'),
+  sunSvg:$('#sunSvg'), sunriseTime:$('#sunriseTime'), sunsetTime:$('#sunsetTime'),
+  sunDayLength:$('#sunDayLength'), sunStatus:$('#sunStatus'),
+  toasts:$('#toasts'),
+};
+
+const state = { place:null, w:null, a:null, hourList:[], hourW:0, busy:false, lastFetch:0 };
+
+/* ---------- พจนานุกรมสภาพอากาศ: รหัส WMO → ภาษาไทยเชิงอุตุนิยมวิทยา ---------- */
+const WMO = {
+  0:'ท้องฟ้าแจ่มใส', 1:'ท้องฟ้าโปร่งเป็นส่วนมาก', 2:'มีเมฆบางส่วน', 3:'มีเมฆมากปกคลุม',
+  45:'มีหมอกบาง', 48:'มีหมอกลงจัด',
+  51:'มีฝนละอองเล็กน้อย', 53:'มีฝนละอองปานกลาง', 55:'มีฝนละอองค่อนข้างหนัก',
+  56:'ฝนละอองเยือกแข็ง', 57:'ฝนละอองเยือกแข็งหนัก',
+  61:'ฝนตกเล็กน้อย', 63:'ฝนตกปานกลาง', 65:'ฝนตกหนัก',
+  66:'ฝนเยือกแข็ง', 67:'ฝนเยือกแข็งหนัก',
+  71:'หิมะตกเล็กน้อย', 73:'หิมะตกปานกลาง', 75:'หิมะตกหนัก', 77:'เกล็ดหิมะปะปน',
+  80:'ฝนซู่เป็นระยะเล็กน้อย', 81:'ฝนซู่ปานกลาง', 82:'ฝนซู่ตกหนักรุนแรง',
+  85:'หิมะซู่เล็กน้อย', 86:'หิมะซู่หนัก',
+  95:'พายุฝนฟ้าคะนอง', 96:'ฝนฟ้าคะนองและมีลูกเห็บเล็กน้อย', 99:'พายุฝนฟ้าคะนองรุนแรงและมีลูกเห็บ'
+};
+const wmoText = c => WMO[c] ?? 'สภาพอากาศแปรปรวน';
+function wmoKind(c){
+  if(c<=1) return 'clear';  if(c===2) return 'partly';  if(c===3) return 'cloud';
+  if(c===45||c===48) return 'fog';
+  if([51,53,55,56,57,80,81].includes(c)) return 'drizzle';
+  if([61,63,65,66,67,82].includes(c)) return 'rain';
+  if([71,73,75,77,85,86].includes(c)) return 'snow';
+  return 'thunder';
+}
+const DIRS = ['เหนือ','ตะวันออกเฉียงเหนือ','ตะวันออก','ตะวันออกเฉียงใต้','ใต้','ตะวันตกเฉียงใต้','ตะวันตก','ตะวันตกเฉียงเหนือ'];
+const dirTH = d => DIRS[Math.round(d/45) % 8];
+function windDesc(kmh){
+  if(kmh<2) return 'ลมสงบ อากาศค่อนข้างนิ่ง';
+  if(kmh<12) return 'ลมอ่อนพัดโชยเบา ๆ';
+  if(kmh<29) return 'ลมปานกลาง ช่วยระบายอากาศได้ดี';
+  if(kmh<49) return 'ลมค่อนข้างแรง กิ่งไม้ใหญ่สั่นไหว';
+  return 'ลมแรงจัด ควรระวังสิ่งปลูกสร้างและป้ายโฆษณา';
+}
+function uvLevel(v){
+  if(v<3) return ['ระดับต่ำ','#3fae6a','แสงแดดอ่อน สามารถอยู่กลางแจ้งได้ตามปกติ'];
+  if(v<6) return ['ระดับปานกลาง','#e6c440','ควรสวมหมวกหรือทาครีมกันแดดหากอยู่กลางแดดเกิน 30 นาที'];
+  if(v<8) return ['ระดับสูง','#e07b39','แดดแรง ควรทาครีมกันแดด SPF 30+ สวมแว่นกันแดด และหลบในร่มช่วงเที่ยง'];
+  if(v<11) return ['ระดับสูงมาก','#d64545','รังสียูวีเข้มข้นสูง หลีกเลี่ยงการอยู่กลางแดดจัดช่วง 10:00–15:00 น.'];
+  return ['ระดับอันตราย','#b04fd8','รังสียูวีรุนแรงมาก ผิวหนังอาจไหม้ได้ในเวลาอันสั้น ควรอยู่ในร่ม'];
+}
+const PM_LEVELS = [
+  { max:15.4, name:'คุณภาพอากาศดีมาก', color:'#4fa3d1', advice:'อากาศบริสุทธิ์ เหมาะอย่างยิ่งสำหรับกิจกรรมกลางแจ้ง การวิ่งออกกำลังกาย และเปิดหน้าต่างระบายอากาศ' },
+  { max:25.4, name:'คุณภาพอากาศดี', color:'#3fae6a', advice:'คุณภาพอากาศอยู่ในเกณฑ์ดี สามารถทำกิจกรรมกลางแจ้งและใช้ชีวิตประจำวันได้ตามปกติ' },
+  { max:37.4, name:'ปานกลาง (เริ่มมีผล)', color:'#e6c440', advice:'ประชาชนทั่วไปทำกิจกรรมได้ตามปกติ แต่เด็กเล็ก ผู้สูงอายุ และผู้มีโรคระบบทางเดินหายใจควรลดเวลาทำกิจกรรมหนักกลางแจ้ง' },
+  { max:75, name:'เริ่มมีผลกระทบต่อสุขภาพ', color:'#e07b39', advice:'ควรสวมหน้ากากป้องกันฝุ่น PM2.5 (เช่น N95 หรือ KN95) เมื่อออกนอกอาคาร และลดระยะเวลากิจกรรมกลางแจ้งที่ใช้แรงมาก' },
+  { max:1e9, name:'มีผลกระทบต่อสุขภาพมาก', color:'#d64545', advice:'ฝุ่นหนาแน่นในระดับอันตราย ควรหลีกเลี่ยงกิจกรรมกลางแจ้งทุกชนิด ปิดประตูหน้าต่างให้มิดชิด และเปิดเครื่องฟอกอากาศ' },
+];
+const pmLevelOf = v => PM_LEVELS.find(l => v<=l.max) || PM_LEVELS[4];
+
+/* ---------- ชุดไอคอนเวกเตอร์ (SVG เขียนในไฟล์ ไม่พึ่งรูปภายนอก) ---------- */
+const UI = {
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20.2 20.2-4-4"/>',
+  locate:'<circle cx="12" cy="12" r="7"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/>',
+  sliders:'<path d="M4 7h8M17 7h3M4 12h3M12 12h8M4 17h12M20 17h0"/><circle cx="14.5" cy="7" r="2"/><circle cx="9.5" cy="12" r="2"/><circle cx="18.5" cy="17" r="2"/>',
+  x:'<path d="M6 6l12 12M18 6 6 18"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/>',
+  eye:'<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeOff:'<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><path d="M4 4l16 16"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M17 6l3 3M14 9l2 2"/>',
+  pin:'<path d="M12 21s-6.5-5.4-6.5-10a6.5 6.5 0 0 1 13 0C18.5 15.6 12 21 12 21Z"/><circle cx="12" cy="10.6" r="2.3"/>',
+  umbrella:'<path d="M12 3a9 9 0 0 1 9 9H3a9 9 0 0 1 9-9Z"/><path d="M12 12v6a2 2 0 0 0 4 0"/>',
+  droplet:'<path d="M12 3s6.5 6.6 6.5 11a6.5 6.5 0 0 1-13 0C5.5 9.6 12 3 12 3Z"/>',
+  wind:'<path d="M3 8h10a3 3 0 1 0-3-3"/><path d="M3 12h15a3 3 0 1 1-3 3"/><path d="M3 16h7a2.5 2.5 0 1 1-2.5 2.5"/>',
+  gauge:'<path d="M5 19a9 9 0 1 1 14 0"/><path d="m12 14 4-4.2"/><circle cx="12" cy="14" r="1.3" fill="currentColor" stroke="none"/>',
+  eyeSmall:'<path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  uv:'<circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/>',
+  thermo:'<path d="M10 4a2 2 0 1 1 4 0v9.3a4.5 4.5 0 1 1-4 0Z"/><circle cx="12" cy="17" r="1.8" fill="currentColor" stroke="none"/>',
+  compass:'<path d="M12 19V6M7.5 10.5 12 6l4.5 4.5"/>',
+  arrowUp:'<path d="M12 19V5M6 11l6-6 6 6"/>',
+  arrowDown:'<path d="M12 5v14M6 13l6 6 6-6"/>',
+  alert:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5V13"/><circle cx="12" cy="16.4" r="1.1" fill="currentColor" stroke="none"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m8.5 12.2 2.4 2.4 4.6-4.9"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r="1.1" fill="currentColor" stroke="none"/>',
+  download:'<path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>',
+  sparkle:'<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3z"/>',
+};
+const uiIcon = (n, cls='w-4 h-4') =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" class="${cls}">${UI[n]||''}</svg>`;
+
+/* ---------- ไอคอนสภาพอากาศเวกเตอร์ (มีแอนิเมชันในตัว) ---------- */
+let _uid = 0; const uid = () => 'wg' + (++_uid);
+function weatherIcon(kind, isDay){
+  const id = uid();
+  const defs = `<defs>
+    <linearGradient id="${id}a" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffeaa6"/><stop offset="1" stop-color="#ffb547"/></linearGradient>
+    <linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c9d6e6"/></linearGradient>
+    <linearGradient id="${id}c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef3f9"/><stop offset="1" stop-color="#aebfd2"/></linearGradient>
+  </defs>`;
+  const CLOUD = 'M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z';
+  const cloudG = (t,f,op=1) => `<path d="${CLOUD}" transform="${t}" fill="url(#${id}${f})" opacity="${op}" stroke="rgba(30,50,80,.16)" stroke-width=".5"/>`;
+  const sunG = (cx,cy,r,g1=2.2,g2=5) => {
+    let rays='';
+    for(let a=0;a<8;a++){ const t=a*Math.PI/4;
+      rays += `<line x1="${(cx+Math.cos(t)*(r+g1)).toFixed(2)}" y1="${(cy+Math.sin(t)*(r+g1)).toFixed(2)}"
+                     x2="${(cx+Math.cos(t)*(r+g2)).toFixed(2)}" y2="${(cy+Math.sin(t)*(r+g2)).toFixed(2)}"/>`; }
+    return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#${id}a)"/>
+            <g class="rays" style="transform-origin:${cx}px ${cy}px" stroke="#ffc95e" stroke-width="1.5" stroke-linecap="round">${rays}</g>`;
+  };
+  const moonG = (t='') => `<path d="M14 3.2A8.2 8.2 0 1 0 20.9 12 6.4 6.4 0 0 1 14 3.2Z" ${t?`transform="${t}"`:''} fill="#f3eedb"/>
+    <circle cx="18.6" cy="4.6" r=".75" fill="#fff" opacity=".9"/><circle cx="21.2" cy="8.6" r=".55" fill="#fff" opacity=".65"/>`;
+  const drop = (x,y,len,dl) => `<line class="drip" style="animation-delay:${dl}s" x1="${x}" y1="${y}" x2="${x-1.3}" y2="${y+len}"
+    stroke="#a9cdf5" stroke-width="1.6" stroke-linecap="round"/>`;
+  let body='';
+  switch(kind){
+    case 'clear':   body = isDay ? sunG(12,12,4.4) : moonG(); break;
+    case 'partly':  body = isDay
+      ? sunG(16.4,6.9,3.1,1.7,3.9) + cloudG('translate(-1.4,1.4)','b')
+      : moonG('translate(3,-1.6) scale(.7)') + cloudG('translate(-1.4,1.4)','b'); break;
+    case 'cloud':   body = cloudG('translate(3,-2.8) scale(.85)','c',.6) + cloudG('translate(-.5,1.2)','b'); break;
+    case 'fog':     body = cloudG('translate(0,-3.4)','b')
+      + `<g stroke="rgba(255,255,255,.8)" stroke-width="1.5" stroke-linecap="round"><path d="M6.5 18.6h11.2"/><path d="M8.2 21.6h8.2"/></g>`; break;
+    case 'drizzle': body = cloudG('translate(0,-2.6)','b')
+      + drop(8.4,19.4,2.2,0) + drop(12,21.2,2.2,.5) + drop(15.6,19.4,2.2,1) + drop(10.2,22.3,1.8,1.45); break;
+    case 'rain':    body = cloudG('translate(0,-2.4)','b')
+      + drop(8.4,19.2,4,0) + drop(12,21,4,.4) + drop(15.6,19.2,4,.85); break;
+    case 'heavy':   body = cloudG('translate(0,-3)','b')
+      + drop(7.6,19,4.6,0) + drop(11.2,20.6,4.6,.25) + drop(14.8,19,4.6,.5) + drop(18,20.6,4.6,.75); break;
+    case 'thunder': body = cloudG('translate(0,-2.6)','b')
+      + `<path class="flash" d="M12.9 14.8 10 19.6h2.4l-1.3 3.8 4.9-6.4h-2.6l1.5-2.2z" fill="#ffd166"/>`; break;
+    case 'snow':    body = cloudG('translate(0,-2.8)','b')
+      + `<g fill="#eef5ff"><circle class="drip" cx="8.4" cy="19.8" r="1"/><circle class="drip" cx="12" cy="21.6" r="1" style="animation-delay:.55s"/><circle class="drip" cx="15.6" cy="19.8" r="1" style="animation-delay:1.1s"/></g>`; break;
+  }
+  return `<svg viewBox="0 0 24 24" width="100%" height="100%" role="img" aria-label="ไอคอนสภาพอากาศ">${defs}${body}</svg>`;
+}
+
+/* ---------- เฉดท้องฟ้าตามสภาพอากาศและช่วงเวลา ---------- */
+const THEMES = {
+  clear:   { day:['#1e5fa8','#3b7fc4','#7db3dd'], night:['#070b18','#111a30','#1d2942'] },
+  partly:  { day:['#2a5e94','#4a7fb0','#7fa9cc'], night:['#080d1a','#131c33','#202b48'] },
+  cloud:   { day:['#4c5f73','#6a7d8f','#93a4b1'], night:['#0d1219','#1b232e','#2a3440'] },
+  fog:     { day:['#5d6b76','#82909b','#a9b4bc'], night:['#10141a','#1e242c','#303843'] },
+  drizzle: { day:['#41586d','#5d758b','#8196a9'], night:['#0b1119','#19232e','#263140'] },
+  rain:    { day:['#33465a','#4c6379','#6e8497'], night:['#080e15','#141d27','#1f2a36'] },
+  thunder: { day:['#2b3a52','#3f5470','#5a7291'], night:['#060a12','#101827','#1a2436'] },
+  snow:    { day:['#5a6f86','#7d92a7','#a5b7c7'], night:['#0c121b','#1a2330','#28323f'] },
+  golden:  { day:['#35406e','#6a5a7d','#c98a63'], night:['#141428','#2a2540','#4a3a4a'] },
+};
+function applyTheme(){
+  const w=state.w; if(!w) return;
+  const c=w.current, D=w.daily;
+  const kind=wmoKind(c.weather_code), isDay=c.is_day===1;
+  const nowL=Date.now()+w.utc_offset_seconds*1000;
+  const sr=Date.parse(D.sunrise[0]+':00Z'), ss=Date.parse(D.sunset[0]+':00Z');
+  const golden=(kind==='clear'||kind==='partly')&&(Math.abs(nowL-sr)<90*60000||Math.abs(ss-nowL)<90*60000);
+  const pal=(THEMES[golden?'golden':kind]||THEMES.cloud)[isDay?'day':'night'];
+  const g=`linear-gradient(168deg, ${pal[0]} 0%, ${pal[1]} 52%, ${pal[2]} 100%)`;
+  const front=els.bgA.dataset.front==='1'?els.bgA:els.bgB, back=front===els.bgA?els.bgB:els.bgA;
+  back.style.background=g; back.style.opacity='1'; front.style.opacity='0';
+  front.dataset.front='0'; back.dataset.front='1';
+  buildSky(kind, isDay);
+}
+function buildSky(kind,isDay){
+  const L=els.skyLayer; let s='';
+  if(!isDay){
+    for(let i=0;i<90;i++){ const sz=(Math.random()*1.8+.6).toFixed(1);
+      s+=`<i class="star" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*60).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2+Math.random()*4).toFixed(1)}s;animation-delay:${(Math.random()*4).toFixed(1)}s"></i>`; }
+  }
+  const rain=(n,op)=>{ for(let i=0;i<n;i++)
+    s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(9+Math.random()*7).toFixed(1)}vh;opacity:${(op*(.5+Math.random()*.5)).toFixed(2)};animation-duration:${(.7+Math.random()*.5).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`; };
+  if(kind==='rain') rain(85,1); else if(kind==='thunder') rain(70,1); else if(kind==='drizzle') rain(45,.55);
+  if(kind==='snow'){ for(let i=0;i<55;i++)
+    s+=`<i class="flake" style="left:${(Math.random()*100).toFixed(1)}%;width:${(2+Math.random()*3).toFixed(1)}px;height:${(2+Math.random()*3).toFixed(1)}px;animation-duration:${(6+Math.random()*6).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;opacity:${(.35+Math.random()*.5).toFixed(2)}"></i>`; }
+  if(kind==='fog'){ for(let i=0;i<4;i++)
+    s+=`<i class="fogband" style="left:-10%;top:${(12+i*22).toFixed(0)}%;width:120%;animation-duration:${(9+i*3).toFixed(1)}s;animation-delay:${(-i*2).toFixed(1)}s"></i>`; }
+  if(kind==='partly'||kind==='cloud'){ for(let i=0;i<(kind==='cloud'?5:3);i++)
+    s+=`<i class="puff" style="top:${(6+Math.random()*40).toFixed(0)}%;width:${(110+Math.random()*140).toFixed(0)}px;height:${(46+Math.random()*44).toFixed(0)}px;animation-duration:${(80+Math.random()*70).toFixed(0)}s;animation-delay:${(-Math.random()*90).toFixed(0)}s"></i>`; }
+  L.innerHTML=s;
+}
+
+/* ---------- เครือข่าย ---------- */
+async function jget(url, ms=9000){
+  const c=new AbortController(); const t=setTimeout(()=>c.abort(), ms);
+  try{
+    const r=await fetch(url,{signal:c.signal});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return await r.json();
+  } finally{ clearTimeout(t); }
+}
+const getKey = () => localStorage.getItem(LS_API) || '';
+
+function forecastUrl(lat,lon){
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&forecast_days=8`
+    + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,precipitation`
+    + `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,precipitation_probability,precipitation,is_day,visibility,wind_speed_10m`
+    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,uv_index_max`;
+}
+const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,uv_index&timezone=auto`;
+
+/* ---------- การค้นหาสถานที่ (Google เป็นหลัก + Open-Meteo สำรองอัตโนมัติ) ---------- */
+function placeFromGoogle(r){
+  const ac=r.address_components||[];
+  const get=t=>{ const c=ac.find(x=>x.types.includes(t)); return c?c.long_name:''; };
+  const sub=get('sublocality_level_1')||get('sublocality')||get('locality')||get('administrative_area_level_3')||get('administrative_area_level_2');
+  const a1=get('administrative_area_level_1'), a2=get('administrative_area_level_2');
+  const parts=[sub,a2,a1].filter((v,i,arr)=>v&&arr.indexOf(v)===i);
+  const name=parts[0]||r.formatted_address.split(',')[0];
+  const admin=parts.slice(1).join(' ');
+  return { name, admin, lat:r.geometry.location.lat, lon:r.geometry.location.lng };
+}
+async function googleSearch(q){
+  const j=await jget(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(q)}&language=th&region=th&key=${getKey()}`);
+  if(j.status!=='OK'||!j.results?.length) return [];
+  return j.results.slice(0,6).map(placeFromGoogle);
+}
+async function openMeteoSearch(q){
+  const j=await jget(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=6&language=th&format=json`);
+  return (j.results||[]).map(r=>{
+    const parts=[r.admin2,r.admin1,r.country].filter(v=>v&&v!==r.name);
+    return { name:r.name, admin:[...new Set(parts)].slice(0,2).join(' '), lat:r.latitude, lon:r.longitude };
+  });
+}
+async function geocodeSearch(q){
+  if(getKey()){ try{ const r=await googleSearch(q); if(r.length) return r; }catch(e){ /* สลับไปบริการสำรอง */ } }
+  return openMeteoSearch(q);
+}
+
+/* ---------- ระบุตำแหน่งจากพิกัด GPS (Google + บริการสำรอง) ---------- */
+async function reverseGeocode(lat,lon){
+  if(getKey()){
+    try{
+      const j=await jget(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&language=th&region=th&key=${getKey()}`);
+      if(j.status==='OK'&&j.results?.length) return placeFromGoogle(j.results[0]);
+    }catch(e){ /* สลับไปบริการสำรอง */ }
+  }
+  try{
+    const j=await jget(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=th`);
+    return { name:j.locality||j.city||'ตำแหน่งปัจจุบันของคุณ',
+             admin:[j.principalSubdivision,j.countryName].filter(Boolean).join(' · '),
+             lat, lon };
+  }catch(e){
+    return { name:'ตำแหน่งปัจจุบันของคุณ', admin:'', lat, lon };
+  }
+}
+function locate(silent=false){
+  if(!navigator.geolocation){ toast('เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง','error'); return; }
+  if(!silent) toast('กำลังระบุตำแหน่งปัจจุบัน…','info');
+  els.btnLocate.classList.add('animate-spin');
+  navigator.geolocation.getCurrentPosition(async pos=>{
+    els.btnLocate.classList.remove('animate-spin');
+    const { latitude:lat, longitude:lon }=pos.coords;
+    els.placeName.textContent='กำลังระบุตำแหน่ง…'; els.placeMeta.textContent='กำลังแปลงพิกัดเป็นชื่อสถานที่';
+    const place=await reverseGeocode(lat,lon);
+    loadWeather(place);
+  }, err=>{
+    els.btnLocate.classList.remove('animate-spin');
+    if(err.code===1){ toast('กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือค้นหาสถานที่ด้านบนแทน','error',4200); if(!state.w) loadWeather(DEFAULT_PLACE); }
+    else { toast('ไม่สามารถระบุตำแหน่งได้ กรุณาลองอีกครั้ง','error'); if(!state.w) loadWeather(DEFAULT_PLACE); }
+  }, { enableHighAccuracy:true, timeout:10000, maximumAge:120000 });
+}
+
+/* ---------- โหลดและแสดงผลข้อมูลพยากรณ์ ---------- */
+async function loadWeather(place){
+  if(state.busy) return; state.busy=true;
+  state.place=place;
+  localStorage.setItem(LS_PLACE, JSON.stringify(place));
+  els.placeName.textContent=place.name;
+  els.placeMeta.textContent=[place.admin, `${place.lat.toFixed(2)}°, ${place.lon.toFixed(2)}°`].filter(Boolean).join(' · ');
+  document.title=`${place.name} · เมฆา — พยากรณ์อากาศส่วนตัว`;
+  if(!state.w) els.skyText.textContent='กำลังโหลดข้อมูล…';
+  try{
+    const [w,a]=await Promise.all([ jget(forecastUrl(place.lat,place.lon)), jget(airUrl(place.lat,place.lon)).catch(()=>null) ]);
+    state.w=w; state.a=a; state.lastFetch=Date.now();
+    renderAll();
+    renderFlood(place);
+  }catch(e){
+    toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error',3600);
+  } finally{ state.busy=false; }
+}
+
+function renderAll(){
+  applyTheme();
+  renderHourly(); // สร้าง state.hourList ก่อนเพื่อนำไปใช้วิเคราะห์สรุปรายวัน
+  renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun();
+  tickClock();
+  const tz=state.w.timezone;
+  els.updatedAt.textContent='ดึงข้อมูลล่าสุดเมื่อ '
+    + new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(new Date()) + ' น. (อัปเดตอัตโนมัติทุก 15 นาที)';
+}
+
+function buildDailyAdvisory(){
+  const c=state.w.current, D=state.w.daily, air=state.a?.current;
+  const parts=[];
+  const sky=wmoText(c.weather_code);
+  const hi=Math.round(D.temperature_2m_max[0]), lo=Math.round(D.temperature_2m_min[0]);
+  const feel=Math.round(c.apparent_temperature), temp=Math.round(c.temperature_2m);
+  const diff=feel-temp;
+
+  // 1) สภาพอากาศตอนนี้และอุณหภูมิความรู้สึกจริง
+  let tempNote = `ขณะนี้${sky} อุณหภูมิ ${temp}°C`;
+  if(diff>=3) tempNote += ` (แต่รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
+  else if(diff<=-2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
+  tempNote += ` โดยวันนี้มีช่วงอุณหภูมิ ${lo}°–${hi}°C`;
+  parts.push(tempNote);
+
+  // 2) วิเคราะห์ช่วงเวลาฝนตกใน 12 ชั่วโมงข้างหน้า
+  const next12 = state.hourList.slice(0, 13);
+  const rainyHrs = next12.filter(h => h.pop >= 55 || h.pr >= 0.2);
+  const popMax = D.precipitation_probability_max?.[0] ?? 0;
+  const rainSum = D.precipitation_sum?.[0] ?? 0;
+  if(rainyHrs.length > 0){
+    const firstH = rainyHrs[0].t.slice(11,16);
+    const lastH = rainyHrs[rainyHrs.length-1].t.slice(11,16);
+    const rangeTxt = firstH === lastH ? `ช่วงเวลาประมาณ ${firstH} น.` : `ตั้งแต่ช่วง ${firstH} ถึง ${lastH} น.`;
+    parts.push(`มีแนวโน้มเกิดฝนตก (${popMax}% · ปริมาณฝนรวมราว ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว และเพิ่มความระมัดระวังในการขับขี่`);
+  } else if(popMax >= 40){
+    parts.push(`วันนี้มีโอกาสเกิดฝนร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
+  } else {
+    parts.push(`โอกาสเกิดฝนวันนี้ค่อนข้างต่ำ (${popMax}%) สภาพอากาศเอื้อต่อการเดินทางและทำกิจกรรมกลางแจ้ง`);
+  }
+
+  // 3) คำแนะนำเสริมด้านสุขภาพ (UV / PM2.5)
+  const pm = air?.pm2_5;
+  if(pm != null && pm > 37.5){
+    parts.push(`ค่าฝุ่น PM2.5 อยู่ในระดับเริ่มมีผลต่อสุขภาพ (${Math.round(pm)} µg/m³) ควรสวมหน้ากากป้องกันฝุ่นเมื่ออยู่นอกอาคาร`);
+  } else if(c.is_day===1 && (air?.uv_index ?? 0) >= 6){
+    parts.push(`ดัชนีรังสียูวีอยู่ในเกณฑ์สูง ควรทาครีมกันแดดหรือสวมหมวกเมื่อต้องอยู่กลางแดด`);
+  }
+  return parts.join(' · ');
+}
+
+function renderMain(){
+  const c=state.w.current, D=state.w.daily;
+  els.bigTemp.textContent=Math.round(c.temperature_2m);
+  els.bigIcon.innerHTML=weatherIcon(wmoKind(c.weather_code), c.is_day===1);
+  els.skyText.textContent=wmoText(c.weather_code);
+  els.hiTemp.textContent=Math.round(D.temperature_2m_max[0])+'°';
+  els.loTemp.textContent=Math.round(D.temperature_2m_min[0])+'°';
+  els.popToday.textContent=(D.precipitation_probability_max?.[0]??0)+'%';
+  els.pinIcon.innerHTML=uiIcon('pin','w-4 h-4 text-white/70');
+  els.btnRefresh.innerHTML=uiIcon('refresh','w-4 h-4');
+  els.summaryIcon.innerHTML=uiIcon('sparkle','w-4 h-4 text-amber-300');
+  els.dailySummaryText.textContent=buildDailyAdvisory();
+}
+function tickClock(){
+  if(!state.w) return;
+  const tz=state.w.timezone, now=new Date();
+  const d=new Intl.DateTimeFormat('th-TH',{weekday:'long',day:'numeric',month:'long',timeZone:tz}).format(now);
+  const t=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(now);
+  els.clockLine.textContent=`${d} · เวลาท้องถิ่น ${t} น.`;
+}
+
+/* ---------- รายละเอียดสภาพอากาศพร้อมคำอธิบายภาษาเข้าใจง่าย (ไม่ตัดคำ) ---------- */
+const bar=(pct,color)=>`<span class="w-20 shrink-0"><span class="block h-1.5 rounded-full bg-white/15 overflow-hidden"><span class="block h-full rounded-full" style="width:${clamp(pct,2,100)}%;background:${color}"></span></span></span>`;
+const compassEl=d=>`<span class="w-8 h-8 shrink-0 rounded-full bg-white/10 border border-white/10 grid place-items-center" title="ทิศทางลม"><span class="text-white/85 block" style="transform:rotate(${Math.round(d)}deg)">${uiIcon('compass','w-4 h-4')}</span></span>`;
+
+function detailRow({ic,label,value,badge,desc,extra}){
+  return `<div class="py-3 border-b border-white/10 last:border-0">
+    <div class="flex items-center gap-3">
+      <span class="w-9 h-9 rounded-full glass-in grid place-items-center text-white/85 shrink-0">${uiIcon(ic,'w-[18px] h-[18px]')}</span>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-baseline justify-between gap-2 flex-wrap">
+          <p class="text-xs text-white/60 font-medium">${label}</p>
+          <div class="flex items-center gap-2">
+            <p class="text-base font-semibold text-white">${value}</p>
+            ${badge?`<span class="text-[11px] px-2 py-0.5 rounded-full bg-white/10 border border-white/15 text-white/85">${badge}</span>`:''}
+          </div>
+        </div>
+        <p class="text-xs text-white/70 leading-relaxed mt-1">${desc}</p>
+      </div>
+      ${extra||''}
+    </div>
+  </div>`;
+}
+
+function renderDetails(){
+  const c=state.w.current, D=state.w.daily, air=state.a?.current, H=state.w.hourly;
+  const rows=[];
+
+  // 1) ความรู้สึกจริง (Apparent Temperature)
+  const diff=Math.round(c.apparent_temperature - c.temperature_2m);
+  let feelBadge='ใกล้เคียงอุณหภูมิจริง', feelDesc='ร่างกายรับรู้ความร้อนใกล้เคียงกับอุณหภูมิที่วัดได้จริง';
+  if(diff>=3){
+    feelBadge=`ร้อนกว่าจริง +${diff}°C`;
+    feelDesc='ความชื้นในอากาศสูงทำให้เหงื่อระเหยช้า ร่างกายจึงรู้สึกร้อนอบอ้าวกว่าตัวเลขจริง ควรจิบน้ำบ่อย ๆ';
+  }else if(diff>=1){
+    feelBadge=`อุ่นกว่าจริง +${diff}°C`;
+    feelDesc='รู้สึกร้อนอบอ้าวขึ้นเล็กน้อยจากความชื้นสัมพัทธ์ในอากาศ';
+  }else if(diff<=-2){
+    feelBadge=`เย็นกว่าจริง ${diff}°C`;
+    feelDesc='กระแสลมช่วยพัดระบายความร้อนออกจากผิวหนัง ทำให้รู้สึกเย็นสบายกว่าอุณหภูมิจริง';
+  }
+  rows.push({ ic:'thermo', label:'อุณหภูมิความรู้สึกจริง', value:Math.round(c.apparent_temperature)+'°C', badge:feelBadge, desc:feelDesc });
+
+  // 2) ความชื้นสัมพัทธ์ (Relative Humidity)
+  const hum=Math.round(c.relative_humidity_2m);
+  let humBadge='สบายตัว', humDesc='ความชื้นอยู่ในเกณฑ์กำลังดี หายใจสะดวกและไม่เหนียวตัว';
+  if(hum>=85){ humBadge='ชื้นจัด'; humDesc='อากาศอิ่มตัวด้วยไอน้ำสูงมาก เหงื่อระเหยยากและมีโอกาสเกิดฝนตกหรือหมอกน้ำค้าง'; }
+  else if(hum>=70){ humBadge='ค่อนข้างชื้น'; humDesc='ความชื้นสูงตามธรรมชาติของเขตร้อนหรือช่วงมีเมฆฝน อาจรู้สึกเหนียวตัวง่ายเมื่อทำกิจกรรม'; }
+  else if(hum<40){ humBadge='อากาศแห้ง'; humDesc='ความชื้นในอากาศต่ำ ผิวและคออาจแห้งง่าย ควรดื่มน้ำให้เพียงพอ'; }
+  rows.push({ ic:'droplet', label:'ความชื้นสัมพัทธ์', value:hum+'%', badge:humBadge, desc:humDesc, extra:bar(hum,'#7fb8e8') });
+
+  // 3) ความเร็วและทิศทางลม (Wind Speed & Direction)
+  const wspd=Math.round(c.wind_speed_10m), wgust=c.wind_gusts_10m!=null?Math.round(c.wind_gusts_10m):null;
+  const wdir=dirTH(c.wind_direction_10m);
+  rows.push({
+    ic:'wind', label:'ความเร็วและทิศทางลม',
+    value:`${wspd} กม./ชม.`,
+    badge:`ทิศ${wdir}`,
+    desc:`${windDesc(c.wind_speed_10m)}${wgust&&wgust>wspd+3?` (มีลมกระโชกเป็นระยะสูงสุดราว ${wgust} กม./ชม.)`:''}`,
+    extra:compassEl(c.wind_direction_10m)
+  });
+
+  // 4) ดัชนีรังสียูวี (UV Index)
+  const uv=air?.uv_index, uvMax=D.uv_index_max?.[0];
+  const uvVal = uv!=null ? uv : (uvMax??0);
+  const lv=uvLevel(uvVal);
+  rows.push({
+    ic:'uv',
+    label: uv!=null ? 'ดัชนีรังสียูวี (ขณะนี้)' : 'ดัชนีรังสียูวี (สูงสุดของวัน)',
+    value: (Math.round(uvVal*10)/10).toString(),
+    badge: lv[0],
+    desc: `${lv[2]}${uv!=null&&uvMax!=null?` (ค่าสูงสุดของวันนี้อยู่ที่ ${(Math.round(uvMax*10)/10)})`:''}`,
+    extra: bar(uvVal/11*100, lv[1])
+  });
+
+  // 5) ทัศนวิสัยการมองเห็น (Visibility)
+  const nowL=Date.now()+state.w.utc_offset_seconds*1000;
+  let vi=H.time.findIndex(t=>Date.parse(t+':00Z')>=nowL-30*60000); if(vi<0) vi=0;
+  const vis=H.visibility?.[vi];
+  const visKm = vis!=null ? vis/1000 : null;
+  let visBadge='ชัดเจนดี', visDesc='ทัศนวิสัยเปิดโล่ง มองเห็นระยะไกลได้ชัดเจน เดินทางและขับขี่ได้ปลอดภัย';
+  if(visKm!=null){
+    if(visKm<2){ visBadge='ทัศนวิสัยต่ำ'; visDesc='มีหมอกหนาหรือฝนตกหนักบดบังสายตา ควรเปิดไฟหน้ารถและลดความเร็วในการขับขี่'; }
+    else if(visKm<8){ visBadge='ปานกลาง'; visDesc='มีละอองฝน ความชื้นสูง หรือฝุ่นละอองในอากาศ ทำให้ระยะการมองเห็นลดลงเล็กน้อย'; }
+  }
+  rows.push({
+    ic:'eyeSmall', label:'ทัศนวิสัยการมองเห็น',
+    value: visKm!=null ? (visKm>=10?'10+ กม.':visKm.toFixed(1)+' กม.') : '—',
+    badge: visKm!=null ? visBadge : '',
+    desc: visKm!=null ? visDesc : 'ไม่มีข้อมูลทัศนวิสัยในชั่วโมงนี้'
+  });
+
+  // 6) ความกดอากาศระดับน้ำทะเล (Pressure MSL)
+  const pres=Math.round(c.pressure_msl);
+  let presBadge='เกณฑ์ปกติ', presDesc='ความกดอากาศอยู่ในระดับสมดุลของเขตร้อน สภาพอากาศโดยรวมทรงตัว';
+  if(pres<1008){ presBadge='ความกดอากาศต่ำ'; presDesc='มวลอากาศยกตัวขึ้นได้ดี เอื้อต่อการก่อตัวของเมฆฝนและฝนฟ้าคะนองในพื้นที่'; }
+  else if(pres>1015){ presBadge='ความกดอากาศสูง'; presDesc='มวลอากาศจมตัวและเสถียร ท้องฟ้ามักโปร่งหรือมีมวลอากาศเย็นแผ่ลงมา'; }
+  rows.push({
+    ic:'gauge', label:'ความกดอากาศระดับน้ำทะเล',
+    value:`${nv(pres)} hPa`,
+    badge:presBadge,
+    desc:presDesc
+  });
+
+  // 7) โอกาสและปริมาณน้ำฝนวันนี้ (Precipitation)
+  const pop=D.precipitation_probability_max?.[0]??0;
+  const psum=D.precipitation_sum?.[0]??0;
+  let rainBadge = pop>=70?'โอกาสตกสูงมาก':pop>=40?'มีโอกาสฝนตก':pop>=20?'โอกาสตกเล็กน้อย':'โอกาสฝนน้อย';
+  let rainDesc = psum>0
+    ? `คาดการณ์ปริมาณน้ำฝนสะสมตลอดทั้งวันประมาณ ${psum.toFixed(1)} มม. (${psum>=35?'เกณฑ์ฝนตกหนัก':psum>=10?'เกณฑ์ฝนปานกลาง':'เกณฑ์ฝนเล็กน้อยถึงปานกลาง'})`
+    : 'แทบไม่มีปริมาณน้ำฝนสะสมวันนี้ สามารถทำกิจกรรมกลางแจ้งหรือตากผ้าได้ตามปกติ';
+  rows.push({
+    ic:'umbrella', label:'โอกาสและปริมาณฝนวันนี้',
+    value:`${pop}%`,
+    badge:rainBadge,
+    desc:rainDesc
+  });
+
+  els.detailGrid.innerHTML=rows.map(detailRow).join('');
+}
+
+/* ---------- ฝุ่น PM2.5 ---------- */
+function renderPM(){
+  const pm=state.a?.current?.pm2_5;
+  const stops=[['#4fa3d1',0],['#4fa3d1',15],['#3fae6a',15],['#3fae6a',25],['#e6c440',25],['#e6c440',37.5],['#e07b39',37.5],['#e07b39',75],['#d64545',75],['#d64545',100]];
+  els.pmBar.innerHTML=stops.map(([c,p],i)=>{
+    const next=stops[i+1]; if(next===undefined) return '';
+    const w=(next[1]-p);
+    return `<span class="h-full" style="width:${w}%;background:${c}"></span>`;
+  }).join('');
+  if(pm==null){
+    els.pmValue.textContent='—'; els.pmLevel.textContent='ไม่มีข้อมูล';
+    els.pmAdvice.textContent='ไม่สามารถดึงข้อมูลคุณภาพอากาศของพื้นที่นี้ได้ในขณะนี้';
+    els.pmBar.style.opacity='.3'; els.pmNeedle.style.opacity='0'; return;
+  }
+  els.pmBar.style.opacity='1'; els.pmNeedle.style.opacity='1';
+  els.pmValue.textContent=Math.round(pm);
+  const lv=pmLevelOf(pm);
+  els.pmLevel.textContent=lv.name;
+  els.pmLevel.style.color=lv.color; els.pmLevel.style.borderColor=lv.color+'66'; els.pmLevel.style.background=lv.color+'1f';
+  els.pmAdvice.textContent=lv.advice;
+  els.pmNeedle.style.left=`calc(${clamp(pm,0,100)}% - 1.5px)`;
+}
+
+/* ---------- ระดับน้ำในแม่น้ำ & ความเสี่ยงน้ำท่วมล้นตลิ่ง · Open-Meteo Flood API (GloFAS v4) ---------- */
+const FLOOD_PAST = 5;
+const FLOOD_LEVELS = [
+  { t:'ระดับน้ำปกติ',  c:'#4fae6a', note:'ปริมาณน้ำไหลในลุ่มน้ำอยู่ในเกณฑ์ปกติของฤดูกาล ไม่พบสัญญาณน้ำล้นตลิ่งในช่วง 7 วันข้างหน้า' },
+  { t:'สูงกว่าปกติ',   c:'#e6c440', note:'ปริมาณน้ำไหลสูงกว่าค่าเฉลี่ยของเดือนนี้ (เกินเปอร์เซ็นไทล์ที่ 90 ของสถิติ 20 ปี) ควรติดตามสถานการณ์น้ำอย่างต่อเนื่อง' },
+  { t:'เฝ้าระวังน้ำเอ่อ', c:'#e07b39', note:'ปริมาณน้ำไหลแตะระดับที่พบไม่บ่อย (เกินเปอร์เซ็นไทล์ที่ 97) พื้นที่ลุ่มต่ำริมตลิ่งอาจเริ่มมีน้ำเอ่อท่วมขัง' },
+  { t:'เสี่ยงน้ำท่วมล้นตลิ่ง', c:'#d64545', note:'ปริมาณน้ำไหลคาดการณ์สูงผิดปกติมาก (เกินเปอร์เซ็นไทล์ที่ 99.5) มีความเสี่ยงสูงที่จะเกิดน้ำล้นตลิ่งในพื้นที่ริมแม่น้ำ' },
+];
+const qPct=(a,p)=>{ const i=(a.length-1)*p, lo=Math.floor(i), hi=Math.ceil(i); return a[lo]+(a[hi]-a[lo])*(i-lo); };
+const dISO=d=>d.toISOString().slice(0,10);
+const floodUrl=(lat,lon,s,e)=>`https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lon}&daily=river_discharge&start_date=${s}&end_date=${e}`;
+const floodHistCache=new Map();
+let floodToken=0;
+
+async function renderFlood(place){
+  const myTok=++floodToken;
+  const B=els.floodBadge, N=els.floodNow, S=els.floodSvg, T=els.floodNote;
+  S.innerHTML=''; B.classList.remove('flood-pulse');
+  B.textContent='กำลังประเมิน…'; B.style.color=''; B.style.borderColor=''; B.style.background='';
+  N.textContent='—'; T.textContent='—';
+  try{
+    const fc=await jget(floodUrl(place.lat,place.lon,
+      dISO(new Date(Date.now()-FLOOD_PAST*86400000)), dISO(new Date(Date.now()+7*86400000))));
+    if(myTok!==floodToken) return;
+    const q=(fc.daily&&fc.daily.river_discharge)||[], times=(fc.daily&&fc.daily.time)||[];
+    if(q.length<3||q.every(v=>v==null)){
+      B.textContent='ไม่อยู่ในเครือข่ายแม่น้ำ';
+      T.textContent='พื้นที่นี้ไม่อยู่ในตารางแม่น้ำของโมเดล GloFAS เช่น พื้นที่ดอนหรือพื้นที่ริมทะเล จึงประเมินน้ำล้นตลิ่งไม่ได้';
+      return;
+    }
+    const key=place.lat.toFixed(2)+','+place.lon.toFixed(2);
+    let hs=floodHistCache.get(key);
+    if(!hs){
+      hs=await jget(floodUrl(place.lat,place.lon,'2004-01-01', dISO(new Date(Date.now()-86400000))),15000);
+      if(myTok!==floodToken) return;
+      floodHistCache.set(key,hs);
+      if(floodHistCache.size>12) floodHistCache.delete(floodHistCache.keys().next().value);
+    }
+    const byMonth=Array.from({length:12},()=>[]);
+    ((hs.daily||{}).river_discharge||[]).forEach((v,i)=>{ if(v!=null) byMonth[+hs.daily.time[i].slice(5,7)-1].push(v); });
+    byMonth.forEach(a=>a.sort((x,y)=>x-y));
+    const levelOf=(v,m)=>{ const a=byMonth[m]; if(!a||a.length<60) return 0;
+      return v>=qPct(a,.995)?3 : v>=qPct(a,.97)?2 : v>=qPct(a,.90)?1 : 0; };
+    const localToday=dISO(new Date(Date.now()+(state.w?state.w.utc_offset_seconds:0)*1000));
+    let todayIdx=times.indexOf(localToday);
+    if(todayIdx<0) todayIdx=Math.min(FLOOD_PAST, q.length-1);
+    const pts=q.map((v,i)=>v==null?null:{v,i}).filter(Boolean);
+    let maxLv=-1, maxVal=0, maxIdx=todayIdx;
+    pts.forEach(p=>{
+      if(p.i<todayIdx) return;
+      const lv=levelOf(p.v, +times[p.i].slice(5,7)-1);
+      if(lv>maxLv||(lv===maxLv&&p.v>maxVal)){ maxLv=lv; maxVal=p.v; maxIdx=p.i; }
+    });
+    if(maxLv<0){ const last=pts[pts.length-1]||{v:0,i:todayIdx}; maxLv=0; maxVal=last.v; maxIdx=last.i; }
+    const L=FLOOD_LEVELS[maxLv];
+    B.textContent=L.t;
+    B.style.color=L.c; B.style.borderColor=L.c+'66'; B.style.background=L.c+'1f';
+    if(maxLv>=2) B.classList.add('flood-pulse');
+    if(maxLv===3) toast('พบความเสี่ยงน้ำท่วมล้นตลิ่งในพื้นที่นี้ ภายใน 7 วันข้างหน้า','error',6000);
+    const dThai=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short'}).format(new Date(times[maxIdx]+'T12:00:00Z'));
+    const todayVal=q[todayIdx];
+    N.innerHTML=`อัตราไหลวันนี้ <b class="text-white">${todayVal!=null?Math.round(todayVal):'—'}</b> · สูงสุด <b class="text-white">${Math.round(maxVal)}</b> <span class="text-white/50">ลบ.ม./วินาที (${dThai})</span>`;
+    T.textContent=L.note+' · คำนวณจากโมเดลอุทกวิทยา GloFAS เทียบสถิติรายเดือนย้อนหลังกว่า 20 ปี (วิเคราะห์เฉพาะแม่น้ำและลำน้ำสาขา ไม่รวมน้ำท่วมขังรอการระบายบนผิวจราจร)';
+    if(pts.length>1){
+      const W=320, H=110, top=8, bot=82, padX=8;
+      const mn=Math.min(...pts.map(p=>p.v)), mx=Math.max(...pts.map(p=>p.v));
+      const X=i=>padX+i*(W-2*padX)/(q.length-1);
+      const Y=v=> mx===mn ? (top+bot)/2 : bot-((v-mn)/(mx-mn))*(bot-top);
+      const dx=X(todayIdx).toFixed(1);
+      const gid=uid();
+      const d=smoothPath(pts.map(p=>({x:X(p.i), y:Y(p.v)})));
+      S.innerHTML=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="rgba(255,255,255,.20)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>
+        <line x1="${dx}" y1="4" x2="${dx}" y2="${bot+6}" stroke="rgba(255,255,255,.35)" stroke-dasharray="3 4"/>
+        <path d="${d}L${X(pts[pts.length-1].i).toFixed(1)} ${bot}L${X(pts[0].i).toFixed(1)} ${bot}Z" fill="url(#${gid})"/>
+        <path d="${d}" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="${X(maxIdx).toFixed(1)}" cy="${Y(maxVal).toFixed(1)}" r="4.5" fill="${L.c}" stroke="#fff" stroke-width="1.5"/>
+        <text x="4" y="104" font-size="9.5" fill="rgba(255,255,255,.45)">ย้อนหลัง ${todayIdx} วัน</text>
+        <text x="${dx}" y="104" font-size="9.5" text-anchor="middle" font-weight="600" fill="rgba(255,255,255,.7)">วันนี้</text>
+        <text x="${W-4}" y="104" font-size="9.5" text-anchor="end" fill="rgba(255,255,255,.45)">พยากรณ์ +${q.length-1-todayIdx} วัน</text>`;
+    }
+  }catch(e){
+    if(myTok!==floodToken) return;
+    B.textContent='ไม่มีข้อมูล';
+    T.textContent='ไม่สามารถดึงข้อมูลระดับน้ำในแม่น้ำได้ในขณะนี้ กรุณาลองใหม่ภายหลัง';
+  }
+}
+
+/* ---------- กราฟพยากรณ์รายชั่วโมง 24 ชม. ---------- */
+function smoothPath(p){
+  if(p.length<2) return '';
+  let d=`M${p[0].x.toFixed(1)} ${p[0].y.toFixed(1)}`;
+  for(let i=0;i<p.length-1;i++){
+    const p0=p[Math.max(0,i-1)], p1=p[i], p2=p[i+1], p3=p[Math.min(p.length-1,i+2)];
+    d+=`C${(p1.x+(p2.x-p0.x)/6).toFixed(1)} ${(p1.y+(p2.y-p0.y)/6).toFixed(1)} ${(p2.x-(p3.x-p1.x)/6).toFixed(1)} ${(p2.y-(p3.y-p1.y)/6).toFixed(1)} ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return d;
+}
+function renderHourly(){
+  const H=state.w.hourly, off=state.w.utc_offset_seconds;
+  const nowL=Date.now()+off*1000;
+  let start=H.time.findIndex(t=>Date.parse(t+':00Z')>=nowL-30*60000);
+  if(start<0) start=0;
+  const list=[];
+  for(let i=start;i<Math.min(start+24,H.time.length);i++){
+    list.push({
+      t:H.time[i],
+      temp:H.temperature_2m[i],
+      feel:H.apparent_temperature?.[i]??H.temperature_2m[i],
+      hum:H.relative_humidity_2m?.[i]??null,
+      wind:H.wind_speed_10m?.[i]??null,
+      code:H.weather_code[i],
+      pop:H.precipitation_probability?.[i]??0,
+      pr:H.precipitation?.[i]??0,
+      isDay:H.is_day[i]===1
+    });
+  }
+  state.hourList=list;
+  const step=64, W=list.length*step; state.hourW=W;
+  els.hourInner.style.width=W+'px';
+  const temps=list.map(o=>o.temp), tmin=Math.min(...temps), tmax=Math.max(...temps);
+  const y=t=> tmax===tmin ? 102 : 132-((t-tmin)/(tmax-tmin))*60;
+  const pts=list.map((o,i)=>({ x:i*step+step/2, y:y(o.temp) }));
+  const curve=smoothPath(pts);
+  const area=curve+`L${pts[pts.length-1].x} 150L${pts[0].x} 150Z`;
+  const gid=uid();
+  let s=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgba(255,255,255,.20)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/></linearGradient></defs>`;
+  s+=`<line x1="0" y1="201" x2="${W}" y2="201" stroke="rgba(255,255,255,.14)" stroke-width="1"/>`;
+  list.forEach((o,i)=>{
+    const bh=o.pop/100*34, x=i*step+step/2;
+    if(bh>0.5) s+=`<rect x="${x-9}" y="${196-bh}" width="18" height="${bh}" rx="3" fill="rgba(150,200,255,.38)"/>`;
+    if(o.pop>=25) s+=`<text x="${x}" y="${190-bh-3}" text-anchor="middle" font-size="9" fill="#a9cdf5">${o.pop}%</text>`;
+  });
+  s+=`<path d="${area}" fill="url(#${gid})"/>`;
+  s+=`<path d="${curve}" fill="none" stroke="rgba(255,255,255,.9)" stroke-width="2" stroke-linecap="round"/>`;
+  list.forEach((o,i)=>{
+    const x=i*step+step/2, py=pts[i].y, gid2=uid();
+    const ic=weatherIcon(wmoKind(o.code), o.isDay).replace(/id="(wg\d+)([abc])"/g, (m,_,n)=>`id="${gid2}_${n}"`).replace(/url\(#(wg\d+)([abc])\)/g, (m,_,n)=>`url(#${gid2}_${n})`);
+    s+=`<svg x="${x-13}" y="5" width="26" height="26" viewBox="0 0 24 24" overflow="visible">${ic.replace(/^<svg[^>]*>|<\/svg>$/g,'')}</svg>`;
+    s+=`<text x="${x}" y="${(py-10).toFixed(1)}" text-anchor="middle" font-size="12.5" font-weight="600" fill="#fff">${Math.round(o.temp)}°</text>`;
+    s+=`<circle cx="${x}" cy="${py.toFixed(1)}" r="3" fill="#fff" stroke="rgba(20,30,50,.5)" stroke-width="1.2"/>`;
+    const label=i===0?'ตอนนี้':o.t.slice(11,13)+':00';
+    s+=`<text x="${x}" y="227" text-anchor="middle" font-size="11" fill="${i===0?'#ffd166':'rgba(255,255,255,.62)'}" font-weight="${i===0?'600':'400'}">${label}</text>`;
+    s+=`<rect data-h="${i}" x="${i*step}" y="0" width="${step}" height="238" fill="transparent"/>`;
+  });
+  els.hourSvg.setAttribute('width', W);
+  els.hourSvg.innerHTML=s;
+  els.hourTip.classList.add('hidden'); els.hourCursor.classList.add('hidden');
+}
+els.hourInner.addEventListener('click', e=>{
+  const r=e.target.closest('[data-h]'); if(!r) return;
+  const i=+r.dataset.h, o=state.hourList[i]; if(!o) return;
+  const x=i*64+32;
+  els.hourCursor.style.left=x+'px'; els.hourCursor.classList.remove('hidden');
+  els.hourTip.style.left=clamp(x,125,state.hourW-125)+'px';
+  els.hourTip.classList.remove('hidden');
+  els.hourTip.innerHTML=`<p class="text-[11px] text-amber-200 font-medium">${i===0?'สภาพอากาศตอนนี้':`เวลา ${o.t.slice(11,16)} น.`}</p>
+    <p class="text-sm font-semibold mt-0.5">${Math.round(o.temp)}°C (รู้สึกจริง ${Math.round(o.feel)}°C) · ${wmoText(o.code)}</p>
+    <p class="text-[11px] text-sky-200 mt-0.5">โอกาสฝน ${o.pop}%${o.pr>0?` · ปริมาณฝน ${o.pr} มม.`:' · ไม่มีฝนสะสม'}</p>
+    <p class="text-[11px] text-white/65 mt-0.5">ความชื้น ${o.hum!=null?Math.round(o.hum)+'%':'—'} · ลม ${o.wind!=null?Math.round(o.wind)+' กม./ชม.':'—'}</p>`;
+});
+
+/* ---------- พยากรณ์ล่วงหน้า 7 วัน พร้อมคำอธิบายสภาพอากาศแต่ละวัน ---------- */
+function tempColor(t){
+  const stops=[[0,'#7cc6f2'],[15,'#8fd3a8'],[25,'#f2d16b'],[32,'#f2a35c'],[38,'#e86a5c']];
+  if(t<=stops[0][0]) return stops[0][1];
+  for(let i=0;i<stops.length-1;i++){
+    const [t1,c1]=stops[i], [t2,c2]=stops[i+1];
+    if(t<=t2){ const k=(t-t1)/(t2-t1); return mixHex(c1,c2,k); }
+  }
+  return stops[stops.length-1][1];
+}
+function mixHex(a,b,k){
+  const pa=parseInt(a.slice(1),16), pb=parseInt(b.slice(1),16);
+  const r=Math.round(((pa>>16)&255)+(((pb>>16)&255)-((pa>>16)&255))*k);
+  const g=Math.round(((pa>>8)&255)+(((pb>>8)&255)-((pa>>8)&255))*k);
+  const bl=Math.round((pa&255)+((pb&255)-(pa&255))*k);
+  return `rgb(${r},${g},${bl})`;
+}
+const DAYS_TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+function renderDaily(){
+  const D=state.w.daily;
+  const gmin=Math.min(...D.temperature_2m_min), gmax=Math.max(...D.temperature_2m_max), span=Math.max(gmax-gmin,1);
+  let html='';
+  for(let i=0;i<Math.min(7,D.time.length);i++){
+    const ds=D.time[i];
+    const dow=new Date(ds+'T12:00:00Z').getUTCDay();
+    const name=i===0?'วันนี้':i===1?'พรุ่งนี้':'วัน'+DAYS_TH[dow];
+    const dateStr=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(ds+'T12:00:00Z'));
+    const lo=D.temperature_2m_min[i], hi=D.temperature_2m_max[i];
+    const left=(lo-gmin)/span*100, width=(hi-lo)/span*100;
+    const pop=D.precipitation_probability_max?.[i]??0;
+    const psum=D.precipitation_sum?.[i]??0;
+    const condText=wmoText(D.weather_code[i]);
+    html+=`<div class="flex flex-wrap sm:flex-nowrap items-center gap-2.5 sm:gap-3.5 py-3 border-b border-white/10 last:border-0 rounded-lg px-2 -mx-2 hover:bg-white/[.06] transition-colors">
+      <div class="w-[82px] sm:w-[96px] shrink-0">
+        <p class="text-sm font-medium leading-tight">${name}</p>
+        <p class="text-[11px] text-white/50 leading-tight mt-0.5">${dateStr}</p>
+      </div>
+      <div class="flex items-center gap-2.5 min-w-[155px] sm:w-[205px] shrink-0">
+        <div class="w-8 h-8 shrink-0">${weatherIcon(wmoKind(D.weather_code[i]), true)}</div>
+        <div class="min-w-0">
+          <p class="text-xs font-medium text-white/90 leading-snug">${condText}</p>
+          <p class="text-[11px] ${pop>=30?'text-sky-200':'text-white/50'} leading-snug flex items-center gap-1 mt-0.5">
+            ${uiIcon('umbrella','w-3 h-3 shrink-0')}
+            <span>ฝน ${pop}%${psum>0?` (${psum.toFixed(1)} มม.)`:''}</span>
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5 flex-1 min-w-[140px]">
+        <span class="w-8 text-right text-sm text-white/70">${Math.round(lo)}°</span>
+        <div class="relative h-1.5 rounded-full bg-white/15 flex-1 overflow-hidden">
+          <div class="absolute inset-y-0 rounded-full" style="left:${left.toFixed(1)}%;width:${Math.max(width,4).toFixed(1)}%;background:linear-gradient(90deg,${tempColor(lo)},${tempColor(hi)})"></div>
+        </div>
+        <span class="w-8 text-sm font-semibold">${Math.round(hi)}°</span>
+      </div>
+    </div>`;
+  }
+  els.dailyList.innerHTML=html;
+}
+
+/* ---------- เส้นทางดวงอาทิตย์ ---------- */
+function renderSun(){
+  const D=state.w.daily, off=state.w.utc_offset_seconds;
+  const sr=D.sunrise[0], ss=D.sunset[0];
+  els.sunriseTime.textContent=sr.slice(11,16)+' น.';
+  els.sunsetTime.textContent=ss.slice(11,16)+' น.';
+  const a=Date.parse(sr+':00Z'), b=Date.parse(ss+':00Z');
+  const dur=b-a, h=Math.floor(dur/3600000), m=Math.round(dur%3600000/60000);
+  els.sunDayLength.textContent=`${h} ชั่วโมง ${m} นาที`;
+  const nowL=Date.now()+off*1000;
+  const p=clamp((nowL-a)/(b-a),0,1);
+  const x=(130-100*Math.cos(p*Math.PI)).toFixed(1), y=(100-100*Math.sin(p*Math.PI)).toFixed(1);
+  const elapsed=p>0.015?`<path d="M30 100 A100 100 0 ${p>0.5?1:0} 1 ${x} ${y}" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/>`:'';
+  els.sunSvg.innerHTML=`
+    <defs><radialGradient id="sunglow"><stop offset="0" stop-color="rgba(255,209,102,.55)"/><stop offset="1" stop-color="rgba(255,209,102,0)"/></radialGradient></defs>
+    <path d="M30 100 A100 100 0 0 1 230 100" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-dasharray="1.5 6" stroke-linecap="round"/>
+    <line x1="18" y1="100" x2="242" y2="100" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+    ${elapsed}
+    <circle cx="${x}" cy="${y}" r="13" fill="url(#sunglow)"/>
+    <circle cx="${x}" cy="${y}" r="6.5" fill="#ffd166"/>`;
+  if(nowL>=a&&nowL<=b){
+    const remain=b-nowL, rh=Math.floor(remain/3600000), rm=Math.round(remain%3600000/60000);
+    els.sunStatus.textContent=`ตอนนี้ดวงอาทิตย์อยู่บนท้องฟ้า (ผ่านเวลากลางวันมาแล้ว ${Math.round(p*100)}%) และจะตกลับขอบฟ้าในอีก ${rh} ชั่วโมง ${rm} นาที`;
+  }else{
+    const next=D.sunrise[1]||sr;
+    els.sunStatus.textContent=`ตอนนี้อยู่ในช่วงเวลากลางคืน ดวงอาทิตย์จะขึ้นรับวันใหม่อีกครั้งในเวลา ${next.slice(11,16)} น.`;
+  }
+}
+
+/* ---------- ข้อความแจ้งเตือน (Toast) ---------- */
+function toast(msg, type='info', ms=3000){
+  const map={ info:'info', error:'alert', success:'check' };
+  const cls=type==='error'?'text-red-300':type==='success'?'text-emerald-300':'text-sky-200';
+  const el=document.createElement('div');
+  el.className='glass-strong rounded-xl px-4 py-2.5 flex items-center gap-2.5 text-sm shadow-xl rise pointer-events-auto max-w-[92vw]';
+  el.innerHTML=uiIcon(map[type]||'info','w-4 h-4 shrink-0 '+cls)+`<span>${msg}</span>`;
+  els.toasts.appendChild(el);
+  setTimeout(()=>{
+    el.style.transition='opacity .4s, transform .4s';
+    el.style.opacity='0'; el.style.transform='translateY(8px)';
+    setTimeout(()=>el.remove(), 420);
+  }, ms);
+}
+
+/* ---------- หน้าต่างตั้งค่าและ LocalStorage ---------- */
+function renderKeyStatus(){
+  const k=getKey();
+  els.keyStatus.innerHTML = k
+    ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> บันทึกคีย์ไว้แล้ว · ลงท้ายด้วย “…${k.slice(-4)}”`
+    : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> ยังไม่มีคีย์ — ระบบใช้บริการค้นหาสำรองอัตโนมัติ`;
+  els.modeBadge.classList.toggle('hidden', !k);
+}
+const openModal=()=>{ els.apiKeyInput.value=getKey(); renderKeyStatus(); els.settingsModal.classList.remove('hidden'); els.apiKeyInput.focus(); };
+const closeModal=()=>els.settingsModal.classList.add('hidden');
+
+/* ---------- ระบบค้นหาในช่องด้านบน ---------- */
+let searchTimer=null, lastResults=[];
+function doSearch(q){
+  els.searchSpin.innerHTML=uiIcon('refresh','w-4 h-4 animate-spin');
+  els.searchSpin.classList.remove('hidden'); els.searchIcon.classList.add('hidden');
+  geocodeSearch(q).then(res=>{
+    lastResults=res;
+    els.searchSpin.classList.add('hidden'); els.searchIcon.classList.remove('hidden');
+    if(!res.length){ els.searchResults.innerHTML=`<p class="px-4 py-3.5 text-sm text-white/70">ไม่พบข้อมูลสถานที่ กรุณาลองคำอื่น</p>`; els.searchResults.classList.remove('hidden'); return; }
+    els.searchResults.innerHTML=res.map((r,i)=>`
+      <button data-i="${i}" class="w-full text-left px-4 py-2.5 hover:bg-white/10 transition flex items-start gap-2.5">
+        <span class="text-white/45 mt-0.5">${uiIcon('pin','w-3.5 h-3.5')}</span>
+        <span class="min-w-0"><span class="block text-sm font-medium truncate">${r.name}</span>
+        <span class="block text-[11px] text-white/50 truncate">${r.admin||''}</span></span>
+      </button>`).join('');
+    els.searchResults.classList.remove('hidden');
+  }).catch(()=>{
+    els.searchSpin.classList.add('hidden'); els.searchIcon.classList.remove('hidden');
+    toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error');
+  });
+}
+function chooseResult(r){
+  els.searchResults.classList.add('hidden');
+  els.searchInput.value=r.name;
+  loadWeather(r);
+  toast(`ดึงข้อมูล “${r.name}” เรียบร้อยแล้ว`,'success');
+}
+
+/* ---------- เชื่อมเหตุการณ์ทั้งหมด ---------- */
+function bindEvents(){
+  els.searchIcon.innerHTML=uiIcon('search','w-4 h-4');
+  els.apkIcon.innerHTML=uiIcon('download','w-4 h-4');
+  els.btnLocate.innerHTML=uiIcon('locate','w-[18px] h-[18px]');
+  els.btnSettings.innerHTML=uiIcon('sliders','w-[18px] h-[18px]');
+  els.btnRefresh.innerHTML=uiIcon('refresh','w-4 h-4');
+  els.btnModalClose.innerHTML=uiIcon('x','w-4 h-4');
+  els.keyIcon.innerHTML=uiIcon('key','w-4 h-4');
+  els.toggleKey.innerHTML=uiIcon('eye','w-4 h-4');
+  els.hiWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowUp','w-3.5 h-3.5 text-amber-200/80'));
+  els.loWrap.insertAdjacentHTML('afterbegin', uiIcon('arrowDown','w-3.5 h-3.5 text-sky-200/80'));
+
+  els.searchInput.addEventListener('input', ()=>{
+    const q=els.searchInput.value.trim();
+    clearTimeout(searchTimer);
+    if(q.length<2){ els.searchResults.classList.add('hidden'); return; }
+    searchTimer=setTimeout(()=>doSearch(q), 450);
+  });
+  els.searchInput.addEventListener('keydown', e=>{
+    if(e.key==='Enter'&&lastResults.length){ chooseResult(lastResults[0]); }
+    if(e.key==='Escape') els.searchResults.classList.add('hidden');
+  });
+  els.searchResults.addEventListener('click', e=>{
+    const b=e.target.closest('[data-i]'); if(b) chooseResult(lastResults[+b.dataset.i]);
+  });
+  document.addEventListener('pointerdown', e=>{
+    if(!e.target.closest('#searchResults')&&e.target!==els.searchInput) els.searchResults.classList.add('hidden');
+  });
+
+  els.btnLocate.addEventListener('click', ()=>locate(false));
+  els.btnRefresh.addEventListener('click', ()=>{
+    if(!state.place) return;
+    toast('กำลังดึงข้อมูลพยากรณ์อากาศล่าสุด…','info',1800);
+    loadWeather(state.place);
+  });
+
+  els.btnSettings.addEventListener('click', openModal);
+  els.btnModalClose.addEventListener('click', closeModal);
+  els.settingsModal.querySelector('[data-close]').addEventListener('click', closeModal);
+  document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+  els.toggleKey.addEventListener('click', ()=>{
+    const show=els.apiKeyInput.type==='password';
+    els.apiKeyInput.type=show?'text':'password';
+    els.toggleKey.innerHTML=uiIcon(show?'eyeOff':'eye','w-4 h-4');
+  });
+  els.btnKeySave.addEventListener('click', ()=>{
+    const k=els.apiKeyInput.value.trim();
+    if(!k){ toast('กรุณากรอกคีย์ก่อนบันทึก','error'); return; }
+    localStorage.setItem(LS_API, k);
+    renderKeyStatus(); closeModal();
+    toast('บันทึก Google API Key เรียบร้อยแล้ว ระบบจะใช้ค้นหาสถานที่ด้วย Google ตั้งแต่บัดนี้','success',3600);
+  });
+  els.btnKeyClear.addEventListener('click', ()=>{
+    localStorage.removeItem(LS_API);
+    els.apiKeyInput.value=''; renderKeyStatus();
+    toast('ล้างคีย์แล้ว ระบบจะใช้บริการค้นหาสำรองอัตโนมัติ','info');
+  });
+
+  // ลงทะเบียน Service Worker สำหรับ PWA และแอป Android
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  }
+
+  // อัปเดตเวลาทุก 30 วินาที และดึงข้อมูลอากาศใหม่ทุก 15 นาทีอัตโนมัติ
+  setInterval(tickClock, 30000);
+  setInterval(()=>{
+    if(state.place && !document.hidden) loadWeather(state.place);
+  }, AUTO_REFRESH_MS);
+  document.addEventListener('visibilitychange', ()=>{
+    if(!document.hidden && state.place && Date.now() - state.lastFetch >= AUTO_REFRESH_MS){
+      loadWeather(state.place);
+    }
+  });
+}
+
+/* ---------- เริ่มต้นการทำงาน ---------- */
+(function boot(){
+  bindEvents();
+  renderKeyStatus();
+  const saved=localStorage.getItem(LS_PLACE);
+  if(saved){
+    try{
+      const p=JSON.parse(saved);
+      if(p&&typeof p.lat==='number'){ loadWeather(p); return; }
+    }catch(e){}
+  }
+  // ครั้งแรก: ขออนุญาตเข้าถึงพิกัดผ่านเบราว์เซอร์ หากไม่ได้จะแสดงกรุงเทพฯ เป็นค่าเริ่มต้น
+  if(!navigator.geolocation){ loadWeather(DEFAULT_PLACE); return; }
+  els.placeName.textContent='กำลังระบุตำแหน่ง…';
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const { latitude:lat, longitude:lon }=pos.coords;
+      const place=await reverseGeocode(lat,lon);
+      loadWeather(place);
+    },
+    err=>{
+      loadWeather(DEFAULT_PLACE);
+      toast(err.code===1?'กรุณาเปิดสิทธิ์ระบุตำแหน่ง หรือค้นหาสถานที่ด้านบน':'ไม่สามารถระบุตำแหน่งได้ แสดงข้อมูลกรุงเทพมหานครเป็นค่าเริ่มต้น','info',4200);
+    },
+    { enableHighAccuracy:true, timeout:9000, maximumAge:300000 }
+  );
+})();
+</script>
+</body>
+</html>
