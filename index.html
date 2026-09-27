@@ -143,6 +143,9 @@ tailwind.config = {
           <p class="font-semibold leading-none tracking-wide text-sm sm:text-[15px]">เมฆา</p>
           <p class="hidden sm:block text-[11px] text-white/60 leading-none mt-1">พยากรณ์อากาศส่วนตัว · MixImage</p>
         </div>
+        <span id="wapiBadge" class="hidden sm:inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border border-emerald-300/35 bg-emerald-400/15 text-emerald-200 whitespace-nowrap">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI Live
+        </span>
         <span id="modeBadge" class="hidden sm:inline-block text-[10px] px-2 py-0.5 rounded-full border border-amber-300/30 bg-amber-300/10 text-amber-200 whitespace-nowrap">Google</span>
       </div>
 
@@ -207,7 +210,12 @@ tailwind.config = {
               class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
           </div>
         </div>
-        <p id="clockLine" class="mt-1 text-xs text-white/55">—</p>
+        <div class="mt-1 flex flex-wrap items-center gap-2">
+          <p id="clockLine" class="text-xs text-white/55">—</p>
+          <span id="heroSourcePill" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-300/30 text-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF
+          </span>
+        </div>
 
         <div class="mt-4 sm:mt-5 flex items-center gap-4 sm:gap-6">
           <div id="bigIcon" class="w-20 h-20 sm:w-28 sm:h-28 shrink-0"></div>
@@ -366,8 +374,8 @@ tailwind.config = {
   </div>
 
   <footer class="mt-6 sm:mt-8 text-center text-[11px] text-white/40 leading-relaxed space-y-1 px-2">
-    <p>ข้อมูลพยากรณ์อากาศและคุณภาพอากาศจาก Open-Meteo · ระดับน้ำในแม่น้ำจากโมเดล GloFAS (Copernicus · ECMWF)</p>
-    <p>ค้นหาสถานที่ด้วย Google Geocoding API (เมื่อใส่คีย์) พร้อมบริการสำรองอัตโนมัติ · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
+    <p>ข้อมูลพยากรณ์อากาศสดแบบผสมผสานจาก WeatherAPI.com + โมเดล ECMWF (Open-Meteo) · ระดับน้ำจากโมเดล GloFAS (Copernicus)</p>
+    <p>ค้นหาสถานที่ด้วย WeatherAPI · Google Geocoding · OpenStreetMap · พัฒนาโดย MixImage (<a href="https://github.com/woon-miximage/mekha-weather" target="_blank" rel="noopener" class="underline hover:text-white/70">GitHub</a> · <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="underline text-emerald-300/80 hover:text-emerald-200">ดาวน์โหลด Android APK</a>)</p>
   </footer>
 </main>
 
@@ -452,17 +460,17 @@ tailwind.config = {
   </div>
 </div>
 
-<!-- หน้าต่างตั้งค่า Google API Key & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
+<!-- หน้าต่างตั้งค่า WeatherAPI.com Key, Google API Key & ดาวน์โหลด APK (Bottom Sheet บนมือถือ) -->
 <div id="settingsModal" class="hidden fixed inset-0 z-50 flex items-end sm:grid sm:place-items-center sm:p-4">
   <div class="absolute inset-0 bg-black/55 backdrop-blur-sm" data-close></div>
-  <div class="glass-strong relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 sheet-up pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+  <div class="glass-strong relative w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-5 sm:p-6 sheet-up max-h-[90dvh] overflow-y-auto nice-scroll pb-[max(1.25rem,env(safe-area-inset-bottom))]">
     <div class="w-10 h-1 rounded-full bg-white/25 mx-auto mb-3 sm:hidden"></div>
     <div class="flex items-center justify-between">
-      <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าระบบและดาวน์โหลดแอป</h2>
+      <h2 class="text-base sm:text-lg font-semibold">ตั้งค่าคีย์พยากรณ์อากาศ & ดาวน์โหลดแอป</h2>
       <button id="btnModalClose" class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition"></button>
     </div>
 
-    <div class="mt-4 glass-in rounded-2xl p-3.5 flex items-center justify-between gap-3">
+    <div class="mt-3.5 glass-in rounded-2xl p-3.5 flex items-center justify-between gap-3">
       <div class="min-w-0">
         <p class="text-xs font-semibold text-emerald-300">แอปพลิเคชัน Android (.APK)</p>
         <p class="text-[11px] text-white/65 mt-0.5 leading-snug">ติดตั้งแอป “เมฆา” ลงบนมือถือ Android ได้โดยตรง</p>
@@ -473,27 +481,42 @@ tailwind.config = {
       </a>
     </div>
 
-    <label class="block mt-4 text-xs text-white/70 font-medium">Google Maps Platform API Key (ทางเลือก)</label>
-    <div class="mt-2 relative">
-      <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
-        class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
-        placeholder="วางคีย์ของคุณที่นี่…">
-      <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" id="keyIcon"></span>
-      <button id="toggleKey" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-white/60 hover:text-white transition"></button>
+    <!-- คีย์ที่ 1: WeatherAPI.com Key (ตั้งค่าเริ่มต้นให้พร้อมใช้งานทันที) -->
+    <div class="mt-4">
+      <div class="flex items-center justify-between">
+        <label class="text-xs text-emerald-300 font-semibold">1. WeatherAPI.com Key (พยากรณ์อากาศสดความแม่นยำสูง)</label>
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 text-emerald-200 border border-emerald-300/30">เปิดใช้งานแล้ว</span>
+      </div>
+      <div class="mt-1.5 relative">
+        <input id="wapiKeyInput" type="text" autocomplete="off" spellcheck="false"
+          class="glass-in w-full rounded-xl pl-3.5 pr-3.5 py-2.5 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-emerald-300/40 font-mono"
+          placeholder="วางคีย์ WeatherAPI.com ที่นี่…">
+      </div>
+      <p class="mt-1.5 text-[11px] text-white/60 leading-relaxed">
+        ผสานข้อมูลสถานีตรวจวัดสด โอกาสเกิดฝนเขตร้อนรายชั่วโมง และค่าฝุ่น PM2.5 จาก <b class="text-white/85">WeatherAPI.com</b> เข้ากับโมเดล <b class="text-white/85">ECMWF (Open-Meteo)</b>
+      </p>
     </div>
 
-    <p class="mt-2.5 text-[11px] text-white/55 leading-relaxed">
-      คีย์นี้ใช้เรียก <b class="text-white/80">Google Geocoding API</b> เพื่อค้นหาและแปลงชื่อสถานที่เป็นภาษาไทยระดับตำบล/หมู่บ้าน
-      หากไม่กรอกคีย์ ระบบจะใช้บริการค้นหาสำรองของ OpenStreetMap และ Open-Meteo ให้อัตโนมัติ
-    </p>
+    <!-- คีย์ที่ 2: Google Maps Platform API Key (ทางเลือก) -->
+    <div class="mt-4 pt-3.5 border-t border-white/10">
+      <label class="block text-xs text-white/75 font-medium">2. Google Maps Platform API Key (ทางเลือกเสริม)</label>
+      <div class="mt-1.5 relative">
+        <input id="apiKeyInput" type="password" autocomplete="off" spellcheck="false"
+          class="glass-in w-full rounded-xl pl-9 pr-11 py-2.5 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-white/25"
+          placeholder="วางคีย์ Google Maps ของคุณที่นี่ (ถ้ามี)…">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/55" id="keyIcon"></span>
+        <button id="toggleKey" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-white/60 hover:text-white transition"></button>
+      </div>
+    </div>
 
-    <div class="mt-3.5 flex items-center gap-2 text-[11px] text-white/70">
+    <div class="mt-3.5 flex flex-col gap-1.5 text-[11px] text-white/75">
+      <span id="wapiStatus" class="flex items-center gap-2"></span>
       <span id="keyStatus" class="flex items-center gap-2"></span>
     </div>
 
     <div class="mt-4 flex gap-2.5">
-      <button id="btnKeySave" class="flex-1 rounded-xl bg-white text-slate-900 text-sm font-semibold py-2.5 hover:bg-white/90 transition">บันทึกคีย์</button>
-      <button id="btnKeyClear" class="rounded-xl glass-in text-sm px-4 py-2.5 hover:bg-white/15 transition">ล้างค่า</button>
+      <button id="btnKeySave" class="flex-1 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold py-2.5 hover:bg-amber-300 transition">บันทึกการตั้งค่า</button>
+      <button id="btnKeyClear" class="rounded-xl glass-in text-xs sm:text-sm px-3.5 py-2.5 hover:bg-white/15 transition">คืนค่าเริ่มต้น</button>
     </div>
   </div>
 </div>
@@ -509,6 +532,8 @@ tailwind.config = {
 
 /* ---------- ค่าคงที่และตัวช่วยพื้นฐาน ---------- */
 const LS_API = 'mekhaGoogleKey';
+const LS_WAPI = 'mekhaWeatherApiKey';
+const DEFAULT_WAPI_KEY = '859b56d0bda84487a9f131237262709';
 const LS_PLACE = 'mekhaLastPlace';
 const LS_DIST_COORDS = 'mekhaDistCoords';
 const DEFAULT_PLACE = { name:'กรุงเทพมหานคร', district:'พระนคร', province:'กรุงเทพมหานคร', admin:'เขตพระนคร · กรุงเทพมหานคร', lat:13.7563, lon:100.5018 };
@@ -520,11 +545,13 @@ const isMobile = () => window.innerWidth < 768;
 
 const els = {
   bgA:$('#bgA'), bgB:$('#bgB'), skyLayer:$('#skyLayer'),
+  wapiBadge:$('#wapiBadge'), heroSourcePill:$('#heroSourcePill'),
   modeBadge:$('#modeBadge'), searchInput:$('#searchInput'), searchSpin:$('#searchSpin'),
   searchIcon:$('#searchIcon'), btnSearchClear:$('#btnSearchClear'), searchResults:$('#searchResults'),
   btnOpenMapTop:$('#btnOpenMapTop'), mapTopIcon:$('#mapTopIcon'), btnQuickPinHero:$('#btnQuickPinHero'),
   btnLocate:$('#btnLocate'), btnSettings:$('#btnSettings'), apkIcon:$('#apkIcon'),
-  settingsModal:$('#settingsModal'), apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
+  settingsModal:$('#settingsModal'), wapiKeyInput:$('#wapiKeyInput'), wapiStatus:$('#wapiStatus'),
+  apiKeyInput:$('#apiKeyInput'), toggleKey:$('#toggleKey'),
   keyStatus:$('#keyStatus'), btnKeySave:$('#btnKeySave'), btnKeyClear:$('#btnKeyClear'),
   btnModalClose:$('#btnModalClose'), keyIcon:$('#keyIcon'),
   pinModal:$('#pinModal'), btnPinModalClose:$('#btnPinModalClose'),
@@ -557,7 +584,7 @@ const els = {
 };
 
 const state = {
-  place:null, w:null, a:null, hourList:[], hourW:0, busy:false, lastFetch:0,
+  place:null, w:null, a:null, wapi:null, hourList:[], hourW:0, busy:false, lastFetch:0,
   thaiDistricts:null, map:null, mapMarker:null, pendingPin:null
 };
 
@@ -745,7 +772,7 @@ function buildSky(kind,isDay){
   L.innerHTML=s;
 }
 
-/* ---------- เครือข่าย ---------- */
+/* ---------- เครือข่าย & ผสานข้อมูล WeatherAPI.com + ECMWF ---------- */
 async function jget(url, ms=9000){
   const c=new AbortController(); const t=setTimeout(()=>c.abort(), ms);
   try{
@@ -755,6 +782,10 @@ async function jget(url, ms=9000){
   } finally{ clearTimeout(t); }
 }
 const getKey = () => localStorage.getItem(LS_API) || '';
+const getWapiKey = () => {
+  const saved = localStorage.getItem(LS_WAPI);
+  return (saved !== null ? saved : DEFAULT_WAPI_KEY).trim();
+};
 
 function forecastUrl(lat,lon){
   return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&forecast_days=8`
@@ -763,6 +794,114 @@ function forecastUrl(lat,lon){
     + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,uv_index_max`;
 }
 const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,uv_index&timezone=auto`;
+const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
+
+/* แปลงรหัสสภาพอากาศของ WeatherAPI.com (1000-1282) เป็นรหัสมาตรฐาน WMO */
+function wapiCodeToWmo(code){
+  switch(code){
+    case 1000: return 0;  // ท้องฟ้าแจ่มใส
+    case 1003: return 2;  // มีเมฆบางส่วน
+    case 1006: case 1009: return 3; // มีเมฆมากปกคลุม
+    case 1030: case 1135: return 45; // มีหมอกบาง
+    case 1147: return 48; // มีหมอกลงจัด
+    case 1063: case 1150: case 1153: case 1180: return 51; // มีฝนละอองเล็กน้อย
+    case 1168: case 1171: return 56;
+    case 1183: return 61; // ฝนตกเล็กน้อย
+    case 1240: return 80; // ฝนซู่เป็นระยะเล็กน้อย
+    case 1186: case 1189: return 63; // ฝนตกปานกลาง
+    case 1243: return 81; // ฝนซู่ปานกลาง
+    case 1192: case 1195: return 65; // ฝนตกหนัก
+    case 1246: return 82; // ฝนซู่ตกหนักรุนแรง
+    case 1198: case 1201: return 66;
+    case 1066: case 1210: case 1213: case 1255: return 71;
+    case 1216: case 1219: return 73;
+    case 1114: case 1117: case 1222: case 1225: case 1258: return 75;
+    case 1087: case 1273: return 95; // พายุฝนฟ้าคะนอง
+    case 1279: return 96;
+    case 1276: case 1282: return 99; // พายุฝนฟ้าคะนองรุนแรง
+    default: return 2;
+  }
+}
+
+/* ผสานข้อมูลสดจาก WeatherAPI.com เข้ากับโครงสร้างพยากรณ์ 7 วันของ Open-Meteo (ECMWF) */
+function mergeWeatherApiData(w, a, wapi){
+  if(!wapi || !wapi.current || !w) return { w, a, isHybrid: false };
+  const cur = wapi.current;
+  w.current = {
+    ...w.current,
+    temperature_2m: cur.temp_c ?? w.current.temperature_2m,
+    apparent_temperature: cur.feelslike_c ?? w.current.apparent_temperature,
+    relative_humidity_2m: cur.humidity ?? w.current.relative_humidity_2m,
+    is_day: cur.is_day ?? w.current.is_day,
+    weather_code: cur.condition?.code != null ? wapiCodeToWmo(cur.condition.code) : w.current.weather_code,
+    wind_speed_10m: cur.wind_kph ?? w.current.wind_speed_10m,
+    wind_direction_10m: cur.wind_degree ?? w.current.wind_direction_10m,
+    wind_gusts_10m: cur.gust_kph ?? w.current.wind_gusts_10m,
+    pressure_msl: cur.pressure_mb ?? w.current.pressure_msl,
+    precipitation: cur.precip_mm ?? w.current.precipitation,
+    vis_km: cur.vis_km ?? null,
+    uv_now: cur.uv ?? null,
+  };
+
+  // ผสานข้อมูลรายชั่วโมง (Hourly) จาก WeatherAPI (72 ชั่วโมงแรก)
+  const fdays = wapi.forecast?.forecastday || [];
+  if(w.hourly && Array.isArray(w.hourly.time) && fdays.length){
+    const timeIdxMap = new Map();
+    w.hourly.time.forEach((t, idx) => timeIdxMap.set(t, idx));
+    fdays.forEach(fd => {
+      (fd.hour || []).forEach(hr => {
+        const isoT = (hr.time || '').replace(' ', 'T');
+        const idx = timeIdxMap.get(isoT);
+        if(idx === undefined) return;
+        if(hr.temp_c != null) w.hourly.temperature_2m[idx] = hr.temp_c;
+        if(hr.feelslike_c != null) w.hourly.apparent_temperature[idx] = hr.feelslike_c;
+        if(hr.humidity != null) w.hourly.relative_humidity_2m[idx] = hr.humidity;
+        if(hr.condition?.code != null) w.hourly.weather_code[idx] = wapiCodeToWmo(hr.condition.code);
+        if(hr.chance_of_rain != null){
+          w.hourly.precipitation_probability[idx] = Math.max(hr.chance_of_rain, w.hourly.precipitation_probability[idx] ?? 0);
+        }
+        if(hr.precip_mm != null){
+          w.hourly.precipitation[idx] = Math.max(hr.precip_mm, w.hourly.precipitation[idx] ?? 0);
+        }
+        if(hr.is_day != null) w.hourly.is_day[idx] = hr.is_day;
+        if(hr.vis_km != null && w.hourly.visibility) w.hourly.visibility[idx] = hr.vis_km * 1000;
+        if(hr.wind_kph != null && w.hourly.wind_speed_10m) w.hourly.wind_speed_10m[idx] = hr.wind_kph;
+      });
+    });
+  }
+
+  // ผสานข้อมูลรายวัน 3 วันแรกจาก WeatherAPI เข้ากับพยากรณ์ 7 วันของ ECMWF
+  if(w.daily && Array.isArray(w.daily.time) && fdays.length){
+    fdays.forEach(fd => {
+      const idx = w.daily.time.indexOf(fd.date);
+      if(idx < 0 || !fd.day) return;
+      const d = fd.day;
+      if(d.maxtemp_c != null) w.daily.temperature_2m_max[idx] = d.maxtemp_c;
+      if(d.mintemp_c != null) w.daily.temperature_2m_min[idx] = d.mintemp_c;
+      if(d.condition?.code != null) w.daily.weather_code[idx] = wapiCodeToWmo(d.condition.code);
+      if(d.daily_chance_of_rain != null){
+        w.daily.precipitation_probability_max[idx] = Math.max(d.daily_chance_of_rain, w.daily.precipitation_probability_max[idx] ?? 0);
+      }
+      if(d.totalprecip_mm != null){
+        w.daily.precipitation_sum[idx] = Math.max(d.totalprecip_mm, w.daily.precipitation_sum[idx] ?? 0);
+      }
+      if(d.uv != null && w.daily.uv_index_max) w.daily.uv_index_max[idx] = Math.max(d.uv, w.daily.uv_index_max[idx] ?? 0);
+    });
+  }
+
+  // ผสานข้อมูลคุณภาพอากาศ (PM2.5) และรังสียูวี
+  if(!a) a = { current: {} };
+  if(!a.current) a.current = {};
+  const wapiPm = cur.air_quality?.pm2_5;
+  if(wapiPm != null){
+    a.current.pm2_5 = a.current.pm2_5 != null ? Math.max(a.current.pm2_5, wapiPm) : wapiPm;
+  }
+  if(cur.uv != null){
+    a.current.uv_index = cur.is_day === 1 ? Math.max(cur.uv, a.current.uv_index ?? 0) : cur.uv;
+  }
+
+  return { w, a, isHybrid: true };
+}
 
 /* ---------- ระบบฐานข้อมูลจังหวัดและอำเภอของไทย (77 จังหวัด · 930 อำเภอ) ---------- */
 const cleanProv = s => (s||'').replace(/^(จังหวัด|จ\.)\s*/g,'').trim();
@@ -942,7 +1081,7 @@ async function selectDistrictByName(prov, dist){
   }
 }
 
-/* ---------- การค้นหาสถานที่ (Google เป็นหลัก + Open-Meteo สำรองอัตโนมัติ) ---------- */
+/* ---------- การค้นหาสถานที่ (Google + OpenStreetMap + Open-Meteo) ---------- */
 function placeFromGoogle(r){
   const ac=r.address_components||[];
   const get=t=>{ const c=ac.find(x=>x.types.includes(t)); return c?c.long_name:''; };
@@ -979,8 +1118,21 @@ async function openMeteoSearch(q){
     };
   });
 }
+async function nominatimSearch(q){
+  const j=await jget(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&countrycodes=th&limit=6&accept-language=th`, 6500);
+  return (j||[]).map(r=>{
+    const parts = (r.display_name||'').split(',').map(s=>s.trim());
+    return {
+      name: parts[0] || q,
+      admin: parts.slice(1, 3).join(' · '),
+      lat: parseFloat(r.lat),
+      lon: parseFloat(r.lon)
+    };
+  });
+}
 async function geocodeSearch(q){
   if(getKey()){ try{ const r=await googleSearch(q); if(r.length) return r; }catch(e){} }
+  try{ const n=await nominatimSearch(q); if(n.length) return n; }catch(e){}
   return openMeteoSearch(q);
 }
 
@@ -1030,7 +1182,7 @@ function locate(silent=false){
   }, { enableHighAccuracy:true, timeout:10000, maximumAge:120000 });
 }
 
-/* ---------- โหลดและแสดงผลข้อมูลพยากรณ์ ---------- */
+/* ---------- โหลดและแสดงผลข้อมูลพยากรณ์ (ผสาน WeatherAPI.com + ECMWF) ---------- */
 async function loadWeather(place){
   if(state.busy) return; state.busy=true;
   state.place=place;
@@ -1039,16 +1191,19 @@ async function loadWeather(place){
   document.title=`${place.name} · เมฆา — พยากรณ์อากาศส่วนตัว`;
   if(!state.w) els.skyText.textContent='กำลังโหลดข้อมูล…';
   try{
-    const [w,a]=await Promise.all([
+    const wapiKey = getWapiKey();
+    const [rawW, rawA, wapi]=await Promise.all([
       jget(forecastUrl(place.lat,place.lon)),
       jget(airUrl(place.lat,place.lon)).catch(()=>null),
+      wapiKey ? jget(weatherApiUrl(place.lat,place.lon)).catch(()=>null) : Promise.resolve(null),
       enrichPlaceWithAdmin(place)
     ]);
+    const merged = mergeWeatherApiData(rawW, rawA, wapi);
     localStorage.setItem(LS_PLACE, JSON.stringify(place));
     els.placeName.textContent=place.name;
     els.placeMeta.textContent=[place.admin, `${place.lat.toFixed(2)}°, ${place.lon.toFixed(2)}°`].filter(Boolean).join(' · ');
-    state.w=w; state.a=a; state.lastFetch=Date.now();
-    renderAll();
+    state.w=merged.w; state.a=merged.a; state.wapi=wapi; state.lastFetch=Date.now();
+    renderAll(merged.isHybrid);
     renderDistrictSelector(place);
     renderFlood(place);
   }catch(e){
@@ -1056,14 +1211,20 @@ async function loadWeather(place){
   } finally{ state.busy=false; }
 }
 
-function renderAll(){
+function renderAll(isHybrid=false){
   applyTheme();
   renderHourly();
   renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun();
   tickClock();
   const tz=state.w.timezone;
-  els.updatedAt.textContent='ดึงข้อมูลล่าสุดเมื่อ '
-    + new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(new Date()) + ' น. (อัปเดตอัตโนมัติทุก 15 นาที)';
+  const srcLabel = isHybrid ? 'WeatherAPI.com + โมเดล ECMWF' : 'Open-Meteo (ECMWF)';
+  if(els.heroSourcePill){
+    els.heroSourcePill.innerHTML = isHybrid
+      ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF`
+      : `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>ECMWF`;
+  }
+  els.updatedAt.textContent=`แหล่งข้อมูลสด: ${srcLabel} · อัปเดตเมื่อ `
+    + new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(new Date()) + ' น. (ทุก 15 นาที)';
 }
 
 function buildDailyAdvisory(){
@@ -1650,13 +1811,27 @@ function toast(msg, type='info', ms=2800){
 
 /* ---------- หน้าต่างตั้งค่าและ LocalStorage ---------- */
 function renderKeyStatus(){
+  const wk = getWapiKey();
+  if(els.wapiStatus){
+    els.wapiStatus.innerHTML = wk
+      ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> WeatherAPI.com เชื่อมต่อแล้ว · ลงท้ายด้วย “…${wk.slice(-6)}”`
+      : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> ปิดใช้งาน WeatherAPI.com — ใช้เฉพาะ Open-Meteo`;
+  }
+  if(els.wapiBadge){
+    els.wapiBadge.classList.toggle('hidden', !wk);
+  }
   const k=getKey();
   els.keyStatus.innerHTML = k
-    ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> บันทึกคีย์ไว้แล้ว · ลงท้ายด้วย “…${k.slice(-4)}”`
-    : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> ยังไม่มีคีย์ — ระบบใช้บริการค้นหาสำรองอัตโนมัติ`;
+    ? `<span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span> Google Maps API บันทึกแล้ว · ลงท้ายด้วย “…${k.slice(-4)}”`
+    : `<span class="w-1.5 h-1.5 rounded-full bg-white/40"></span> Google Maps API: ใช้บริการค้นหา OpenStreetMap + Open-Meteo อัตโนมัติ`;
   els.modeBadge.classList.toggle('hidden', !k);
 }
-const openModal=()=>{ els.apiKeyInput.value=getKey(); renderKeyStatus(); els.settingsModal.classList.remove('hidden'); };
+const openModal=()=>{
+  if(els.wapiKeyInput) els.wapiKeyInput.value=getWapiKey();
+  els.apiKeyInput.value=getKey();
+  renderKeyStatus();
+  els.settingsModal.classList.remove('hidden');
+};
 const closeModal=()=>els.settingsModal.classList.add('hidden');
 
 /* ---------- ระบบค้นหาในช่องด้านบน ---------- */
@@ -1859,16 +2034,23 @@ function bindEvents(){
     els.toggleKey.innerHTML=uiIcon(show?'eyeOff':'eye','w-4 h-4');
   });
   els.btnKeySave.addEventListener('click', ()=>{
+    const wk = els.wapiKeyInput ? els.wapiKeyInput.value.trim() : DEFAULT_WAPI_KEY;
+    localStorage.setItem(LS_WAPI, wk);
     const k=els.apiKeyInput.value.trim();
-    if(!k){ toast('กรุณากรอกคีย์ก่อนบันทึก','error'); return; }
-    localStorage.setItem(LS_API, k);
+    if(k) localStorage.setItem(LS_API, k);
+    else localStorage.removeItem(LS_API);
     renderKeyStatus(); closeModal();
-    toast('บันทึก Google API Key เรียบร้อยแล้ว','success',3200);
+    if(state.place) loadWeather(state.place);
+    toast('บันทึกคีย์พยากรณ์อากาศเรียบร้อยแล้ว','success',3200);
   });
   els.btnKeyClear.addEventListener('click', ()=>{
+    localStorage.removeItem(LS_WAPI);
     localStorage.removeItem(LS_API);
-    els.apiKeyInput.value=''; renderKeyStatus();
-    toast('ล้างคีย์แล้ว ระบบจะใช้บริการค้นหาสำรองอัตโนมัติ','info');
+    if(els.wapiKeyInput) els.wapiKeyInput.value=DEFAULT_WAPI_KEY;
+    els.apiKeyInput.value='';
+    renderKeyStatus();
+    if(state.place) loadWeather(state.place);
+    toast('คืนค่าคีย์เริ่มต้น (WeatherAPI.com + ECMWF) เรียบร้อยแล้ว','info');
   });
 
   initMobileScrollSpy();
