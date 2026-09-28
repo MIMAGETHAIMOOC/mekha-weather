@@ -211,10 +211,10 @@ tailwind.config = {
 
 <main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-8 pt-3 sm:pt-4">
   <!-- ใช้ contents บนมือถือเพื่อเรียงลำดับการ์ดให้เหมาะกับการไถนิ้วบนมือถือโดยเฉพาะ และแยก 2 คอลัมน์สมดุลบนจอใหญ่ -->
-  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-start">
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
 
     <!-- ============================================================
-         คอลัมน์ซ้ายบนจอคอม (4 ส่วน): การ์ดหลัก · เตือนภัยน้ำท่วม · ฝุ่น PM2.5 · เส้นทางดวงอาทิตย์
+         คอลัมน์ซ้ายบนจอคอม (4 ส่วน): การ์ดหลัก · เตือนภัยน้ำท่วม
          ============================================================ -->
     <section class="contents lg:col-span-4 lg:flex lg:flex-col lg:gap-4">
 
@@ -308,105 +308,72 @@ tailwind.config = {
       </article>
 
       <!-- ลำดับมือถือ 3: การ์ดเตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด -->
-      <article id="secFlood" class="order-3 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.06s">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="card-title">เตือนภัยน้ำท่วม · อำเภอที่ปักหมุด</h2>
-          <button id="btnFloodPinMap" class="text-[11px] px-2.5 py-1.5 rounded-xl glass-in text-amber-200 hover:bg-white/15 transition flex items-center gap-1 shrink-0 font-medium">
-            <span id="floodPinBtnIcon"></span>
-            <span>เลือกอำเภอ / ปักหมุด</span>
-          </button>
-        </div>
-
-        <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ + ปุ่มสลับอำเภอในจังหวัดเดียวกัน -->
-        <div class="mt-2.5 glass-in rounded-2xl p-3">
+      <article id="secFlood" class="order-3 lg:order-none lg:flex-1 flex flex-col justify-between glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.06s">
+        <div>
           <div class="flex items-center justify-between gap-2">
-            <div class="min-w-0">
-              <p class="text-[11px] text-white/55">พื้นที่อำเภอเฝ้าระวังของคุณ</p>
-              <p id="floodAreaTitle" class="text-sm font-semibold text-amber-200 mt-0.5 truncate">กำลังระบุอำเภอที่ปักหมุด…</p>
-            </div>
-            <button id="btnFloodSyncGps" title="ปักหมุดตามพิกัด GPS ปัจจุบัน"
-              class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] text-white/90 transition shrink-0">
-              พิกัดฉัน
+            <h2 class="card-title">เตือนภัยน้ำท่วม · อำเภอที่ปักหมุด</h2>
+            <button id="btnFloodPinMap" class="text-[11px] px-2.5 py-1.5 rounded-xl glass-in text-amber-200 hover:bg-white/15 transition flex items-center gap-1 shrink-0 font-medium">
+              <span id="floodPinBtnIcon"></span>
+              <span>เลือกอำเภอ / ปักหมุด</span>
             </button>
           </div>
 
-          <div id="provinceDistrictWrap" class="mt-2.5 pt-2.5 border-t border-white/10 hidden">
-            <p id="provinceDistrictLabel" class="text-[11px] text-white/55 mb-1.5">แตะสลับดูอำเภอในจังหวัดเดียวกัน:</p>
-            <div id="districtPills" class="flex gap-1.5 overflow-x-auto nice-scroll touch-pan-xy pb-1"></div>
-          </div>
-        </div>
-
-        <!-- สถานะความเสี่ยงรวมของอำเภอที่ปักหมุด -->
-        <div class="mt-3 flex items-center justify-between gap-2 min-w-0">
-          <span id="floodBadge" class="text-xs font-medium px-2.5 py-1 rounded-full border border-white/15 bg-white/10 whitespace-nowrap">กำลังประเมิน…</span>
-          <span id="floodNow" class="text-xs text-white/75 truncate text-right">—</span>
-        </div>
-
-        <!-- แยกประเมิน 2 มิติในเขตอำเภอ (แตะเพื่อเปิดดูกราฟน้ำเชิงลึก) -->
-        <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
-          <div data-metric="rain" class="glass-in tap-card rounded-xl p-2.5">
-            <div class="flex items-center justify-between">
-              <p class="text-[10px] text-white/55">ฝนสะสมในอำเภอ</p>
-              <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+          <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ + ปุ่มสลับอำเภอในจังหวัดเดียวกัน -->
+          <div class="mt-2.5 glass-in rounded-2xl p-3">
+            <div class="flex items-center justify-between gap-2">
+              <div class="min-w-0">
+                <p class="text-[11px] text-white/55">พื้นที่อำเภอเฝ้าระวังของคุณ</p>
+                <p id="floodAreaTitle" class="text-sm font-semibold text-amber-200 mt-0.5 truncate">กำลังระบุอำเภอที่ปักหมุด…</p>
+              </div>
+              <button id="btnFloodSyncGps" title="ปักหมุดตามพิกัด GPS ปัจจุบัน"
+                class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] text-white/90 transition shrink-0">
+                พิกัดฉัน
+              </button>
             </div>
-            <p id="floodRainVal" class="text-sm font-semibold mt-0.5">—</p>
-            <p id="floodRainStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
-          </div>
-          <div data-metric="water" class="glass-in tap-card rounded-xl p-2.5">
-            <div class="flex items-center justify-between">
-              <p class="text-[10px] text-white/55">ลำน้ำในเขตอำเภอ</p>
-              <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+
+            <div id="provinceDistrictWrap" class="mt-2.5 pt-2.5 border-t border-white/10 hidden">
+              <p id="provinceDistrictLabel" class="text-[11px] text-white/55 mb-1.5">แตะสลับดูอำเภอในจังหวัดเดียวกัน:</p>
+              <div id="districtPills" class="flex gap-1.5 overflow-x-auto nice-scroll touch-pan-xy pb-1"></div>
             </div>
-            <p id="floodRiverVal" class="text-sm font-semibold mt-0.5">—</p>
-            <p id="floodRiverStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
+          </div>
+
+          <!-- สถานะความเสี่ยงรวมของอำเภอที่ปักหมุด -->
+          <div class="mt-3 flex items-center justify-between gap-2 min-w-0">
+            <span id="floodBadge" class="text-xs font-medium px-2.5 py-1 rounded-full border border-white/15 bg-white/10 whitespace-nowrap">กำลังประเมิน…</span>
+            <span id="floodNow" class="text-xs text-white/75 truncate text-right">—</span>
+          </div>
+
+          <!-- แยกประเมิน 2 มิติในเขตอำเภอ (แตะเพื่อเปิดดูกราฟน้ำเชิงลึก) -->
+          <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
+            <div data-metric="rain" class="glass-in tap-card rounded-xl p-2.5">
+              <div class="flex items-center justify-between">
+                <p class="text-[10px] text-white/55">ฝนสะสมในอำเภอ</p>
+                <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+              </div>
+              <p id="floodRainVal" class="text-sm font-semibold mt-0.5">—</p>
+              <p id="floodRainStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
+            </div>
+            <div data-metric="water" class="glass-in tap-card rounded-xl p-2.5">
+              <div class="flex items-center justify-between">
+                <p class="text-[10px] text-white/55">ลำน้ำในเขตอำเภอ</p>
+                <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+              </div>
+              <p id="floodRiverVal" class="text-sm font-semibold mt-0.5">—</p>
+              <p id="floodRiverStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
+            </div>
           </div>
         </div>
 
-        <div data-metric="water" class="tap-card rounded-2xl p-1 -mx-1 mt-2" title="แตะเพื่อดูข้อมูลระดับน้ำและแนวโน้มน้ำท่วมเชิงลึก">
+        <div data-metric="water" class="tap-card rounded-2xl p-1 -mx-1 my-auto pt-2" title="แตะเพื่อดูข้อมูลระดับน้ำและแนวโน้มน้ำท่วมเชิงลึก">
           <svg id="floodSvg" viewBox="0 0 320 110" class="w-full block" role="img"
                aria-label="กราฟระดับน้ำในแม่น้ำและลำน้ำของอำเภอที่ปักหมุด"></svg>
         </div>
-        <p id="floodNote" class="mt-1.5 text-xs text-white/75 leading-relaxed">—</p>
-        <button type="button" data-metric="water" class="mt-2.5 w-full py-2 rounded-xl glass-in hover:bg-white/15 text-xs font-medium text-sky-200 flex items-center justify-center gap-1.5">
-          <span>🌊</span><span>แตะดูวิเคราะห์ระดับน้ำ · ปริมาณฝนสะสม 7 วัน & คำแนะนำรับมือ ›</span>
-        </button>
-      </article>
 
-      <!-- ลำดับมือถือ 6: การ์ดคุณภาพอากาศ PM2.5 -->
-      <article id="secPM" data-metric="pm" class="order-6 lg:order-none glass tap-card rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.10s">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="card-title">คุณภาพอากาศ · ฝุ่นละออง PM2.5</h2>
-          <span class="text-[11px] text-amber-200/85 font-medium">แตะดูค่ามลพิษครบทุกตัว ›</span>
-        </div>
-        <div class="mt-3 flex items-end gap-2.5">
-          <span id="pmValue" class="text-4xl font-light leading-none">--</span>
-          <span class="text-white/60 text-sm mb-0.5">µg/m³</span>
-          <span id="pmLevel" class="ml-auto text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/10">--</span>
-        </div>
-        <div class="mt-4 relative">
-          <div id="pmBar" class="h-2.5 rounded-full flex overflow-hidden opacity-100 transition-opacity"></div>
-          <div id="pmNeedle" class="absolute -top-[3px] w-[3px] h-[17px] rounded-full bg-white shadow transition-all duration-700" style="left:0%"></div>
-        </div>
-        <div class="flex justify-between text-[10px] text-white/45 mt-1.5">
-          <span>0 (ดีมาก)</span><span>15</span><span>25</span><span>37.5</span><span>75+ (อันตราย)</span>
-        </div>
-        <p id="pmAdvice" class="mt-3 text-xs text-white/75 leading-relaxed">—</p>
-      </article>
-
-      <!-- ลำดับมือถือ 7: การ์ดเส้นทางดวงอาทิตย์ -->
-      <article id="secSun" data-metric="sun" class="order-7 lg:order-none glass tap-card rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.14s">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="card-title">เส้นทางดวงอาทิตย์และช่วงเวลาแสง</h2>
-          <span class="text-[11px] text-amber-200/85 font-medium">แตะดูรายละเอียด ›</span>
-        </div>
-        <div class="mt-2">
-          <svg id="sunSvg" viewBox="0 0 260 112" class="w-full max-w-[280px] mx-auto block"></svg>
-          <div class="flex justify-between text-xs text-white/60 -mt-1 px-2">
-            <span>ขึ้น <b id="sunriseTime" class="text-white/90 font-medium">--:--</b></span>
-            <span>กลางวัน <b id="sunDayLength" class="text-amber-200 font-medium">—</b></span>
-            <span>ตก <b id="sunsetTime" class="text-white/90 font-medium">--:--</b></span>
-          </div>
-          <p id="sunStatus" class="text-xs text-white/70 mt-3 leading-relaxed text-center">—</p>
+        <div>
+          <p id="floodNote" class="mt-1.5 text-xs text-white/75 leading-relaxed">—</p>
+          <button type="button" data-metric="water" class="mt-2.5 w-full py-2 rounded-xl glass-in hover:bg-white/15 text-xs font-medium text-sky-200 flex items-center justify-center gap-1.5">
+            <span>🌊</span><span>แตะดูวิเคราะห์ระดับน้ำ · ปริมาณฝนสะสม 7 วัน & คำแนะนำรับมือ ›</span>
+          </button>
         </div>
       </article>
     </section>
@@ -441,12 +408,58 @@ tailwind.config = {
       </article>
 
       <!-- ลำดับมือถือ 5: รายละเอียดสภาพอากาศและคำอธิบายเชิงลึก -->
-      <article id="secDetails" class="order-5 lg:order-none glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.12s">
+      <article id="secDetails" class="order-5 lg:order-none lg:flex-1 glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.12s">
         <div class="flex items-center justify-between gap-2">
           <h2 class="card-title">รายละเอียดสภาพอากาศ · ลม · น้ำ · รังสี UV</h2>
           <span class="text-[11px] text-amber-200/85 font-medium">แตะการ์ดเพื่อดูกราฟ 24 ชม. ›</span>
         </div>
         <div id="detailGrid" class="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3"></div>
+      </article>
+    </section>
+
+    <!-- ============================================================
+         แถวล่างคู่กัน 2 คอลัมน์เท่ากันบนจอคอม: คุณภาพอากาศ PM2.5 · เส้นทางดวงอาทิตย์
+         ============================================================ -->
+    <section class="contents lg:col-span-12 lg:grid lg:grid-cols-2 lg:gap-4 items-stretch">
+
+      <!-- ลำดับมือถือ 6: การ์ดคุณภาพอากาศ PM2.5 -->
+      <article id="secPM" data-metric="pm" class="order-6 lg:order-none h-full flex flex-col justify-between glass tap-card rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.10s">
+        <div>
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="card-title">คุณภาพอากาศ · ฝุ่นละออง PM2.5</h2>
+            <span class="text-[11px] text-amber-200/85 font-medium">แตะดูค่ามลพิษครบทุกตัว ›</span>
+          </div>
+          <div class="mt-3 flex items-end gap-2.5">
+            <span id="pmValue" class="text-4xl font-light leading-none">--</span>
+            <span class="text-white/60 text-sm mb-0.5">µg/m³</span>
+            <span id="pmLevel" class="ml-auto text-xs px-2.5 py-1 rounded-full border border-white/15 bg-white/10">--</span>
+          </div>
+          <div class="mt-4 relative">
+            <div id="pmBar" class="h-2.5 rounded-full flex overflow-hidden opacity-100 transition-opacity"></div>
+            <div id="pmNeedle" class="absolute -top-[3px] w-[3px] h-[17px] rounded-full bg-white shadow transition-all duration-700" style="left:0%"></div>
+          </div>
+          <div class="flex justify-between text-[10px] text-white/45 mt-1.5">
+            <span>0 (ดีมาก)</span><span>15</span><span>25</span><span>37.5</span><span>75+ (อันตราย)</span>
+          </div>
+        </div>
+        <p id="pmAdvice" class="mt-3 text-xs text-white/75 leading-relaxed">—</p>
+      </article>
+
+      <!-- ลำดับมือถือ 7: การ์ดเส้นทางดวงอาทิตย์ -->
+      <article id="secSun" data-metric="sun" class="order-7 lg:order-none h-full flex flex-col justify-between glass tap-card rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.14s">
+        <div class="flex items-center justify-between gap-2">
+          <h2 class="card-title">เส้นทางดวงอาทิตย์และช่วงเวลาแสง</h2>
+          <span class="text-[11px] text-amber-200/85 font-medium">แตะดูรายละเอียด ›</span>
+        </div>
+        <div class="mt-2">
+          <svg id="sunSvg" viewBox="0 0 260 112" class="w-full max-w-[280px] mx-auto block"></svg>
+          <div class="flex justify-between text-xs text-white/60 -mt-1 px-2">
+            <span>ขึ้น <b id="sunriseTime" class="text-white/90 font-medium">--:--</b></span>
+            <span>กลางวัน <b id="sunDayLength" class="text-amber-200 font-medium">—</b></span>
+            <span>ตก <b id="sunsetTime" class="text-white/90 font-medium">--:--</b></span>
+          </div>
+          <p id="sunStatus" class="text-xs text-white/70 mt-3 leading-relaxed text-center">—</p>
+        </div>
       </article>
     </section>
   </div>
