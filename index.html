@@ -57,53 +57,43 @@ tailwind.config = {
 };
 </script>
 <style>
-  :root{ --glass: rgba(10,16,28,.48); --glass-brd: rgba(255,255,255,.15); }
-  html{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
-  body{ min-height:100dvh; overscroll-behavior-y:none; touch-action:manipulation; }
+  :root{ --glass: rgba(12,19,34,.88); --glass-brd: rgba(255,255,255,.15); }
+  html{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; background-color:#0b111d; color:#fff; }
+  body{ min-height:100dvh; overscroll-behavior-y:none; touch-action:manipulation; background-color:#0b111d; color:#fff; }
   ::selection{ background:rgba(255,209,102,.35); }
 
-  /* พื้นหลังท้องฟ้าสองชั้น เร่งความเร็วด้วย GPU (Hardware Acceleration) */
-  #bgA,#bgB{ position:fixed; inset:0; z-index:-3; transition:opacity 1.1s ease; transform:translateZ(0); pointer-events:none; }
-  .tint{ position:fixed; inset:0; z-index:-2; pointer-events:none;
-         background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.09), transparent 55%); }
-  #skyLayer{ position:fixed; inset:0; z-index:-1; overflow:hidden; pointer-events:none; contain:strict; }
+  /* พื้นหลังท้องฟ้าสองชั้น ใช้ z-index ค่าบวกชัดเจนเพื่อไม่ให้ทับซ้อนกับการ์ดด้านหน้า */
+  #bgA,#bgB{ position:fixed; inset:0; z-index:0; transition:opacity 1.1s ease; pointer-events:none; }
+  .tint{ position:fixed; inset:0; z-index:1; pointer-events:none;
+         background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.08), transparent 55%); }
+  #skyLayer{ position:fixed; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
+  header.top-header{ position:sticky; top:0; z-index:40; background:rgba(8,14,26,.95); }
+  main{ position:relative; z-index:10; }
 
-  /* กระจกฝ้า: บนจอคอมใช้ backdrop-filter ส่วนจอมือถือตัด backdrop-filter ทั้งหมด (รวมถึง Header และ Bottom Nav) เพื่อให้ไถหน้าจอลื่นระดับ 120fps */
-  .glass{ background:var(--glass); backdrop-filter:blur(18px) saturate(140%);
-          -webkit-backdrop-filter:blur(18px) saturate(140%);
+  /* การ์ดกระจกเข้มความคมชัดสูง: ไม่พึ่ง backdrop-filter ที่ทำให้การ์ดหายเวลาฝนตกบน Chrome และลื่น 120fps ทุกอุปกรณ์ */
+  .glass{ background:linear-gradient(165deg, rgba(14,22,38,.88) 0%, rgba(8,14,26,.93) 100%);
           border:1px solid var(--glass-brd);
-          box-shadow:0 10px 30px rgba(2,6,18,.22), inset 0 1px 0 rgba(255,255,255,.10);
-          contain:layout paint; }
-  .glass-strong{ background:rgba(12,19,33,.96); backdrop-filter:blur(16px);
-                 -webkit-backdrop-filter:blur(16px); border:1px solid rgba(255,255,255,.15); }
-  .top-header{ background:rgba(7,12,24,.78); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); }
-  @media (max-width: 768px){
-    .glass{ background:linear-gradient(165deg, rgba(14,22,38,.92) 0%, rgba(8,14,26,.95) 100%);
-            backdrop-filter:none !important; -webkit-backdrop-filter:none !important;
-            box-shadow:0 4px 14px rgba(2,6,18,.26), inset 0 1px 0 rgba(255,255,255,.09); }
-    .glass-strong, .top-header{
-            background:rgba(10,16,28,.97) !important;
-            backdrop-filter:none !important; -webkit-backdrop-filter:none !important; }
-  }
+          box-shadow:0 8px 24px rgba(2,6,18,.26), inset 0 1px 0 rgba(255,255,255,.10); }
+  .glass-strong{ background:rgba(10,16,28,.97); border:1px solid rgba(255,255,255,.16); }
   .glass-in{ background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); }
   .card-title{ font-size:.82rem; letter-spacing:.04em; color:rgba(255,255,255,.68); font-weight:600; }
 
   /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header และบังคับซ่อนองค์ประกอบที่มีคลาส hidden */
   article[id^="sec"]{ scroll-margin-top: 94px; }
-  #pinModal.hidden, #metricModal.hidden, #btnSearchClear.hidden,
+  .hidden, #pinModal.hidden, #metricModal.hidden, #btnSearchClear.hidden,
   #searchResults.hidden, #searchSpin.hidden, #searchIcon.hidden, #hourCursor.hidden,
   #hourTip.hidden, #navFloodDot.hidden, #provinceDistrictWrap.hidden { display: none !important; }
 
-  /* อนุภาคบรรยากาศบนพื้นหลัง */
+  /* อนุภาคบรรยากาศบนพื้นหลัง (เม็ดฝนนุ่มนวล ไม่เป็นเส้นยาวเกะกะสายตา) */
   .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.55; }
   .star-anim{ animation:twinkle var(--d) ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.18} 50%{opacity:.88} }
-  .raindrop{ position:absolute; top:-12%; width:1px; border-radius:99px;
-             background:linear-gradient(180deg, transparent, rgba(255,255,255,.55));
-             animation:rainFall linear infinite; will-change:transform; }
-  @keyframes rainFall{ to{ transform:translate3d(0,122vh,0); } }
+  .raindrop{ position:absolute; top:-8%; width:1.2px; border-radius:99px;
+             background:linear-gradient(180deg, transparent, rgba(186,230,253,.42));
+             animation:rainFall linear infinite; }
+  @keyframes rainFall{ to{ transform:translate3d(0,112vh,0); } }
   .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85);
-          animation:snowFall linear infinite; will-change:transform; }
+          animation:snowFall linear infinite; }
   @keyframes snowFall{ to{ transform:translate3d(4vw,112vh,0); } }
   .fogband{ position:absolute; height:90px; border-radius:9999px;
             background:radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0));
@@ -126,11 +116,11 @@ tailwind.config = {
   .flood-pulse{ animation:floodPulse 2.4s ease-in-out infinite; }
   @keyframes floodPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(214,69,69,.40);} 50%{ box-shadow:0 0 0 7px rgba(214,69,69,0);} }
 
-  /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App */
-  .rise{ animation:fadeUp .35s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes fadeUp{ from{opacity:0; transform:translate3d(0,8px,0)} to{opacity:1; transform:none} }
-  .sheet-up{ animation:sheetUp .26s cubic-bezier(.22,1,.36,1) both; }
-  @keyframes sheetUp{ from{opacity:0; transform:translate3d(0,20px,0)} to{opacity:1; transform:none} }
+  /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App (ไม่เริ่มต้นที่ opacity:0 เพื่อป้องกันการ์ดค้างโปร่งใส) */
+  .rise{ animation:fadeUp .28s cubic-bezier(.22,1,.36,1); }
+  @keyframes fadeUp{ from{transform:translate3d(0,6px,0)} to{transform:none} }
+  .sheet-up{ animation:sheetUp .24s cubic-bezier(.22,1,.36,1); }
+  @keyframes sheetUp{ from{transform:translate3d(0,16px,0)} to{transform:none} }
 
   /* แก้ปัญหาทัชสะดุด: รองรับทั้งไถซ้าย-ขวา และไถขึ้น-ลงพร้อมกัน ไม่ล็อกนิ้วเวลาแตะกราฟ 24 ชม. */
   .nice-scroll{ -webkit-overflow-scrolling:touch; }
@@ -665,8 +655,8 @@ const WMO = {
   61:'ฝนตกเล็กน้อย', 63:'ฝนตกปานกลาง', 65:'ฝนตกหนัก',
   66:'ฝนเยือกแข็ง', 67:'ฝนเยือกแข็งหนัก',
   71:'หิมะตกเล็กน้อย', 73:'หิมะตกปานกลาง', 75:'หิมะตกหนัก', 77:'เกล็ดหิมะปะปน',
-  80:'ฝนซู่เป็นระยะเล็กน้อย', 81:'ฝนซู่ปานกลาง', 82:'ฝนซู่ตกหนักรุนแรง',
-  85:'หิมะซู่เล็กน้อย', 86:'หิมะซู่หนัก',
+  80:'ฝนตกเล็กน้อยเป็นระยะ', 81:'ฝนตกปานกลางเป็นระยะ', 82:'ฝนตกหนักเป็นระยะ',
+  85:'หิมะตกเล็กน้อยเป็นระยะ', 86:'หิมะตกหนักเป็นระยะ',
   95:'พายุฝนฟ้าคะนอง', 96:'ฝนฟ้าคะนองและมีลูกเห็บเล็กน้อย', 99:'พายุฝนฟ้าคะนองรุนแรงและมีลูกเห็บ'
 };
 const wmoText = c => WMO[c] ?? 'สภาพอากาศแปรปรวน';
@@ -833,11 +823,11 @@ function buildSky(kind,isDay){
     }
   }
   const rain=(n,op)=>{
-    const cnt = mob ? Math.round(n*0.25) : n;
+    const cnt = mob ? Math.round(n*0.3) : n;
     for(let i=0;i<cnt;i++)
-      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(9+Math.random()*7).toFixed(1)}vh;opacity:${(op*(.5+Math.random()*.5)).toFixed(2)};animation-duration:${(.75+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
+      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*16).toFixed(0)}px;opacity:${(op*(.4+Math.random()*.45)).toFixed(2)};animation-duration:${(.85+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
   };
-  if(kind==='rain') rain(64,1); else if(kind==='thunder') rain(56,1); else if(kind==='drizzle') rain(32,.55);
+  if(kind==='rain') rain(36,.85); else if(kind==='thunder') rain(42,.9); else if(kind==='drizzle') rain(20,.5);
   if(kind==='snow'){
     const cnt = mob ? 14 : 40;
     for(let i=0;i<cnt;i++)
@@ -889,11 +879,11 @@ function wapiCodeToWmo(code, precipMm=0, chanceOfRain=0){
     case 1150: case 1153: case 1180: return 51; // มีฝนละอองเล็กน้อย
     case 1168: case 1171: return 56;
     case 1183: return 61; // ฝนตกเล็กน้อย
-    case 1240: return 80; // ฝนซู่เป็นระยะเล็กน้อย
+    case 1240: return 80; // ฝนตกเล็กน้อยเป็นระยะ
     case 1186: case 1189: return 63; // ฝนตกปานกลาง
-    case 1243: return 81; // ฝนซู่ปานกลาง
+    case 1243: return 81; // ฝนตกปานกลางเป็นระยะ
     case 1192: case 1195: return 65; // ฝนตกหนัก
-    case 1246: return 82; // ฝนซู่ตกหนักรุนแรง
+    case 1246: return 82; // ฝนตกหนักเป็นระยะ
     case 1198: case 1201: return 66;
     case 1066: case 1210: case 1213: case 1255: return 71;
     case 1216: case 1219: return 73;
