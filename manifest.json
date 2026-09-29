@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "เมฆา — พยากรณ์อากาศส่วนตัว · MIX NATTANONT • ZERODAT",
+  "name": "เมฆา — พยากรณ์อากาศส่วนตัว · MIX NATTANONT • ZERODAY",
   "short_name": "เมฆา",
-  "description": "แอปพยากรณ์อากาศส่วนตัวแบบเรียลไทม์ เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAT",
+  "description": "แอปพยากรณ์อากาศส่วนตัวแบบเรียลไทม์ เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
