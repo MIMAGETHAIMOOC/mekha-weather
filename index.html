@@ -64,7 +64,6 @@ tailwind.config = {
   }
   html{ 
     -webkit-tap-highlight-color: transparent; 
-    scroll-behavior: smooth;
     background-color: #060913; 
     color: #fff; 
   }
@@ -92,95 +91,105 @@ tailwind.config = {
                 radial-gradient(90% 70% at 85% 15%, rgba(255,255,255,.10), transparent 50%),
                 linear-gradient(180deg, transparent 40%, rgba(6,9,19,.40) 100%); 
   }
-  #skyLayer{ position: fixed; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; transform: translate3d(0,0,0); }
+  #skyLayer{ position: fixed; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
   
   /* Header สไตล์ Liquid Glass แขวนลอยด้านบน จอกว้างโปร่งสบาย */
   header.top-header{ 
     position: sticky; top: 0; z-index: 40; 
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    background: linear-gradient(180deg, rgba(8, 14, 28, 0.78) 0%, rgba(12, 20, 38, 0.62) 100%);
-    border-bottom: 1.2px solid rgba(255, 255, 255, 0.20);
-    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    background: linear-gradient(180deg, rgba(8, 14, 28, 0.82) 0%, rgba(12, 20, 38, 0.70) 100%);
+    border-bottom: 1.2px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35);
   }
-  main{ position: relative; z-index: 10; isolation: isolate; }
+  main{ position: relative; z-index: 10; }
 
   /* ============================================================
      LIQUID GLASS ARCHITECTURE (Apple-Style Translucent Frosted Glass)
      - Translucent Refractive Glass with high-index backdrop blur
      - 3D Specular Highlight Rim on top edge & left curve
-     - Dual-depth inner bevel reflections and ambient drop shadow
-     - GPU hardware accelerated 120fps (zero frame drops on touch)
+     - High-Performance GPU optimized: 0 frame drops on mobile touch
   ============================================================ */
   .glass{ 
     position: relative;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(18, 28, 52, 0.50) 35%, rgba(10, 16, 32, 0.65) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-top: 1.6px solid rgba(255, 255, 255, 0.58);
-    border-left: 1.2px solid rgba(255, 255, 255, 0.36);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.16) 0%, rgba(18, 28, 52, 0.52) 35%, rgba(10, 16, 32, 0.72) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-top: 1.6px solid rgba(255, 255, 255, 0.55);
+    border-left: 1.2px solid rgba(255, 255, 255, 0.32);
     box-shadow: 
-      0 16px 40px -8px rgba(0, 0, 0, 0.42),
-      0 4px 12px -2px rgba(0, 0, 0, 0.28),
-      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.65),
-      inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.35),
-      inset 1.5px 0 2px 0 rgba(255, 255, 255, 0.25);
-    backdrop-filter: blur(28px) saturate(190%);
-    -webkit-backdrop-filter: blur(28px) saturate(190%);
+      0 14px 34px -8px rgba(0, 0, 0, 0.40),
+      inset 0 1.2px 1.2px 0 rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
     border-radius: 26px;
-    transform: translate3d(0,0,0);
-    will-change: transform;
-    isolation: isolate;
   }
 
   /* ป้ายแคปซูลเม็ดยา Liquid Pill (เนียนโค้งมนเหมือนแผ่นแก้วใสกลมนูน) */
   .liquid-pill{
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.38);
-    border-top: 1.5px solid rgba(255, 255, 255, 0.72);
-    box-shadow: 0 6px 18px -3px rgba(0, 0, 0, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(20px) saturate(190%);
-    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.65);
+    box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: 9999px;
   }
 
   /* กระจกหนาสำหรับป็อปอัป Modal และเมนูค้นหา */
   .glass-strong{ 
-    background: linear-gradient(145deg, rgba(22, 34, 60, 0.88) 0%, rgba(10, 16, 30, 0.94) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.28);
-    border-top: 1.6px solid rgba(255, 255, 255, 0.62);
-    box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.6);
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    background: linear-gradient(145deg, rgba(22, 34, 60, 0.92) 0%, rgba(10, 16, 30, 0.96) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-top: 1.6px solid rgba(255, 255, 255, 0.60);
+    box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.60), inset 0 1.2px 1px rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
     border-radius: 28px;
-    transform: translate3d(0,0,0);
   }
 
   /* แผ่นกระจกฝังด้านใน (Tile / Inset Metric Card) */
   .glass-in{ 
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.22);
-    border-top: 1.3px solid rgba(255, 255, 255, 0.45);
-    box-shadow: inset 0 1.5px 2px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.32);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-top: 1.3px solid rgba(255, 255, 255, 0.40);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 20px;
   }
   .card-title{ font-size: .84rem; letter-spacing: .04em; color: rgba(255,255,255,.78); font-weight: 600; }
 
-  /* เพิ่ม Content Visibility ให้ลื่น 120fps โดยไม่กินทรัพยากรส่วนที่ยังไม่เลื่อนไปถึง */
-  #secFlood, #secDaily, #secRadar{
-    content-visibility: auto;
-    contain-intrinsic-size: 1px 400px;
-  }
-
   /* Floating Bottom Navigation สไตล์ Liquid Glass Bar */
   #mobileNav{
-    backdrop-filter: blur(32px) saturate(200%);
-    -webkit-backdrop-filter: blur(32px) saturate(200%);
-    background: linear-gradient(0deg, rgba(6, 10, 22, 0.88) 0%, rgba(14, 24, 46, 0.74) 100%);
-    border-top: 1.5px solid rgba(255, 255, 255, 0.30);
-    box-shadow: 0 -10px 36px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: linear-gradient(0deg, rgba(6, 10, 22, 0.90) 0%, rgba(14, 24, 46, 0.80) 100%);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.26);
+    box-shadow: 0 -8px 30px -4px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.40);
     border-radius: 26px 26px 0 0;
+  }
+
+  /* ปรับแต่งประสิทธิภาพบนหน้าจอมือถือ (ลด Recursive Blur ป้องกันอาการทัชสะดุด 100%) */
+  @media (max-width: 768px){
+    .glass{
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      background: linear-gradient(135deg, rgba(22, 34, 64, 0.82) 0%, rgba(12, 19, 36, 0.90) 100%);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.42);
+    }
+    .glass-in{
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.16);
+    }
+    header.top-header{
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    #mobileNav{
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
   }
 
   /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header และบังคับซ่อนองค์ประกอบที่มีคลาส hidden */
@@ -190,7 +199,7 @@ tailwind.config = {
   #hourTip.hidden, #navFloodDot.hidden, #provinceDistrictWrap.hidden { display: none !important; }
 
   /* อนุภาคบรรยากาศบนพื้นหลังตามเวลาและสภาพอากาศจริง */
-  .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.6; box-shadow:0 0 6px rgba(255,255,255,.8); }
+  .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.6; }
   .star-anim{ animation:twinkle var(--d) ease-in-out infinite; }
   @keyframes twinkle{ 0%,100%{opacity:.18; transform:scale(.8)} 50%{opacity:.95; transform:scale(1.25)} }
 
@@ -201,7 +210,7 @@ tailwind.config = {
     height: 1.8px;
     background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(186,230,253,0.5), transparent);
     border-radius: 99px;
-    filter: drop-shadow(0 0 6px rgba(255,255,255,0.9));
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.8));
     pointer-events: none;
     animation: meteorStreak var(--m-dur, 6s) cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
   }
@@ -228,9 +237,8 @@ tailwind.config = {
   .glass-drop{
     position: absolute;
     border-radius: 50% 50% 60% 60%;
-    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 40%, rgba(186,230,253,0.08) 80%);
-    box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.3);
-    backdrop-filter: blur(2px);
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.80) 0%, rgba(255,255,255,0.25) 40%, rgba(186,230,253,0.10) 80%);
+    box-shadow: inset 0 1px 1.5px rgba(255,255,255,0.7), inset 0 -1px 1px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.25);
     pointer-events: none;
     animation: dropSlide var(--d-dur, 5s) linear infinite;
   }
@@ -298,8 +306,17 @@ tailwind.config = {
   @keyframes sheetUp{ from{transform:translate3d(0,16px,0)} to{transform:none} }
 
   /* แก้ปัญหาทัชสะดุด: kinetic scrolling ลื่นไหล 120fps */
-  .nice-scroll{ -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
-  .touch-pan-xy{ touch-action:pan-x pan-y; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
+  .nice-scroll{ 
+    -webkit-overflow-scrolling: touch; 
+    overscroll-behavior-x: contain; 
+    overscroll-behavior-y: auto; 
+    touch-action: pan-x pan-y; 
+  }
+  .touch-pan-xy{ 
+    touch-action: pan-x pan-y; 
+    -webkit-overflow-scrolling: touch; 
+    overscroll-behavior-y: auto; 
+  }
   .nice-scroll::-webkit-scrollbar{ height:4px; width:4px; }
   .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.24); border-radius:99px; }
   .nice-scroll::-webkit-scrollbar-track{ background:transparent; }
@@ -309,9 +326,19 @@ tailwind.config = {
   }
   input::placeholder{ color:rgba(255,255,255,.45); }
   select option{ background:#0f172a; color:#fff; }
-  button, a, [data-metric], [data-day]{ touch-action:manipulation; -webkit-user-select:none; user-select:none; }
-  .tap-card{ transition:background-color .15s ease, border-color .15s ease, transform .12s cubic-bezier(0.2, 0.8, 0.4, 1); cursor:pointer; }
-  .tap-card:active{ transform:scale(.982); background-color:rgba(255,255,255,.15); }
+  button, a, [data-metric], [data-day]{ -webkit-user-select:none; user-select:none; }
+  .tap-card{ 
+    transition: background-color .15s ease; 
+    cursor: pointer; 
+    -webkit-tap-highlight-color: transparent; 
+  }
+  @media (hover: hover) and (pointer: fine){
+    .tap-card:hover{ background-color: rgba(255, 255, 255, 0.08); }
+    .tap-card:active{ transform: scale(0.985); background-color: rgba(255, 255, 255, 0.14); }
+  }
+  @media (hover: none), (pointer: coarse){
+    .tap-card:active{ background-color: rgba(255, 255, 255, 0.10); }
+  }
   .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; touch-action:none; }
 </style>
 </head>
@@ -1186,13 +1213,13 @@ function buildSky(kind, isDay, sky, current){
 
   // 2. ดวงดาวและดาวตก (Shooting Stars / Meteors) ในยามค่ำคืนหรือทไวไลท์
   if (!isDay || phase === 'twilight') {
-    const starCount = mob ? 32 : 85;
+    const starCount = mob ? 18 : 75;
     for(let i=0; i<starCount; i++){
-      const sz = (Math.random()*1.8 + .6).toFixed(1);
-      const anim = (!mob || i < 10) ? ` star-anim` : '';
+      const sz = (Math.random()*1.6 + .6).toFixed(1);
+      const anim = (!mob || i < 5) ? ` star-anim` : '';
       s += `<i class="star${anim}" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*64).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2.5+Math.random()*3.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s"></i>`;
     }
-    // เพิ่มดาวตก 2 ดวง
+    // เพิ่มดาวตก 1 ดวงบนมือถือ, 2 ดวงบนจอคอม
     s += `<div class="meteor" style="right:25%; top:12%; --m-dur:7s; --m-rot:-38deg;"></div>`;
     if (!mob) {
       s += `<div class="meteor" style="right:55%; top:22%; --m-dur:11s; --m-rot:-32deg; animation-delay:3.5s;"></div>`;
@@ -1201,7 +1228,7 @@ function buildSky(kind, isDay, sky, current){
 
   // 3. เม็ดน้ำเกาะกระจก Liquid Glass (Water Beads & Drops บนหน้าจอ) เมื่อฝนตก
   if (sky?.isRaining || kind === 'rain' || kind === 'heavy' || kind === 'drizzle' || kind === 'thunder') {
-    const dropCount = mob ? 14 : 26;
+    const dropCount = mob ? 6 : 22;
     for(let i=0; i<dropCount; i++){
       const sz = Math.round(5 + Math.random() * 8);
       const dur = (4 + Math.random() * 5).toFixed(1);
@@ -1213,7 +1240,7 @@ function buildSky(kind, isDay, sky, current){
 
   // 4. สายฝนโปรยปรายตามแรงลม
   const rain = (n, op) => {
-    const cnt = mob ? Math.round(n * 0.35) : n;
+    const cnt = mob ? Math.round(n * 0.22) : n;
     for(let i=0; i<cnt; i++){
       s += `<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*18).toFixed(0)}px;opacity:${(op*(.45+Math.random()*.45)).toFixed(2)};animation-duration:${(.80+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s;--wind-drift:${driftX}px"></i>`;
     }
@@ -3378,8 +3405,31 @@ function bindEvents(){
   els.navIconDaily.innerHTML=uiIcon('calendar','w-5 h-5');
   els.navIconDetails.innerHTML=uiIcon('thermo','w-5 h-5');
 
+  // ป้องกันการทัชลากเลื่อนหน้าจอ (Touch Scroll) แล้วเผลอเปิดหน้าต่าง Modal
+  let isTouchScroll = false, touchStartY = 0, touchStartX = 0;
+  document.addEventListener('touchstart', e => {
+    if (e.touches && e.touches.length === 1) {
+      touchStartY = e.touches[0].clientY;
+      touchStartX = e.touches[0].clientX;
+      isTouchScroll = false;
+    }
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (e.touches && e.touches.length === 1) {
+      const dy = Math.abs(e.touches[0].clientY - touchStartY);
+      const dx = Math.abs(e.touches[0].clientX - touchStartX);
+      if (dy > 8 || dx > 8) {
+        isTouchScroll = true;
+      }
+    }
+  }, { passive: true });
+
   // เชื่อมการแตะดูรายละเอียดเชิงลึก (ลม · น้ำ/น้ำท่วม · ฝน · ฝุ่น · UV · ความชื้น · รายวัน · แหล่งที่มาข้อมูล)
   document.addEventListener('click', e => {
+    if (isTouchScroll) {
+      isTouchScroll = false;
+      return;
+    }
     const closeM = e.target.closest('[data-close-metric]');
     if(closeM){ closeMetricModal(); return; }
     const switchM = e.target.closest('[data-switch-metric]');
@@ -3417,7 +3467,7 @@ function bindEvents(){
     if(!e.target.closest('#searchResults')&&e.target!==els.searchInput&&e.target!==els.btnSearchClear){
       els.searchResults.classList.add('hidden');
     }
-  });
+  }, { passive: true });
 
   els.districtPills.addEventListener('click', e=>{
     const b = e.target.closest('[data-dist]');
