@@ -189,17 +189,70 @@ tailwind.config = {
   #searchResults.hidden, #searchSpin.hidden, #searchIcon.hidden, #hourCursor.hidden,
   #hourTip.hidden, #navFloodDot.hidden, #provinceDistrictWrap.hidden { display: none !important; }
 
-  /* อนุภาคบรรยากาศบนพื้นหลัง */
+  /* อนุภาคบรรยากาศบนพื้นหลังตามเวลาและสภาพอากาศจริง */
   .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.6; box-shadow:0 0 6px rgba(255,255,255,.8); }
   .star-anim{ animation:twinkle var(--d) ease-in-out infinite; }
-  @keyframes twinkle{ 0%,100%{opacity:.18; transform:scale(.8)} 50%{opacity:.92; transform:scale(1.2)} }
+  @keyframes twinkle{ 0%,100%{opacity:.18; transform:scale(.8)} 50%{opacity:.95; transform:scale(1.25)} }
+
+  /* ดาวตก (Shooting Star / Meteor ในยามค่ำคืน) */
+  .meteor{
+    position: absolute;
+    width: 95px;
+    height: 1.8px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(186,230,253,0.5), transparent);
+    border-radius: 99px;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,0.9));
+    pointer-events: none;
+    animation: meteorStreak var(--m-dur, 6s) cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+  }
+  @keyframes meteorStreak{
+    0%, 82%{ opacity: 0; transform: translate3d(0,0,0) rotate(var(--m-rot, -35deg)); }
+    84%{ opacity: 1; }
+    90%{ opacity: 1; transform: translate3d(-200px, 140px, 0) rotate(var(--m-rot, -35deg)); }
+    92%, 100%{ opacity: 0; transform: translate3d(-270px, 190px, 0) rotate(var(--m-rot, -35deg)); }
+  }
+
+  /* ลำแสงดวงอาทิตย์เรืองรอง (Solar Corona Pulsing) */
+  .solar-corona{
+    position: absolute;
+    border-radius: 50%;
+    animation: coronaPulse 5s ease-in-out infinite alternate;
+    pointer-events: none;
+  }
+  @keyframes coronaPulse{
+    0%{ transform: scale(0.92); opacity: 0.70; }
+    100%{ transform: scale(1.08); opacity: 1; }
+  }
+
+  /* เม็ดน้ำเกาะกระจก Liquid Glass (Water Beads & Sliding Drops) */
+  .glass-drop{
+    position: absolute;
+    border-radius: 50% 50% 60% 60%;
+    background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.2) 40%, rgba(186,230,253,0.08) 80%);
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.3), 0 2px 5px rgba(0,0,0,0.3);
+    backdrop-filter: blur(2px);
+    pointer-events: none;
+    animation: dropSlide var(--d-dur, 5s) linear infinite;
+  }
+  @keyframes dropSlide{
+    0%{ transform: translate3d(0, 0, 0); opacity: 0; }
+    15%{ opacity: 0.88; }
+    80%{ opacity: 0.88; }
+    100%{ transform: translate3d(var(--drift-x, 4px), var(--slide-y, 140px), 0); opacity: 0; }
+  }
+
+  /* สายฝนโปรยปรายตามแรงลม */
   .raindrop{ position:absolute; top:-8%; width:1.5px; border-radius:99px;
-             background:linear-gradient(180deg, transparent, rgba(186,230,253,.55));
+             background:linear-gradient(180deg, transparent, rgba(186,230,253,.6));
              animation:rainFall linear infinite; }
-  @keyframes rainFall{ to{ transform:translate3d(0,112vh,0); } }
+  @keyframes rainFall{ to{ transform:translate3d(var(--wind-drift, 0px),112vh,0); } }
+
+  /* หิมะตก / ลูกเห็บ */
   .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.9);
           animation:snowFall linear infinite; }
   @keyframes snowFall{ to{ transform:translate3d(4vw,112vh,0); } }
+
+  /* แถบหมอกและเมฆลอยเอื่อย */
   .fogband{ position:absolute; height:90px; border-radius:9999px;
             background:radial-gradient(closest-side, rgba(255,255,255,.16), rgba(255,255,255,0));
             animation:fogMove ease-in-out infinite alternate; }
@@ -208,6 +261,23 @@ tailwind.config = {
          background:radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0));
          animation:drift linear infinite; }
   @keyframes drift{ from{ transform:translate3d(-35vw,0,0); } to{ transform:translate3d(115vw,0,0); } }
+
+  /* ฟ้าแลบ ฟ้าผ่า (Atmospheric Lightning Flash) */
+  #lightningFlash{
+    position: fixed; inset: 0; z-index: 3; pointer-events: none;
+    background: radial-gradient(circle at 50% 20%, rgba(238, 242, 255, 0.55), rgba(165, 180, 252, 0.25) 50%, transparent 80%);
+    opacity: 0;
+  }
+  .lightning-active{
+    animation: lightningEffect 5.5s ease-in-out infinite;
+  }
+  @keyframes lightningEffect{
+    0%, 91%, 95%, 98%, 100%{ opacity: 0; }
+    92%{ opacity: 0.85; }
+    93%{ opacity: 0.25; }
+    94%{ opacity: 0.95; }
+    96%{ opacity: 0.45; }
+  }
 
   /* แอนิเมชันไอคอนสภาพอากาศหลัก */
   .rays{ animation:spinSlow 44s linear infinite; }
@@ -254,6 +324,7 @@ tailwind.config = {
 <div id="bgA" style="opacity:1"></div><div id="bgB" style="opacity:0"></div>
 <div class="tint"></div>
 <div id="skyLayer" aria-hidden="true"></div>
+<div id="lightningFlash" aria-hidden="true"></div>
 
 <!-- แถบด้านบน: พร้อมชื่อผู้พัฒนา MIX NATTANONT • ZERODAY -->
 <header class="sticky top-0 z-40 top-header border-b border-white/10">
@@ -904,159 +975,156 @@ function weatherIcon(kind, isDay, animate=false){
 }
 
 /* ---------- เฉดท้องฟ้าและบรรยากาศตามช่วงเวลาของวัน + สภาพอากาศจริง (Dynamic Living Sky) ---------- */
-function getAtmosphericSky(kind, isDay, nowL, sr, ss) {
-  // คำนวณช่วงเวลาแบบสุริยคติ (Solar Phase)
-  const isDawn = (sr && Math.abs(nowL - sr) < 45 * 60000); // ช่วงรุ่งอรุณรอบพระอาทิตย์ขึ้น 45 นาที
-  const isGolden = (ss && Math.abs(ss - nowL) < 55 * 60000); // Golden hour พระอาทิตย์ตกดิน 55 นาที
-  const isTwilight = (ss && (nowL - ss) >= 55 * 60000 && (nowL - ss) < 110 * 60000); // พลบค่ำ ทไวไลท์
-  
-  if (isDawn) {
-    return {
-      name: 'dawn',
-      phase: 'dawn',
-      gradient: 'radial-gradient(circle at 50% 85%, rgba(254, 215, 170, 0.45) 0%, transparent 60%), linear-gradient(175deg, #0f172a 0%, #2e1065 32%, #831843 62%, #d97706 88%, #f59e0b 100%)',
-      celestial: 'sunrise'
-    };
-  }
-  if (isGolden) {
-    return {
-      name: 'golden',
-      phase: 'golden',
-      gradient: 'radial-gradient(circle at 60% 75%, rgba(251, 146, 60, 0.50) 0%, transparent 65%), linear-gradient(175deg, #1e1b4b 0%, #4c1d95 30%, #9f1239 58%, #ea580c 82%, #fbbf24 100%)',
-      celestial: 'sunset'
-    };
-  }
-  if (isTwilight) {
-    return {
-      name: 'twilight',
-      phase: 'twilight',
-      gradient: 'radial-gradient(ellipse at 50% 30%, rgba(139, 92, 246, 0.28) 0%, transparent 70%), linear-gradient(175deg, #050510 0%, #17153b 35%, #2e1065 70%, #060913 100%)',
-      celestial: 'stars'
-    };
+function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
+  const d = new Date(nowL);
+  const hour = d.getUTCHours() + d.getUTCMinutes() / 60;
+  const windSpd = current?.windSpeed ?? current?.wind_speed_10m ?? 8;
+  const windDir = current?.windDirection ?? current?.wind_direction_10m ?? 200;
+
+  let phase = 'day';
+  let label = '☀️ กลางวัน';
+  let celestial = 'sun';
+
+  // ตรวจสอบช่วงเวลาจริงตามตำแหน่งดวงอาทิตย์
+  if (sr && ss) {
+    const diffSr = (nowL - sr) / 60000; // นาทีเทียบกับพระอาทิตย์ขึ้น
+    const diffSs = (nowL - ss) / 60000; // นาทีเทียบกับพระอาทิตย์ตก
+    
+    if (diffSr >= -45 && diffSr <= 30) {
+      phase = 'dawn';
+      label = '🌅 รุ่งอรุณ (Dawn)';
+      celestial = 'sunrise';
+    } else if (diffSs >= -60 && diffSs <= 20) {
+      phase = 'golden';
+      label = '🌇 ยามอัสดง (Golden Hour)';
+      celestial = 'sunset';
+    } else if (diffSs > 20 && diffSs <= 90) {
+      phase = 'twilight';
+      label = '🌆 พลบค่ำ (Twilight)';
+      celestial = 'twilight-horizon';
+    } else if (!isDay || diffSs > 90 || diffSr < -45) {
+      phase = 'night';
+      label = '🌙 ราตรีกาล (Night)';
+      celestial = 'moon-stars';
+    } else if (hour >= 11.5 && hour <= 14.5) {
+      phase = 'noon';
+      label = '☀️ เที่ยงวันแดดจัด (Midday)';
+      celestial = 'sun';
+    } else if (hour > 14.5 && hour < 17.25) {
+      phase = 'afternoon';
+      label = '🌤️ แดดร่มลมตก (Afternoon)';
+      celestial = 'sun';
+    } else {
+      phase = 'morning';
+      label = '🌤️ ยามเช้า (Morning)';
+      celestial = 'sun';
+    }
+  } else {
+    // Fallback เมื่อไม่มีข้อมูลพระอาทิตย์
+    if (hour >= 5.25 && hour < 6.75) { phase = 'dawn'; label = '🌅 รุ่งอรุณ'; celestial = 'sunrise'; }
+    else if (hour >= 6.75 && hour < 11.5) { phase = 'morning'; label = '🌤️ ยามเช้า'; celestial = 'sun'; }
+    else if (hour >= 11.5 && hour < 14.5) { phase = 'noon'; label = '☀️ เที่ยงวัน'; celestial = 'sun'; }
+    else if (hour >= 14.5 && hour < 17.25) { phase = 'afternoon'; label = '🌤️ แดดร่มลมตก'; celestial = 'sun'; }
+    else if (hour >= 17.25 && hour < 18.5) { phase = 'golden'; label = '🌇 ยามอัสดง'; celestial = 'sunset'; }
+    else if (hour >= 18.5 && hour < 19.75) { phase = 'twilight'; label = '🌆 พลบค่ำ'; celestial = 'twilight-horizon'; }
+    else { phase = 'night'; label = '🌙 ราตรีกาล'; celestial = 'moon-stars'; }
   }
 
-  // กลางวัน (Daytime)
-  if (isDay) {
+  // คำนวณสีพื้นหลัง Gradient ตามช่วงเวลาและสภาพอากาศ
+  let gradient = '';
+
+  if (phase === 'dawn') {
+    gradient = 'radial-gradient(ellipse 90% 60% at 50% 90%, rgba(254, 215, 170, 0.48) 0%, transparent 65%), linear-gradient(175deg, #090e1c 0%, #1c1435 28%, #4a1942 55%, #9d3131 78%, #e07a22 94%, #f59e0b 100%)';
+  } else if (phase === 'golden') {
+    gradient = 'radial-gradient(ellipse 95% 65% at 65% 80%, rgba(251, 146, 60, 0.55) 0%, transparent 70%), linear-gradient(175deg, #180d28 0%, #3b134a 28%, #7e1d49 55%, #c2410c 80%, #f97316 94%, #fbbf24 100%)';
+  } else if (phase === 'twilight') {
+    gradient = 'radial-gradient(ellipse 90% 45% at 50% 90%, rgba(244, 63, 94, 0.28) 0%, rgba(168, 85, 247, 0.22) 40%, transparent 70%), linear-gradient(175deg, #04050d 0%, #0f102b 28%, #1f1842 55%, #2a1638 78%, #110e1e 100%)';
+  } else if (isDay) {
     switch (kind) {
       case 'clear':
-        return {
-          name: 'day-clear',
-          phase: 'day',
-          gradient: 'radial-gradient(circle at 80% 15%, rgba(125, 211, 252, 0.40) 0%, transparent 55%), linear-gradient(175deg, #0284c7 0%, #0369a1 40%, #075985 75%, #0c4a6e 100%)',
-          celestial: 'sun'
-        };
+        gradient = 'radial-gradient(circle at 80% 15%, rgba(125, 211, 252, 0.45) 0%, transparent 55%), linear-gradient(175deg, #0284c7 0%, #0369a1 40%, #075985 75%, #0c4a6e 100%)';
+        break;
       case 'partly':
-        return {
-          name: 'day-partly',
-          phase: 'day',
-          gradient: 'radial-gradient(ellipse at 75% 20%, rgba(186, 230, 253, 0.35) 0%, transparent 60%), linear-gradient(175deg, #1d4ed8 0%, #2563eb 35%, #0284c7 70%, #0f172a 100%)',
-          celestial: 'sun-cloud'
-        };
+        gradient = 'radial-gradient(ellipse at 75% 20%, rgba(186, 230, 253, 0.38) 0%, transparent 60%), linear-gradient(175deg, #1d4ed8 0%, #2563eb 35%, #0284c7 70%, #0f172a 100%)';
+        break;
       case 'cloud':
-        return {
-          name: 'day-cloud',
-          phase: 'day',
-          gradient: 'linear-gradient(175deg, #334155 0%, #475569 38%, #64748b 72%, #1e293b 100%)',
-          celestial: 'cloud'
-        };
+        gradient = 'linear-gradient(175deg, #334155 0%, #475569 38%, #64748b 72%, #1e293b 100%)';
+        break;
       case 'fog':
-        return {
-          name: 'day-fog',
-          phase: 'day',
-          gradient: 'linear-gradient(175deg, #475569 0%, #64748b 45%, #94a3b8 75%, #334155 100%)',
-          celestial: 'fog'
-        };
+        gradient = 'linear-gradient(175deg, #475569 0%, #64748b 45%, #94a3b8 75%, #334155 100%)';
+        break;
       case 'drizzle':
       case 'rain':
       case 'heavy':
-        return {
-          name: 'day-rain',
-          phase: 'day',
-          gradient: 'linear-gradient(175deg, #0f172a 0%, #1e293b 40%, #1e354d 75%, #0b131d 100%)',
-          celestial: 'rain'
-        };
+        gradient = 'linear-gradient(175deg, #0f172a 0%, #1e293b 40%, #1e354d 75%, #0b131d 100%)';
+        break;
       case 'thunder':
-        return {
-          name: 'day-thunder',
-          phase: 'day',
-          gradient: 'linear-gradient(175deg, #090d16 0%, #1a1e36 40%, #29244a 72%, #070913 100%)',
-          celestial: 'thunder'
-        };
+        gradient = 'linear-gradient(175deg, #090d16 0%, #1a1e36 40%, #29244a 72%, #070913 100%)';
+        break;
       default:
-        return {
-          name: 'day-default',
-          phase: 'day',
-          gradient: 'linear-gradient(175deg, #0369a1 0%, #0284c7 45%, #0f172a 100%)',
-          celestial: 'sun'
-        };
+        gradient = 'linear-gradient(175deg, #0369a1 0%, #0284c7 45%, #0f172a 100%)';
+        break;
+    }
+  } else {
+    // กลางคืน
+    switch (kind) {
+      case 'clear':
+        gradient = 'radial-gradient(circle at 82% 16%, rgba(186, 230, 253, 0.25) 0%, transparent 55%), linear-gradient(175deg, #020612 0%, #091329 42%, #101e3d 75%, #050814 100%)';
+        break;
+      case 'partly':
+        gradient = 'radial-gradient(circle at 75% 20%, rgba(147, 197, 253, 0.18) 0%, transparent 60%), linear-gradient(175deg, #030712 0%, #0c152c 40%, #141f3a 72%, #070a14 100%)';
+        break;
+      case 'cloud':
+        gradient = 'linear-gradient(175deg, #070b14 0%, #111a28 42%, #192536 75%, #0a0f18 100%)';
+        break;
+      case 'fog':
+        gradient = 'linear-gradient(175deg, #0a0f18 0%, #161f2c 45%, #243042 75%, #0d121c 100%)';
+        break;
+      case 'drizzle':
+      case 'rain':
+      case 'heavy':
+        gradient = 'linear-gradient(175deg, #02050c 0%, #0b1524 40%, #122135 75%, #060a12 100%)';
+        break;
+      case 'thunder':
+        gradient = 'linear-gradient(175deg, #03040a 0%, #111126 40%, #1e1836 72%, #04060d 100%)';
+        break;
+      default:
+        gradient = 'linear-gradient(175deg, #030712 0%, #0a1128 45%, #060913 100%)';
+        break;
     }
   }
 
-  // กลางคืน (Nighttime)
-  switch (kind) {
-    case 'clear':
-      return {
-        name: 'night-clear',
-        phase: 'night',
-        gradient: 'radial-gradient(circle at 82% 16%, rgba(186, 230, 253, 0.22) 0%, transparent 55%), linear-gradient(175deg, #020612 0%, #091329 42%, #101e3d 75%, #050814 100%)',
-        celestial: 'moon-stars'
-      };
-    case 'partly':
-      return {
-        name: 'night-partly',
-        phase: 'night',
-        gradient: 'radial-gradient(circle at 75% 20%, rgba(147, 197, 253, 0.16) 0%, transparent 60%), linear-gradient(175deg, #030712 0%, #0c152c 40%, #141f3a 72%, #070a14 100%)',
-        celestial: 'moon-stars'
-      };
-    case 'cloud':
-      return {
-        name: 'night-cloud',
-        phase: 'night',
-        gradient: 'linear-gradient(175deg, #070b14 0%, #111a28 42%, #192536 75%, #0a0f18 100%)',
-        celestial: 'cloud'
-      };
-    case 'fog':
-      return {
-        name: 'night-fog',
-        phase: 'night',
-        gradient: 'linear-gradient(175deg, #0a0f18 0%, #161f2c 45%, #243042 75%, #0d121c 100%)',
-        celestial: 'fog'
-      };
-    case 'drizzle':
-    case 'rain':
-    case 'heavy':
-      return {
-        name: 'night-rain',
-        phase: 'night',
-        gradient: 'linear-gradient(175deg, #02050c 0%, #0b1524 40%, #122135 75%, #060a12 100%)',
-        celestial: 'rain'
-      };
-    case 'thunder':
-      return {
-        name: 'night-thunder',
-        phase: 'night',
-        gradient: 'linear-gradient(175deg, #03040a 0%, #111126 40%, #1e1836 72%, #04060d 100%)',
-        celestial: 'thunder'
-      };
-    default:
-      return {
-        name: 'night-default',
-        phase: 'night',
-        gradient: 'linear-gradient(175deg, #030712 0%, #0a1128 45%, #060913 100%)',
-        celestial: 'moon-stars'
-      };
-  }
+  return {
+    name: `${phase}-${kind}`,
+    phase,
+    label,
+    celestial,
+    gradient,
+    windSpd,
+    windDir,
+    isRaining: (kind === 'rain' || kind === 'heavy' || kind === 'drizzle' || kind === 'thunder'),
+    isThunder: (kind === 'thunder'),
+    isFog: (kind === 'fog')
+  };
 }
 
 function applyTheme(){
   const w=state.w; if(!w) return;
-  const c=w.current, D=w.daily;
-  const kind=wmoKind(c.weather_code), isDay=c.is_day===1;
-  const nowL=Date.now()+(w.utc_offset_seconds||25200)*1000;
-  const sr=D && D.sunrise && D.sunrise[0] ? Date.parse(D.sunrise[0]+':00Z') : null;
-  const ss=D && D.sunset && D.sunset[0] ? Date.parse(D.sunset[0]+':00Z') : null;
+  const can=state.canonical;
+  const c=can ? can.current : (w.current || {});
+  const D=can ? can.today : (w.daily || {});
+  const codeVal = c.weatherCode ?? c.weather_code ?? 0;
+  const isDayVal = (c.isDay ?? c.is_day) === 1;
+  const kind = wmoKind(codeVal);
+  const nowL = Date.now() + (w.utc_offset_seconds || 25200) * 1000;
   
-  const sky = getAtmosphericSky(kind, isDay, nowL, sr, ss);
+  const rawD = w.daily;
+  const sr = rawD && rawD.sunrise && rawD.sunrise[0] ? Date.parse(rawD.sunrise[0]+':00Z') : null;
+  const ss = rawD && rawD.sunset && rawD.sunset[0] ? Date.parse(rawD.sunset[0]+':00Z') : null;
+  
+  const sky = getAtmosphericSky(kind, isDayVal, nowL, sr, ss, c);
+  state.skyPhaseLabel = sky.label;
+  
   const front = els.bgA.dataset.front==='1' ? els.bgA : els.bgB;
   const back = front===els.bgA ? els.bgB : els.bgA;
   
@@ -1066,61 +1134,115 @@ function applyTheme(){
   front.dataset.front = '0';
   back.dataset.front = '1';
   
-  buildSky(kind, isDay, sky);
-}
-
-function buildSky(kind, isDay, sky){
-  const L=els.skyLayer; let s='';
-  const mob = isMobile();
-  const phase = sky ? sky.phase : (isDay ? 'day' : 'night');
-  const celestial = sky ? sky.celestial : (isDay ? 'sun' : 'moon-stars');
-
-  // ดวงอาทิตย์ / ดวงจันทร์ แขวนลอยเรืองแสงหลังแผ่น Liquid Glass
-  if (celestial === 'moon-stars' || (!isDay && phase !== 'dawn' && phase !== 'golden')) {
-    s += `<div style="position:absolute; right:12%; top:8%; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(224,242,254,0.65) 45%, rgba(186,230,253,0.18) 75%, transparent 100%); box-shadow:0 0 35px rgba(224,242,254,0.45); pointer-events:none;"></div>`;
-  } else if (celestial === 'sunrise' || phase === 'dawn') {
-    s += `<div style="position:absolute; left:50%; bottom:15%; transform:translateX(-50%); width:240px; height:140px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.85) 0%, rgba(245,158,11,0.5) 40%, rgba(217,119,6,0.2) 70%, transparent 100%); filter:blur(12px); pointer-events:none;"></div>`;
-  } else if (celestial === 'sunset' || phase === 'golden') {
-    s += `<div style="position:absolute; right:20%; bottom:20%; width:200px; height:120px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.85) 0%, rgba(234,88,12,0.55) 45%, rgba(159,18,57,0.25) 75%, transparent 100%); filter:blur(14px); pointer-events:none;"></div>`;
-  } else if (isDay && (kind === 'clear' || kind === 'partly')) {
-    s += `<div style="position:absolute; right:10%; top:6%; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(254,240,138,0.45) 40%, rgba(56,189,248,0.15) 75%, transparent 100%); filter:blur(10px); pointer-events:none;"></div>`;
-  }
-
-  // ดวงดาวระยิบระยับในยามค่ำคืนหรือทไวไลท์
-  if (!isDay || phase === 'twilight') {
-    const starCount = mob ? 28 : 80;
-    for(let i=0;i<starCount;i++){
-      const sz=(Math.random()*1.8+.6).toFixed(1);
-      const anim = (!mob || i < 8) ? ` star-anim` : '';
-      s+=`<i class="star${anim}" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*62).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2.5+Math.random()*3.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s"></i>`;
+  buildSky(kind, isDayVal, sky, c);
+  
+  // จัดการแสงฟ้าแลบ
+  const lf = document.getElementById('lightningFlash');
+  if (lf) {
+    if (sky.isThunder) {
+      lf.classList.add('lightning-active');
+    } else {
+      lf.classList.remove('lightning-active');
     }
   }
 
-  // เม็ดฝนตกลงมากระทบกระจกอย่างนุ่มนวล
-  const rain=(n,op)=>{
-    const cnt = mob ? Math.round(n*0.35) : n;
-    for(let i=0;i<cnt;i++)
-      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*18).toFixed(0)}px;opacity:${(op*(.45+Math.random()*.45)).toFixed(2)};animation-duration:${(.80+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
-  };
-  if(kind==='rain'||kind==='heavy') rain(40,.88); 
-  else if(kind==='thunder') rain(48,.92); 
-  else if(kind==='drizzle') rain(22,.55);
+  // อัปเดตเวลานาฬิกาพร้อมป้ายกำกับบรรยากาศ
+  tickClock();
+}
 
+function buildSky(kind, isDay, sky, current){
+  const L = els.skyLayer; let s = '';
+  const mob = isMobile();
+  const phase = sky ? sky.phase : (isDay ? 'day' : 'night');
+  const celestial = sky ? sky.celestial : (isDay ? 'sun' : 'moon-stars');
+  const windSpd = sky?.windSpd || 8;
+  const windDir = sky?.windDir || 200;
+  
+  // คำนวณการเบี่ยงเบนของสายฝนตามทิศและแรงลม (-30px ถึง +30px)
+  const windRadian = (windDir * Math.PI) / 180;
+  const driftX = Math.round(Math.sin(windRadian) * Math.min(windSpd, 35) * 1.2);
+
+  // 1. วัตถุท้องฟ้าตามช่วงเวลาจริง (ดวงอาทิตย์ / ดวงจันทร์ 3D / รุ่งอรุณ / ทไวไลท์)
+  if (celestial === 'moon-stars' || (!isDay && phase !== 'dawn' && phase !== 'golden')) {
+    // ดวงจันทร์ 3D มีหลุมดวงจันทร์และออร่าเรืองแสง
+    s += `<div style="position:absolute; right:12%; top:7%; width:74px; height:74px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #ffffff 0%, #e2e8f0 45%, #cbd5e1 75%, #94a3b8 100%); box-shadow:0 0 45px rgba(224,242,254,0.45), 0 0 16px rgba(255,255,255,0.7); pointer-events:none;">
+      <div style="position:absolute; left:25%; top:30%; width:16px; height:16px; border-radius:50%; background:rgba(148,163,184,0.35); filter:blur(1px);"></div>
+      <div style="position:absolute; left:52%; top:48%; width:22px; height:22px; border-radius:50%; background:rgba(148,163,184,0.30); filter:blur(1px);"></div>
+      <div style="position:absolute; left:40%; top:65%; width:12px; height:12px; border-radius:50%; background:rgba(148,163,184,0.25); filter:blur(1px);"></div>
+    </div>`;
+  } else if (celestial === 'sunrise' || phase === 'dawn') {
+    // ดวงอาทิตย์โผล่พ้นขอบฟ้าเช้าตรู่
+    s += `<div class="solar-corona" style="left:50%; bottom:10%; transform:translateX(-50%); width:260px; height:150px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.9) 0%, rgba(245,158,11,0.55) 40%, rgba(217,119,6,0.22) 72%, transparent 100%); filter:blur(14px);"></div>`;
+  } else if (celestial === 'sunset' || phase === 'golden') {
+    // พระอาทิตย์ตกดินดวงกลมโตสีส้มทอง
+    s += `<div class="solar-corona" style="right:18%; bottom:14%; width:220px; height:130px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.9) 0%, rgba(234,88,12,0.6) 45%, rgba(159,18,57,0.28) 75%, transparent 100%); filter:blur(16px);"></div>`;
+  } else if (phase === 'twilight' || celestial === 'twilight-horizon') {
+    // แสงทไวไลท์เรืองรองที่แนวขอบฟ้า
+    s += `<div style="position:absolute; inset-x:0; bottom:0; height:180px; background:linear-gradient(0deg, rgba(244,63,94,0.25) 0%, rgba(168,85,247,0.15) 50%, transparent 100%); filter:blur(20px); pointer-events:none;"></div>`;
+  } else if (isDay && (kind === 'clear' || kind === 'partly')) {
+    // ดวงอาทิตย์กลางวันพร้อมลำแสงเรืองรอง
+    s += `<div class="solar-corona" style="right:10%; top:6%; width:130px; height:130px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.85) 0%, rgba(254,240,138,0.5) 40%, rgba(56,189,248,0.18) 75%, transparent 100%); filter:blur(12px);"></div>`;
+  }
+
+  // 2. ดวงดาวและดาวตก (Shooting Stars / Meteors) ในยามค่ำคืนหรือทไวไลท์
+  if (!isDay || phase === 'twilight') {
+    const starCount = mob ? 32 : 85;
+    for(let i=0; i<starCount; i++){
+      const sz = (Math.random()*1.8 + .6).toFixed(1);
+      const anim = (!mob || i < 10) ? ` star-anim` : '';
+      s += `<i class="star${anim}" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*64).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2.5+Math.random()*3.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s"></i>`;
+    }
+    // เพิ่มดาวตก 2 ดวง
+    s += `<div class="meteor" style="right:25%; top:12%; --m-dur:7s; --m-rot:-38deg;"></div>`;
+    if (!mob) {
+      s += `<div class="meteor" style="right:55%; top:22%; --m-dur:11s; --m-rot:-32deg; animation-delay:3.5s;"></div>`;
+    }
+  }
+
+  // 3. เม็ดน้ำเกาะกระจก Liquid Glass (Water Beads & Drops บนหน้าจอ) เมื่อฝนตก
+  if (sky?.isRaining || kind === 'rain' || kind === 'heavy' || kind === 'drizzle' || kind === 'thunder') {
+    const dropCount = mob ? 14 : 26;
+    for(let i=0; i<dropCount; i++){
+      const sz = Math.round(5 + Math.random() * 8);
+      const dur = (4 + Math.random() * 5).toFixed(1);
+      const delay = (Math.random() * 4).toFixed(1);
+      const slideDist = Math.round(80 + Math.random() * 160);
+      s += `<div class="glass-drop" style="left:${(Math.random()*96).toFixed(1)}%;top:${(Math.random()*85).toFixed(1)}%;width:${sz}px;height:${Math.round(sz*1.2)}px;--d-dur:${dur}s;animation-delay:${delay}s;--drift-x:${driftX}px;--slide-y:${slideDist}px;"></div>`;
+    }
+  }
+
+  // 4. สายฝนโปรยปรายตามแรงลม
+  const rain = (n, op) => {
+    const cnt = mob ? Math.round(n * 0.35) : n;
+    for(let i=0; i<cnt; i++){
+      s += `<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*18).toFixed(0)}px;opacity:${(op*(.45+Math.random()*.45)).toFixed(2)};animation-duration:${(.80+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s;--wind-drift:${driftX}px"></i>`;
+    }
+  };
+  if(kind==='rain'||kind==='heavy') rain(42, .88); 
+  else if(kind==='thunder') rain(48, .92); 
+  else if(kind==='drizzle') rain(22, .55);
+
+  // 5. หิมะตก
   if(kind==='snow'){
     const cnt = mob ? 14 : 40;
-    for(let i=0;i<cnt;i++)
-      s+=`<i class="flake" style="left:${(Math.random()*100).toFixed(1)}%;width:${(2+Math.random()*3).toFixed(1)}px;height:${(2+Math.random()*3).toFixed(1)}px;animation-duration:${(6+Math.random()*6).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;opacity:${(.35+Math.random()*.5).toFixed(2)}"></i>`;
+    for(let i=0; i<cnt; i++)
+      s += `<i class="flake" style="left:${(Math.random()*100).toFixed(1)}%;width:${(2+Math.random()*3).toFixed(1)}px;height:${(2+Math.random()*3).toFixed(1)}px;animation-duration:${(6+Math.random()*6).toFixed(1)}s;animation-delay:${(Math.random()*8).toFixed(1)}s;opacity:${(.35+Math.random()*.5).toFixed(2)}"></i>`;
   }
+
+  // 6. หมอกและละออง
   if(!mob && kind==='fog'){
-    for(let i=0;i<3;i++)
-      s+=`<i class="fogband" style="left:-10%;top:${(12+i*24).toFixed(0)}%;width:120%;animation-duration:${(9+i*3).toFixed(1)}s;animation-delay:${(-i*2).toFixed(1)}s"></i>`;
+    for(let i=0; i<3; i++)
+      s += `<i class="fogband" style="left:-10%;top:${(12+i*24).toFixed(0)}%;width:120%;animation-duration:${(9+i*3).toFixed(1)}s;animation-delay:${(-i*2).toFixed(1)}s"></i>`;
   }
+
+  // 7. เมฆลอย
   if(!mob && (kind==='partly'||kind==='cloud')){
-    const cnt = kind==='cloud'?4:2;
-    for(let i=0;i<cnt;i++)
-      s+=`<i class="puff" style="top:${(6+Math.random()*40).toFixed(0)}%;width:${(110+Math.random()*140).toFixed(0)}px;height:${(46+Math.random()*44).toFixed(0)}px;animation-duration:${(80+Math.random()*70).toFixed(0)}s;animation-delay:${(-Math.random()*90).toFixed(0)}s"></i>`;
+    const cnt = kind==='cloud' ? 4 : 2;
+    for(let i=0; i<cnt; i++)
+      s += `<i class="puff" style="top:${(6+Math.random()*40).toFixed(0)}%;width:${(110+Math.random()*140).toFixed(0)}px;height:${(46+Math.random()*44).toFixed(0)}px;animation-duration:${(80+Math.random()*70).toFixed(0)}s;animation-delay:${(-Math.random()*90).toFixed(0)}s"></i>`;
   }
-  L.innerHTML=s;
+
+  L.innerHTML = s;
 }
 
 /* ---------- เครือข่าย & ผสานข้อมูล WeatherAPI.com + ECMWF ---------- */
@@ -1957,7 +2079,8 @@ function tickClock(){
   const tz=state.w.timezone, now=new Date();
   const d=new Intl.DateTimeFormat('th-TH',{weekday:'long',day:'numeric',month:'long',timeZone:tz}).format(now);
   const t=new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(now);
-  els.clockLine.textContent=`${d} · เวลาท้องถิ่น ${t} น.`;
+  const phaseTag = state.skyPhaseLabel ? ` · ${state.skyPhaseLabel}` : '';
+  els.clockLine.textContent=`${d} · เวลา ${t} น.${phaseTag}`;
 }
 
 /* ---------- มาตรวัดโค้ง (Breezy-style Circular Arc Gauge) และรายละเอียดสภาพอากาศ ---------- */
