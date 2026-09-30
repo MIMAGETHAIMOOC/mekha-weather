@@ -57,26 +57,131 @@ tailwind.config = {
 };
 </script>
 <style>
-  :root{ --glass: rgba(12,19,34,.88); --glass-brd: rgba(255,255,255,.15); }
-  html{ -webkit-tap-highlight-color:transparent; touch-action:manipulation; background-color:#0b111d; color:#fff; }
-  body{ min-height:100dvh; overscroll-behavior-y:none; touch-action:manipulation; background-color:#0b111d; color:#fff; }
-  ::selection{ background:rgba(255,209,102,.35); }
+  :root{ 
+    --glass: rgba(18, 28, 52, 0.48); 
+    --glass-brd: rgba(255, 255, 255, 0.22); 
+    --glass-rim: rgba(255, 255, 255, 0.60);
+  }
+  html{ 
+    -webkit-tap-highlight-color: transparent; 
+    scroll-behavior: smooth;
+    background-color: #060913; 
+    color: #fff; 
+  }
+  body{ 
+    min-height: 100dvh; 
+    touch-action: pan-y; 
+    -webkit-overflow-scrolling: touch; 
+    background-color: #060913; 
+    color: #fff; 
+    overscroll-behavior-y: auto;
+  }
+  ::selection{ background: rgba(255, 209, 102, .35); }
 
-  /* พื้นหลังท้องฟ้าสองชั้น ใช้ z-index ค่าบวกชัดเจนเพื่อไม่ให้ทับซ้อนกับการ์ดด้านหน้า */
-  #bgA,#bgB{ position:fixed; inset:0; z-index:0; transition:opacity 1.1s ease; pointer-events:none; }
-  .tint{ position:fixed; inset:0; z-index:1; pointer-events:none;
-         background:radial-gradient(120% 85% at 50% 0%, rgba(255,255,255,.08), transparent 55%); }
-  #skyLayer{ position:fixed; inset:0; z-index:2; overflow:hidden; pointer-events:none; }
-  header.top-header{ position:sticky; top:0; z-index:40; background:rgba(8,14,26,.95); }
-  main{ position:relative; z-index:10; }
+  /* พื้นหลังท้องฟ้าหลายชั้น Dynamic Sky Layer เปลี่ยนตามช่วงเวลาและสภาพอากาศ */
+  #bgA,#bgB{ 
+    position: fixed; inset: 0; z-index: 0; 
+    transition: opacity 1.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    pointer-events: none; 
+    transform: translate3d(0,0,0);
+    will-change: opacity;
+  }
+  .tint{ 
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background: radial-gradient(130% 90% at 50% 0%, rgba(255,255,255,.14), transparent 60%),
+                radial-gradient(90% 70% at 85% 15%, rgba(255,255,255,.10), transparent 50%),
+                linear-gradient(180deg, transparent 40%, rgba(6,9,19,.40) 100%); 
+  }
+  #skyLayer{ position: fixed; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; transform: translate3d(0,0,0); }
+  
+  /* Header สไตล์ Liquid Glass แขวนลอยด้านบน จอกว้างโปร่งสบาย */
+  header.top-header{ 
+    position: sticky; top: 0; z-index: 40; 
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: linear-gradient(180deg, rgba(8, 14, 28, 0.78) 0%, rgba(12, 20, 38, 0.62) 100%);
+    border-bottom: 1.2px solid rgba(255, 255, 255, 0.20);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.35), inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+  }
+  main{ position: relative; z-index: 10; isolation: isolate; }
 
-  /* การ์ดกระจกเข้มความคมชัดสูง: ไม่พึ่ง backdrop-filter ที่ทำให้การ์ดหายเวลาฝนตกบน Chrome และลื่น 120fps ทุกอุปกรณ์ */
-  .glass{ background:linear-gradient(165deg, rgba(14,22,38,.88) 0%, rgba(8,14,26,.93) 100%);
-          border:1px solid var(--glass-brd);
-          box-shadow:0 8px 24px rgba(2,6,18,.26), inset 0 1px 0 rgba(255,255,255,.10); }
-  .glass-strong{ background:rgba(10,16,28,.97); border:1px solid rgba(255,255,255,.16); }
-  .glass-in{ background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); }
-  .card-title{ font-size:.82rem; letter-spacing:.04em; color:rgba(255,255,255,.68); font-weight:600; }
+  /* ============================================================
+     LIQUID GLASS ARCHITECTURE (Apple-Style Translucent Frosted Glass)
+     - Translucent Refractive Glass with high-index backdrop blur
+     - 3D Specular Highlight Rim on top edge & left curve
+     - Dual-depth inner bevel reflections and ambient drop shadow
+     - GPU hardware accelerated 120fps (zero frame drops on touch)
+  ============================================================ */
+  .glass{ 
+    position: relative;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(18, 28, 52, 0.50) 35%, rgba(10, 16, 32, 0.65) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-top: 1.6px solid rgba(255, 255, 255, 0.58);
+    border-left: 1.2px solid rgba(255, 255, 255, 0.36);
+    box-shadow: 
+      0 16px 40px -8px rgba(0, 0, 0, 0.42),
+      0 4px 12px -2px rgba(0, 0, 0, 0.28),
+      inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.35),
+      inset 1.5px 0 2px 0 rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(28px) saturate(190%);
+    -webkit-backdrop-filter: blur(28px) saturate(190%);
+    border-radius: 26px;
+    transform: translate3d(0,0,0);
+    will-change: transform;
+    isolation: isolate;
+  }
+
+  /* ป้ายแคปซูลเม็ดยา Liquid Pill (เนียนโค้งมนเหมือนแผ่นแก้วใสกลมนูน) */
+  .liquid-pill{
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.10) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.72);
+    box-shadow: 0 6px 18px -3px rgba(0, 0, 0, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    border-radius: 9999px;
+  }
+
+  /* กระจกหนาสำหรับป็อปอัป Modal และเมนูค้นหา */
+  .glass-strong{ 
+    background: linear-gradient(145deg, rgba(22, 34, 60, 0.88) 0%, rgba(10, 16, 30, 0.94) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    border-top: 1.6px solid rgba(255, 255, 255, 0.62);
+    box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    border-radius: 28px;
+    transform: translate3d(0,0,0);
+  }
+
+  /* แผ่นกระจกฝังด้านใน (Tile / Inset Metric Card) */
+  .glass-in{ 
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.13) 0%, rgba(255, 255, 255, 0.04) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-top: 1.3px solid rgba(255, 255, 255, 0.45);
+    box-shadow: inset 0 1.5px 2px rgba(0, 0, 0, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
+  }
+  .card-title{ font-size: .84rem; letter-spacing: .04em; color: rgba(255,255,255,.78); font-weight: 600; }
+
+  /* เพิ่ม Content Visibility ให้ลื่น 120fps โดยไม่กินทรัพยากรส่วนที่ยังไม่เลื่อนไปถึง */
+  #secFlood, #secDaily, #secRadar{
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 400px;
+  }
+
+  /* Floating Bottom Navigation สไตล์ Liquid Glass Bar */
+  #mobileNav{
+    backdrop-filter: blur(32px) saturate(200%);
+    -webkit-backdrop-filter: blur(32px) saturate(200%);
+    background: linear-gradient(0deg, rgba(6, 10, 22, 0.88) 0%, rgba(14, 24, 46, 0.74) 100%);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.30);
+    box-shadow: 0 -10px 36px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    border-radius: 26px 26px 0 0;
+  }
 
   /* ตำแหน่งเลื่อนหน้าจอเผื่อความสูง Header และบังคับซ่อนองค์ประกอบที่มีคลาส hidden */
   article[id^="sec"]{ scroll-margin-top: 94px; }
@@ -84,23 +189,23 @@ tailwind.config = {
   #searchResults.hidden, #searchSpin.hidden, #searchIcon.hidden, #hourCursor.hidden,
   #hourTip.hidden, #navFloodDot.hidden, #provinceDistrictWrap.hidden { display: none !important; }
 
-  /* อนุภาคบรรยากาศบนพื้นหลัง (เม็ดฝนนุ่มนวล ไม่เป็นเส้นยาวเกะกะสายตา) */
-  .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.55; }
+  /* อนุภาคบรรยากาศบนพื้นหลัง */
+  .star{ position:absolute; border-radius:9999px; background:#fff; opacity:.6; box-shadow:0 0 6px rgba(255,255,255,.8); }
   .star-anim{ animation:twinkle var(--d) ease-in-out infinite; }
-  @keyframes twinkle{ 0%,100%{opacity:.18} 50%{opacity:.88} }
-  .raindrop{ position:absolute; top:-8%; width:1.2px; border-radius:99px;
-             background:linear-gradient(180deg, transparent, rgba(186,230,253,.42));
+  @keyframes twinkle{ 0%,100%{opacity:.18; transform:scale(.8)} 50%{opacity:.92; transform:scale(1.2)} }
+  .raindrop{ position:absolute; top:-8%; width:1.5px; border-radius:99px;
+             background:linear-gradient(180deg, transparent, rgba(186,230,253,.55));
              animation:rainFall linear infinite; }
   @keyframes rainFall{ to{ transform:translate3d(0,112vh,0); } }
-  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.85);
+  .flake{ position:absolute; top:-4%; border-radius:9999px; background:rgba(255,255,255,.9);
           animation:snowFall linear infinite; }
   @keyframes snowFall{ to{ transform:translate3d(4vw,112vh,0); } }
   .fogband{ position:absolute; height:90px; border-radius:9999px;
-            background:radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0));
+            background:radial-gradient(closest-side, rgba(255,255,255,.16), rgba(255,255,255,0));
             animation:fogMove ease-in-out infinite alternate; }
   @keyframes fogMove{ from{transform:translate3d(-5%,0,0)} to{transform:translate3d(5%,0,0)} }
   .puff{ position:absolute; border-radius:50%;
-         background:radial-gradient(closest-side, rgba(255,255,255,.12), rgba(255,255,255,0));
+         background:radial-gradient(closest-side, rgba(255,255,255,.14), rgba(255,255,255,0));
          animation:drift linear infinite; }
   @keyframes drift{ from{ transform:translate3d(-35vw,0,0); } to{ transform:translate3d(115vw,0,0); } }
 
@@ -116,27 +221,27 @@ tailwind.config = {
   .flood-pulse{ animation:floodPulse 2.4s ease-in-out infinite; }
   @keyframes floodPulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(214,69,69,.40);} 50%{ box-shadow:0 0 0 7px rgba(214,69,69,0);} }
 
-  /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App (ไม่เริ่มต้นที่ opacity:0 เพื่อป้องกันการ์ดค้างโปร่งใส) */
+  /* ประสิทธิภาพและการเคลื่อนไหวนุ่มนวลแบบ Native App */
   .rise{ animation:fadeUp .28s cubic-bezier(.22,1,.36,1); }
   @keyframes fadeUp{ from{transform:translate3d(0,6px,0)} to{transform:none} }
   .sheet-up{ animation:sheetUp .24s cubic-bezier(.22,1,.36,1); }
   @keyframes sheetUp{ from{transform:translate3d(0,16px,0)} to{transform:none} }
 
-  /* แก้ปัญหาทัชสะดุด: รองรับทั้งไถซ้าย-ขวา และไถขึ้น-ลงพร้อมกัน ไม่ล็อกนิ้วเวลาแตะกราฟ 24 ชม. */
-  .nice-scroll{ -webkit-overflow-scrolling:touch; }
+  /* แก้ปัญหาทัชสะดุด: kinetic scrolling ลื่นไหล 120fps */
+  .nice-scroll{ -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
   .touch-pan-xy{ touch-action:pan-x pan-y; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; }
   .nice-scroll::-webkit-scrollbar{ height:4px; width:4px; }
-  .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.22); border-radius:99px; }
+  .nice-scroll::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.24); border-radius:99px; }
   .nice-scroll::-webkit-scrollbar-track{ background:transparent; }
   @media (max-width: 640px){
     .nice-scroll::-webkit-scrollbar{ display:none; }
     .nice-scroll{ scrollbar-width:none; }
   }
-  input::placeholder{ color:rgba(255,255,255,.42); }
+  input::placeholder{ color:rgba(255,255,255,.45); }
   select option{ background:#0f172a; color:#fff; }
   button, a, [data-metric], [data-day]{ touch-action:manipulation; -webkit-user-select:none; user-select:none; }
-  .tap-card{ transition:background-color .15s ease, border-color .15s ease, transform .12s ease; cursor:pointer; }
-  .tap-card:active{ transform:scale(.985); background-color:rgba(255,255,255,.12); }
+  .tap-card{ transition:background-color .15s ease, border-color .15s ease, transform .12s cubic-bezier(0.2, 0.8, 0.4, 1); cursor:pointer; }
+  .tap-card:active{ transform:scale(.982); background-color:rgba(255,255,255,.15); }
   .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; touch-action:none; }
 </style>
 </head>
@@ -798,49 +903,209 @@ function weatherIcon(kind, isDay, animate=false){
   return `<svg viewBox="0 0 24 24" width="100%" height="100%" role="img" aria-label="ไอคอนสภาพอากาศ">${defs}${body}</svg>`;
 }
 
-/* ---------- เฉดท้องฟ้าตามสภาพอากาศและช่วงเวลา (เบาสบายพิเศษบนมือถือเพื่อไม่ให้กิน GPU) ---------- */
-const THEMES = {
-  clear:   { day:['#1e5fa8','#3b7fc4','#7db3dd'], night:['#070b18','#111a30','#1d2942'] },
-  partly:  { day:['#2a5e94','#4a7fb0','#7fa9cc'], night:['#080d1a','#131c33','#202b48'] },
-  cloud:   { day:['#4c5f73','#6a7d8f','#93a4b1'], night:['#0d1219','#1b232e','#2a3440'] },
-  fog:     { day:['#5d6b76','#82909b','#a9b4bc'], night:['#10141a','#1e242c','#303843'] },
-  drizzle: { day:['#41586d','#5d758b','#8196a9'], night:['#0b1119','#19232e','#263140'] },
-  rain:    { day:['#33465a','#4c6379','#6e8497'], night:['#080e15','#141d27','#1f2a36'] },
-  thunder: { day:['#2b3a52','#3f5470','#5a7291'], night:['#060a12','#101827','#1a2436'] },
-  snow:    { day:['#5a6f86','#7d92a7','#a5b7c7'], night:['#0c121b','#1a2330','#28323f'] },
-  golden:  { day:['#35406e','#6a5a7d','#c98a63'], night:['#141428','#2a2540','#4a3a4a'] },
-};
+/* ---------- เฉดท้องฟ้าและบรรยากาศตามช่วงเวลาของวัน + สภาพอากาศจริง (Dynamic Living Sky) ---------- */
+function getAtmosphericSky(kind, isDay, nowL, sr, ss) {
+  // คำนวณช่วงเวลาแบบสุริยคติ (Solar Phase)
+  const isDawn = (sr && Math.abs(nowL - sr) < 45 * 60000); // ช่วงรุ่งอรุณรอบพระอาทิตย์ขึ้น 45 นาที
+  const isGolden = (ss && Math.abs(ss - nowL) < 55 * 60000); // Golden hour พระอาทิตย์ตกดิน 55 นาที
+  const isTwilight = (ss && (nowL - ss) >= 55 * 60000 && (nowL - ss) < 110 * 60000); // พลบค่ำ ทไวไลท์
+  
+  if (isDawn) {
+    return {
+      name: 'dawn',
+      phase: 'dawn',
+      gradient: 'radial-gradient(circle at 50% 85%, rgba(254, 215, 170, 0.45) 0%, transparent 60%), linear-gradient(175deg, #0f172a 0%, #2e1065 32%, #831843 62%, #d97706 88%, #f59e0b 100%)',
+      celestial: 'sunrise'
+    };
+  }
+  if (isGolden) {
+    return {
+      name: 'golden',
+      phase: 'golden',
+      gradient: 'radial-gradient(circle at 60% 75%, rgba(251, 146, 60, 0.50) 0%, transparent 65%), linear-gradient(175deg, #1e1b4b 0%, #4c1d95 30%, #9f1239 58%, #ea580c 82%, #fbbf24 100%)',
+      celestial: 'sunset'
+    };
+  }
+  if (isTwilight) {
+    return {
+      name: 'twilight',
+      phase: 'twilight',
+      gradient: 'radial-gradient(ellipse at 50% 30%, rgba(139, 92, 246, 0.28) 0%, transparent 70%), linear-gradient(175deg, #050510 0%, #17153b 35%, #2e1065 70%, #060913 100%)',
+      celestial: 'stars'
+    };
+  }
+
+  // กลางวัน (Daytime)
+  if (isDay) {
+    switch (kind) {
+      case 'clear':
+        return {
+          name: 'day-clear',
+          phase: 'day',
+          gradient: 'radial-gradient(circle at 80% 15%, rgba(125, 211, 252, 0.40) 0%, transparent 55%), linear-gradient(175deg, #0284c7 0%, #0369a1 40%, #075985 75%, #0c4a6e 100%)',
+          celestial: 'sun'
+        };
+      case 'partly':
+        return {
+          name: 'day-partly',
+          phase: 'day',
+          gradient: 'radial-gradient(ellipse at 75% 20%, rgba(186, 230, 253, 0.35) 0%, transparent 60%), linear-gradient(175deg, #1d4ed8 0%, #2563eb 35%, #0284c7 70%, #0f172a 100%)',
+          celestial: 'sun-cloud'
+        };
+      case 'cloud':
+        return {
+          name: 'day-cloud',
+          phase: 'day',
+          gradient: 'linear-gradient(175deg, #334155 0%, #475569 38%, #64748b 72%, #1e293b 100%)',
+          celestial: 'cloud'
+        };
+      case 'fog':
+        return {
+          name: 'day-fog',
+          phase: 'day',
+          gradient: 'linear-gradient(175deg, #475569 0%, #64748b 45%, #94a3b8 75%, #334155 100%)',
+          celestial: 'fog'
+        };
+      case 'drizzle':
+      case 'rain':
+      case 'heavy':
+        return {
+          name: 'day-rain',
+          phase: 'day',
+          gradient: 'linear-gradient(175deg, #0f172a 0%, #1e293b 40%, #1e354d 75%, #0b131d 100%)',
+          celestial: 'rain'
+        };
+      case 'thunder':
+        return {
+          name: 'day-thunder',
+          phase: 'day',
+          gradient: 'linear-gradient(175deg, #090d16 0%, #1a1e36 40%, #29244a 72%, #070913 100%)',
+          celestial: 'thunder'
+        };
+      default:
+        return {
+          name: 'day-default',
+          phase: 'day',
+          gradient: 'linear-gradient(175deg, #0369a1 0%, #0284c7 45%, #0f172a 100%)',
+          celestial: 'sun'
+        };
+    }
+  }
+
+  // กลางคืน (Nighttime)
+  switch (kind) {
+    case 'clear':
+      return {
+        name: 'night-clear',
+        phase: 'night',
+        gradient: 'radial-gradient(circle at 82% 16%, rgba(186, 230, 253, 0.22) 0%, transparent 55%), linear-gradient(175deg, #020612 0%, #091329 42%, #101e3d 75%, #050814 100%)',
+        celestial: 'moon-stars'
+      };
+    case 'partly':
+      return {
+        name: 'night-partly',
+        phase: 'night',
+        gradient: 'radial-gradient(circle at 75% 20%, rgba(147, 197, 253, 0.16) 0%, transparent 60%), linear-gradient(175deg, #030712 0%, #0c152c 40%, #141f3a 72%, #070a14 100%)',
+        celestial: 'moon-stars'
+      };
+    case 'cloud':
+      return {
+        name: 'night-cloud',
+        phase: 'night',
+        gradient: 'linear-gradient(175deg, #070b14 0%, #111a28 42%, #192536 75%, #0a0f18 100%)',
+        celestial: 'cloud'
+      };
+    case 'fog':
+      return {
+        name: 'night-fog',
+        phase: 'night',
+        gradient: 'linear-gradient(175deg, #0a0f18 0%, #161f2c 45%, #243042 75%, #0d121c 100%)',
+        celestial: 'fog'
+      };
+    case 'drizzle':
+    case 'rain':
+    case 'heavy':
+      return {
+        name: 'night-rain',
+        phase: 'night',
+        gradient: 'linear-gradient(175deg, #02050c 0%, #0b1524 40%, #122135 75%, #060a12 100%)',
+        celestial: 'rain'
+      };
+    case 'thunder':
+      return {
+        name: 'night-thunder',
+        phase: 'night',
+        gradient: 'linear-gradient(175deg, #03040a 0%, #111126 40%, #1e1836 72%, #04060d 100%)',
+        celestial: 'thunder'
+      };
+    default:
+      return {
+        name: 'night-default',
+        phase: 'night',
+        gradient: 'linear-gradient(175deg, #030712 0%, #0a1128 45%, #060913 100%)',
+        celestial: 'moon-stars'
+      };
+  }
+}
+
 function applyTheme(){
   const w=state.w; if(!w) return;
   const c=w.current, D=w.daily;
   const kind=wmoKind(c.weather_code), isDay=c.is_day===1;
-  const nowL=Date.now()+w.utc_offset_seconds*1000;
-  const sr=Date.parse(D.sunrise[0]+':00Z'), ss=Date.parse(D.sunset[0]+':00Z');
-  const golden=(kind==='clear'||kind==='partly')&&(Math.abs(nowL-sr)<90*60000||Math.abs(ss-nowL)<90*60000);
-  const pal=(THEMES[golden?'golden':kind]||THEMES.cloud)[isDay?'day':'night'];
-  const g=`linear-gradient(168deg, ${pal[0]} 0%, ${pal[1]} 52%, ${pal[2]} 100%)`;
-  const front=els.bgA.dataset.front==='1'?els.bgA:els.bgB, back=front===els.bgA?els.bgB:els.bgA;
-  back.style.background=g; back.style.opacity='1'; front.style.opacity='0';
-  front.dataset.front='0'; back.dataset.front='1';
-  buildSky(kind, isDay);
+  const nowL=Date.now()+(w.utc_offset_seconds||25200)*1000;
+  const sr=D && D.sunrise && D.sunrise[0] ? Date.parse(D.sunrise[0]+':00Z') : null;
+  const ss=D && D.sunset && D.sunset[0] ? Date.parse(D.sunset[0]+':00Z') : null;
+  
+  const sky = getAtmosphericSky(kind, isDay, nowL, sr, ss);
+  const front = els.bgA.dataset.front==='1' ? els.bgA : els.bgB;
+  const back = front===els.bgA ? els.bgB : els.bgA;
+  
+  back.style.background = sky.gradient;
+  back.style.opacity = '1';
+  front.style.opacity = '0';
+  front.dataset.front = '0';
+  back.dataset.front = '1';
+  
+  buildSky(kind, isDay, sky);
 }
-function buildSky(kind,isDay){
+
+function buildSky(kind, isDay, sky){
   const L=els.skyLayer; let s='';
   const mob = isMobile();
-  if(!isDay){
-    const starCount = mob ? 22 : 70;
+  const phase = sky ? sky.phase : (isDay ? 'day' : 'night');
+  const celestial = sky ? sky.celestial : (isDay ? 'sun' : 'moon-stars');
+
+  // ดวงอาทิตย์ / ดวงจันทร์ แขวนลอยเรืองแสงหลังแผ่น Liquid Glass
+  if (celestial === 'moon-stars' || (!isDay && phase !== 'dawn' && phase !== 'golden')) {
+    s += `<div style="position:absolute; right:12%; top:8%; width:70px; height:70px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.92) 0%, rgba(224,242,254,0.65) 45%, rgba(186,230,253,0.18) 75%, transparent 100%); box-shadow:0 0 35px rgba(224,242,254,0.45); pointer-events:none;"></div>`;
+  } else if (celestial === 'sunrise' || phase === 'dawn') {
+    s += `<div style="position:absolute; left:50%; bottom:15%; transform:translateX(-50%); width:240px; height:140px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.85) 0%, rgba(245,158,11,0.5) 40%, rgba(217,119,6,0.2) 70%, transparent 100%); filter:blur(12px); pointer-events:none;"></div>`;
+  } else if (celestial === 'sunset' || phase === 'golden') {
+    s += `<div style="position:absolute; right:20%; bottom:20%; width:200px; height:120px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.85) 0%, rgba(234,88,12,0.55) 45%, rgba(159,18,57,0.25) 75%, transparent 100%); filter:blur(14px); pointer-events:none;"></div>`;
+  } else if (isDay && (kind === 'clear' || kind === 'partly')) {
+    s += `<div style="position:absolute; right:10%; top:6%; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(254,240,138,0.45) 40%, rgba(56,189,248,0.15) 75%, transparent 100%); filter:blur(10px); pointer-events:none;"></div>`;
+  }
+
+  // ดวงดาวระยิบระยับในยามค่ำคืนหรือทไวไลท์
+  if (!isDay || phase === 'twilight') {
+    const starCount = mob ? 28 : 80;
     for(let i=0;i<starCount;i++){
-      const sz=(Math.random()*1.6+.7).toFixed(1);
-      const anim = (!mob || i < 6) ? ` star-anim` : '';
-      s+=`<i class="star${anim}" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*58).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2.5+Math.random()*3.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s"></i>`;
+      const sz=(Math.random()*1.8+.6).toFixed(1);
+      const anim = (!mob || i < 8) ? ` star-anim` : '';
+      s+=`<i class="star${anim}" style="left:${(Math.random()*100).toFixed(1)}%;top:${(Math.random()*62).toFixed(1)}%;width:${sz}px;height:${sz}px;--d:${(2.5+Math.random()*3.5).toFixed(1)}s;animation-delay:${(Math.random()*3).toFixed(1)}s"></i>`;
     }
   }
+
+  // เม็ดฝนตกลงมากระทบกระจกอย่างนุ่มนวล
   const rain=(n,op)=>{
-    const cnt = mob ? Math.round(n*0.3) : n;
+    const cnt = mob ? Math.round(n*0.35) : n;
     for(let i=0;i<cnt;i++)
-      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*16).toFixed(0)}px;opacity:${(op*(.4+Math.random()*.45)).toFixed(2)};animation-duration:${(.85+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
+      s+=`<i class="raindrop" style="left:${(Math.random()*100).toFixed(1)}%;height:${(20+Math.random()*18).toFixed(0)}px;opacity:${(op*(.45+Math.random()*.45)).toFixed(2)};animation-duration:${(.80+Math.random()*.45).toFixed(2)}s;animation-delay:${(Math.random()*1.4).toFixed(2)}s"></i>`;
   };
-  if(kind==='rain') rain(36,.85); else if(kind==='thunder') rain(42,.9); else if(kind==='drizzle') rain(20,.5);
+  if(kind==='rain'||kind==='heavy') rain(40,.88); 
+  else if(kind==='thunder') rain(48,.92); 
+  else if(kind==='drizzle') rain(22,.55);
+
   if(kind==='snow'){
     const cnt = mob ? 14 : 40;
     for(let i=0;i<cnt;i++)
