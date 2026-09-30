@@ -2165,9 +2165,12 @@ function renderDetails(){
     extra:arcGauge(pop, '#60a5fa', `${pop}%`)
   });
 
-  // 3. ความชื้นสัมพัทธ์และจุดน้ำค้าง
-  const hum=Math.round(c.relative_humidity_2m);
-  const dew = c.dew_point_2m != null ? Math.round(c.dew_point_2m) : Math.round(calcDewPoint(c.temperature_2m, hum) ?? 0);
+  // 3. ความชื้นสัมพัทธ์และจุดน้ำค้าง (ดึงค่าจาก Canonical Model)
+  const curTemp = c.temperature ?? c.temperature_2m ?? 28;
+  const curHum = c.humidity ?? c.relative_humidity_2m ?? 70;
+  const curDew = c.dewPoint ?? c.dew_point_2m ?? calcDewPoint(curTemp, curHum) ?? 22;
+  const hum = Math.round(curHum);
+  const dew = Math.round(curDew);
   let humBadge='สบายตัว', humDesc=`จุดน้ำค้าง ${dew}°C · ความชื้นกำลังดี หายใจสะดวกและไม่เหนียวตัว`;
   if(hum>=85){ humBadge='ชื้นจัด'; humDesc=`จุดน้ำค้าง ${dew}°C · อากาศอิ่มตัวด้วยไอน้ำสูงมาก มีโอกาสเกิดฝนหรือหมอกน้ำค้าง`; }
   else if(hum>=70){ humBadge='ค่อนข้างชื้น'; humDesc=`จุดน้ำค้าง ${dew}°C · ความชื้นสูงตามธรรมชาติของเขตร้อน อาจรู้สึกเหนียวตัวง่าย`; }
@@ -2180,8 +2183,9 @@ function renderDetails(){
     extra:arcGauge(hum, '#38bdf8', `${dew}°`)
   });
 
-  // 4. อุณหภูมิความรู้สึกจริง
-  const diff=Math.round(c.apparent_temperature - c.temperature_2m);
+  // 4. อุณหภูมิความรู้สึกจริง (Feels-like Temperature)
+  const curFeel = c.feelsLike ?? c.apparent_temperature ?? curTemp;
+  const diff = Math.round(curFeel - curTemp);
   let feelBadge='ใกล้เคียงจริง', feelDesc='ร่างกายรับรู้ความร้อนใกล้เคียงกับอุณหภูมิที่วัดได้จริง';
   if(diff>=3){
     feelBadge=`ร้อนกว่าจริง +${diff}°C`;
@@ -2193,17 +2197,17 @@ function renderDetails(){
     feelBadge=`เย็นกว่าจริง ${diff}°C`;
     feelDesc='กระแสลมช่วยพัดระบายความร้อนออกจากผิวหนัง ทำให้รู้สึกเย็นสบายขึ้น';
   }
-  const feelPct = clamp(((c.apparent_temperature - 15) / 30) * 100, 10, 100);
+  const feelPct = clamp(((curFeel - 15) / 30) * 100, 10, 100);
   rows.push({
     metric:'feelslike', ic:'thermo', label:'อุณหภูมิความรู้สึกจริง',
-    value:Math.round(c.apparent_temperature)+'°C',
+    value:Math.round(curFeel)+'°C',
     badge:feelBadge,
     desc:feelDesc,
-    extra:arcGauge(feelPct, c.apparent_temperature>=35?'#f97316':'#fbbf24', `${Math.round(c.temperature_2m)}°`)
+    extra:arcGauge(feelPct, curFeel>=35?'#f97316':'#fbbf24', `${Math.round(curTemp)}°`)
   });
 
   // 5. ดัชนีรังสียูวี
-  const uv=air?.uv_index, uvMax=D.uv_index_max?.[0];
+  const uv=air?.uv_index ?? c.uvIndex, uvMax=D.uv_index_max?.[0];
   const uvVal = uv!=null ? uv : (uvMax??0);
   const lv=uvLevel(uvVal);
   rows.push({
@@ -2215,15 +2219,16 @@ function renderDetails(){
     extra: arcGauge((uvVal/11)*100, lv[1], `UV`)
   });
 
-  // 6. ความกดอากาศระดับน้ำทะเล
-  const pres=Math.round(c.pressure_msl);
+  // 6. ความกดอากาศระดับน้ำทะเล (Barometric Pressure)
+  const curPres = c.pressure ?? c.pressure_msl ?? 1010;
+  const pres = Math.round(curPres);
   let presBadge='เกณฑ์ปกติ', presDesc='ความกดอากาศอยู่ในระดับสมดุลของเขตร้อน สภาพอากาศโดยรวมทรงตัว';
   if(pres<1008){ presBadge='ความกดอากาศต่ำ'; presDesc='มวลอากาศยกตัวขึ้นได้ดี เอื้อต่อการก่อตัวของเมฆฝนและฝนฟ้าคะนอง'; }
   else if(pres>1015){ presBadge='ความกดอากาศสูง'; presDesc='มวลอากาศจมตัวและเสถียร ท้องฟ้ามักโปร่งหรือมีมวลอากาศเย็นแผ่ลงมา'; }
   const presPct = clamp(((pres - 995) / 35) * 100, 10, 95);
   rows.push({
     metric:'pressure', ic:'gauge', label:'ความกดอากาศ & ทัศนวิสัย',
-    value:`${nv(pres)} hPa`,
+    value:`${pres} hPa`,
     badge:presBadge,
     desc:presDesc,
     extra:arcGauge(presPct, '#a78bfa', 'hPa')
@@ -3088,8 +3093,8 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'humidity'){
     title = '💧 ความชื้นสัมพัทธ์ & จุดน้ำค้าง (Dew Point)';
-    const hum = Math.round(c.relative_humidity_2m ?? 0);
-    const dew = Math.round(c.dew_point_2m ?? calcDewPoint(c.temperature_2m, hum) ?? 0);
+    const hum = Math.round(c.humidity ?? c.relative_humidity_2m ?? 70);
+    const dew = Math.round(c.dewPoint ?? c.dew_point_2m ?? calcDewPoint(c.temperature ?? c.temperature_2m ?? 28, hum) ?? 22);
     body = `
       <div class="grid grid-cols-2 gap-2.5">
         <div class="glass-in rounded-2xl p-3.5 flex items-center justify-between">
@@ -3115,14 +3120,14 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'feelslike'){
     title = '🌡️ อุณหภูมิจริง vs ความรู้สึกจริง (Feels Like)';
-    const tNow = Math.round(c.temperature_2m ?? 0);
-    const fNow = Math.round(c.apparent_temperature ?? tNow);
+    const tNow = Math.round(c.temperature ?? c.temperature_2m ?? 28);
+    const fNow = Math.round(c.feelsLike ?? c.apparent_temperature ?? tNow);
     body = `
       <div class="grid grid-cols-2 gap-2.5">
         <div class="glass-in rounded-2xl p-3.5">
           <p class="text-xs text-white/60">อุณหภูมิที่วัดได้จริง</p>
           <p class="text-2xl font-semibold text-white mt-0.5">${tNow}°C</p>
-          <p class="text-[11px] text-white/60 mt-0.5">สูงสุด ${Math.round(D.temperature_2m_max?.[0]??tNow)}° · ต่ำสุด ${Math.round(D.temperature_2m_min?.[0]??tNow)}°</p>
+          <p class="text-[11px] text-white/60 mt-0.5">สูงสุด ${Math.round(D.temperatureMax ?? D.temperature_2m_max?.[0] ?? tNow)}° · ต่ำสุด ${Math.round(D.temperatureMin ?? D.temperature_2m_min?.[0] ?? tNow)}°</p>
         </div>
         <div class="glass-in rounded-2xl p-3.5">
           <p class="text-xs text-white/60">อุณหภูมิความรู้สึกจริง</p>
@@ -3140,8 +3145,8 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'pressure' || type === 'visibility'){
     title = '🧭 ความกดอากาศ & ทัศนวิสัยการมองเห็น';
-    const pres = Math.round(c.pressure_msl ?? 1010);
-    const visKm = c.vis_km ?? H[0]?.vis ?? 10;
+    const pres = Math.round(c.pressure ?? c.pressure_msl ?? 1010);
+    const visKm = c.visibilityKm ?? c.vis_km ?? H[0]?.vis ?? 10;
     body = `
       <div class="grid grid-cols-2 gap-2.5">
         <div class="glass-in rounded-2xl p-3.5">
