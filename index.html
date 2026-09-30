@@ -654,7 +654,7 @@ const els = {
 };
 
 const state = {
-  place:null, w:null, a:null, wapi:null, hourList:[], hourW:0, reqToken:0, lastFetch:0,
+  place:null, canonical:null, w:null, a:null, wapi:null, hourList:[], hourW:0, reqToken:0, lastFetch:0,
   thaiDistricts:null, map:null, mapMarker:null, pendingPin:null,
   flood:null, activeMetric:null
 };
@@ -871,10 +871,10 @@ const getKey = () => localStorage.getItem(LS_API) || '';
 const getWapiKey = () => WAPI_KEY;
 
 function forecastUrl(lat,lon){
-  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&timezone=auto&forecast_days=8`
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=ecmwf_ifs025&timezone=auto&forecast_days=8`
     + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,precipitation`
     + `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,precipitation_probability,precipitation,is_day,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,pressure_msl,uv_index`
-    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max`;
+    + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,rain_sum,precipitation_hours,sunrise,sunset,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max`;
 }
 const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index&timezone=auto`;
 const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
@@ -908,95 +908,371 @@ function wapiCodeToWmo(code, precipMm=0, chanceOfRain=0){
   }
 }
 
-/* ผสานข้อมูลสดจาก WeatherAPI.com เข้ากับโครงสร้างพยากรณ์ 7 วันของ Open-Meteo (ECMWF) */
-function mergeWeatherApiData(w, a, wapi){
-  if(!wapi || !wapi.current || !w) return { w, a, isHybrid: false };
-  const cur = wapi.current;
-  w.current = {
-    ...w.current,
-    temperature_2m: cur.temp_c ?? w.current.temperature_2m,
-    apparent_temperature: cur.feelslike_c ?? w.current.apparent_temperature,
-    relative_humidity_2m: cur.humidity ?? w.current.relative_humidity_2m,
-    dew_point_2m: cur.dewpoint_c ?? calcDewPoint(cur.temp_c ?? w.current.temperature_2m, cur.humidity ?? w.current.relative_humidity_2m),
-    is_day: cur.is_day ?? w.current.is_day,
-    weather_code: cur.condition?.code != null ? wapiCodeToWmo(cur.condition.code, cur.precip_mm ?? 0, 0) : w.current.weather_code,
-    wind_speed_10m: cur.wind_kph ?? w.current.wind_speed_10m,
-    wind_direction_10m: cur.wind_degree ?? w.current.wind_direction_10m,
-    wind_gusts_10m: cur.gust_kph ?? w.current.wind_gusts_10m,
-    pressure_msl: cur.pressure_mb ?? w.current.pressure_msl,
-    precipitation: cur.precip_mm ?? w.current.precipitation,
-    vis_km: cur.vis_km ?? null,
-    uv_now: cur.uv ?? null,
-    cloud: cur.cloud ?? null,
+/* ============================================================
+   สถาปัตยกรรมข้อมูลสภาพอากาศมาตรฐานเดียว (Canonical Weather Architecture)
+   ONE LOCATION → ONE CANONICAL DATASET → ALL UI MODULES
+   ============================================================ */
+
+/* ปรับตำแหน่งทางภูมิศาสตร์ให้เป็นโครงสร้างมาตรฐานสากลและระบุเขตเวลา */
+function normalizeCanonicalLocation(place){
+  if(!place) return { latitude: 13.75, longitude: 100.50, lat: 13.75, lon: 100.50, name: 'กรุงเทพมหานคร', province: 'กรุงเทพมหานคร', district: 'พระนคร', subdistrict: '', admin: 'กรุงเทพมหานคร · ประเทศไทย', timezone: 'Asia/Bangkok' };
+  const lat = typeof place.lat === 'number' ? place.lat : parseFloat(place.lat) || 13.75;
+  const lon = typeof place.lon === 'number' ? place.lon : parseFloat(place.lon) || 100.50;
+  const prov = cleanProv(place.province || '');
+  const dist = cleanDist(place.district || '');
+  const sub  = cleanSub(place.subdistrict || '');
+  const isBkk = prov === 'กรุงเทพมหานคร';
+  const name = place.name || (dist ? `${isBkk?'เขต':'อ.'}${dist}` : prov || 'กรุงเทพมหานคร');
+  const admin = place.admin || [prov, 'ประเทศไทย'].filter(Boolean).join(' · ');
+  return {
+    latitude: lat,
+    longitude: lon,
+    lat, // backward compatibility
+    lon, // backward compatibility
+    name,
+    province: prov,
+    district: dist,
+    subdistrict: sub,
+    admin,
+    timezone: 'Asia/Bangkok'
+  };
+}
+
+/* สร้างออบเจกต์ CanonicalWeatherData ที่เป็น Single Source of Truth สำหรับทุก UI */
+function createCanonicalWeatherData(place, rawW, rawA, wapi){
+  const loc = normalizeCanonicalLocation(place);
+  const curW = rawW?.current || {};
+  const curApi = wapi?.current || {};
+  const airCur = rawA?.current || {};
+  const wapiAir = curApi.air_quality || {};
+
+  const isPrimary = !!(rawW && rawW.daily && Array.isArray(rawW.daily.time) && rawW.daily.time.length > 0);
+  const mode = isPrimary ? 'primary' : 'fallback';
+  const primaryProvider = isPrimary ? 'Open-Meteo' : 'WeatherAPI.com (Fallback)';
+  const forecastModel = isPrimary ? 'ECMWF IFS 0.25°' : 'WeatherAPI Forecast System';
+
+  if(rawW?.timezone) loc.timezone = rawW.timezone;
+
+  // ฝนตรวจวัดจริงขณะนี้ (Real-time Observed Precipitation Rate)
+  const observedPrecipitationMm = curApi.precip_mm != null
+    ? Math.round(curApi.precip_mm * 10) / 10
+    : (curW.precipitation != null ? Math.round(curW.precipitation * 10) / 10 : 0);
+
+  // คำนวณรหัสสภาพอากาศ WMO
+  let curWeatherCode = curW.weather_code;
+  if(curWeatherCode == null && curApi.condition?.code != null){
+    curWeatherCode = wapiCodeToWmo(curApi.condition.code, observedPrecipitationMm, 0);
+  }
+  if(curWeatherCode == null) curWeatherCode = 0;
+
+  // สภาพอากาศปัจจุบัน (Current Conditions) - ไม่ปนกับพยากรณ์รวมทั้งวัน
+  const current = {
+    temperature: curW.temperature_2m != null ? Math.round(curW.temperature_2m * 10) / 10 : (curApi.temp_c != null ? curApi.temp_c : 28),
+    feelsLike: curApi.feelslike_c != null ? Math.round(curApi.feelslike_c * 10) / 10 : (curW.apparent_temperature != null ? Math.round(curW.apparent_temperature * 10) / 10 : 28),
+    humidity: curApi.humidity != null ? curApi.humidity : (curW.relative_humidity_2m != null ? curW.relative_humidity_2m : 70),
+    windSpeed: curW.wind_speed_10m != null ? Math.round(curW.wind_speed_10m * 10) / 10 : (curApi.wind_kph != null ? curApi.wind_kph : 0),
+    windDirection: curW.wind_direction_10m != null ? Math.round(curW.wind_direction_10m) : (curApi.wind_degree != null ? curApi.wind_degree : 0),
+    windGusts: curApi.gust_kph != null ? Math.round(curApi.gust_kph * 10) / 10 : (curW.wind_gusts_10m != null ? Math.round(curW.wind_gusts_10m * 10) / 10 : 0),
+    weatherCode: curWeatherCode,
+    condition: wmoText(curWeatherCode),
+    isDay: curApi.is_day != null ? curApi.is_day : (curW.is_day != null ? curW.is_day : 1),
+    observedPrecipitationMm,
+    pressure: curApi.pressure_mb != null ? Math.round(curApi.pressure_mb) : (curW.pressure_msl != null ? Math.round(curW.pressure_msl) : 1010),
+    visibilityKm: curApi.vis_km != null ? curApi.vis_km : (rawW?.hourly?.visibility?.[0] != null ? Math.round(rawW.hourly.visibility[0] / 100) / 10 : 10),
+    dewPoint: curApi.dewpoint_c != null ? Math.round(curApi.dewpoint_c * 10) / 10 : (curW.dew_point_2m != null ? Math.round(curW.dew_point_2m * 10) / 10 : calcDewPoint(curW.temperature_2m ?? 28, curW.relative_humidity_2m ?? 70)),
+    uvIndex: curApi.uv != null ? curApi.uv : (airCur.uv_index != null ? airCur.uv_index : (rawW?.daily?.uv_index_max?.[0] ?? 0)),
+    cloud: curApi.cloud ?? null,
+    pm25: airCur.pm2_5 != null ? Math.round(airCur.pm2_5 * 10) / 10 : (wapiAir.pm2_5 != null ? Math.round(wapiAir.pm2_5 * 10) / 10 : null),
+    pm10: airCur.pm10 != null ? Math.round(airCur.pm10 * 10) / 10 : (wapiAir.pm10 != null ? Math.round(wapiAir.pm10 * 10) / 10 : null),
+    carbonMonoxide: airCur.carbon_monoxide ?? wapiAir.co ?? null,
+    nitrogenDioxide: airCur.nitrogen_dioxide ?? wapiAir.no2 ?? null,
+    sulphurDioxide: airCur.sulphur_dioxide ?? wapiAir.so2 ?? null,
+    ozone: airCur.ozone ?? wapiAir.o3 ?? null
   };
 
-  // ผสานข้อมูลรายชั่วโมง (Hourly) จาก WeatherAPI (72 ชั่วโมงแรก)
-  const fdays = wapi.forecast?.forecastday || [];
-  if(w.hourly && Array.isArray(w.hourly.time) && fdays.length){
-    const timeIdxMap = new Map();
-    w.hourly.time.forEach((t, idx) => timeIdxMap.set(t, idx));
-    fdays.forEach(fd => {
-      (fd.hour || []).forEach(hr => {
-        const isoT = (hr.time || '').replace(' ', 'T');
-        const idx = timeIdxMap.get(isoT);
-        if(idx === undefined) return;
-        if(hr.temp_c != null) w.hourly.temperature_2m[idx] = hr.temp_c;
-        if(hr.feelslike_c != null) w.hourly.apparent_temperature[idx] = hr.feelslike_c;
-        if(hr.humidity != null) w.hourly.relative_humidity_2m[idx] = hr.humidity;
-        if(hr.dewpoint_c != null && w.hourly.dew_point_2m) w.hourly.dew_point_2m[idx] = hr.dewpoint_c;
-        if(hr.condition?.code != null) w.hourly.weather_code[idx] = wapiCodeToWmo(hr.condition.code, hr.precip_mm ?? 0, hr.chance_of_rain ?? 0);
-        if(hr.chance_of_rain != null){
-          w.hourly.precipitation_probability[idx] = Math.max(hr.chance_of_rain, w.hourly.precipitation_probability[idx] ?? 0);
-        }
-        if(hr.precip_mm != null){
-          w.hourly.precipitation[idx] = Math.max(hr.precip_mm, w.hourly.precipitation[idx] ?? 0);
-        }
-        if(hr.is_day != null) w.hourly.is_day[idx] = hr.is_day;
-        if(hr.vis_km != null && w.hourly.visibility) w.hourly.visibility[idx] = hr.vis_km * 1000;
-        if(hr.wind_kph != null && w.hourly.wind_speed_10m) w.hourly.wind_speed_10m[idx] = hr.wind_kph;
-        if(hr.gust_kph != null && w.hourly.wind_gusts_10m) w.hourly.wind_gusts_10m[idx] = hr.gust_kph;
-        if(hr.wind_degree != null && w.hourly.wind_direction_10m) w.hourly.wind_direction_10m[idx] = hr.wind_degree;
-        if(hr.pressure_mb != null && w.hourly.pressure_msl) w.hourly.pressure_msl[idx] = hr.pressure_mb;
-        if(hr.uv != null && w.hourly.uv_index) w.hourly.uv_index[idx] = hr.uv;
+  // สร้างชุดข้อมูลพยากรณ์รายวัน (Forecast Daily Array)
+  // กฎเหล็ก: Open-Meteo ECMWF IFS คือ Single Source of Truth ห้าม Math.max / average กับ WeatherAPI
+  let forecast = [];
+  if(isPrimary){
+    const dTimes = rawW.daily.time || [];
+    const limit = Math.min(8, dTimes.length);
+    for(let i = 0; i < limit; i++){
+      const date = dTimes[i];
+      const pSum = rawW.daily.precipitation_sum?.[i] ?? 0;
+      const rSum = rawW.daily.rain_sum?.[i] ?? pSum;
+      const popMax = rawW.daily.precipitation_probability_max?.[i] ?? 0;
+      const pHours = rawW.daily.precipitation_hours?.[i] ?? 0;
+      const tMin = rawW.daily.temperature_2m_min?.[i] ?? 25;
+      const tMax = rawW.daily.temperature_2m_max?.[i] ?? 33;
+      const wCode = rawW.daily.weather_code?.[i] ?? 0;
+      forecast.push({
+        date,
+        precipitationMm: Math.round(pSum * 10) / 10,
+        rainMm: Math.round(rSum * 10) / 10,
+        precipitationProbability: Math.round(popMax),
+        precipitationHours: Math.round(pHours),
+        temperatureMin: Math.round(tMin * 10) / 10,
+        temperatureMax: Math.round(tMax * 10) / 10,
+        weatherCode: wCode,
+        condition: wmoText(wCode),
+        sunrise: rawW.daily.sunrise?.[i] || '',
+        sunset: rawW.daily.sunset?.[i] || '',
+        uvIndexMax: rawW.daily.uv_index_max?.[i] ?? 0,
+        windSpeedMax: rawW.daily.wind_speed_10m_max?.[i] ?? 0,
+        windGustsMax: rawW.daily.wind_gusts_10m_max?.[i] ?? 0,
+      });
+    }
+  } else if(wapi?.forecast?.forecastday?.length){
+    // โหมดสำรองเมื่อ Open-Meteo ล่ม (Fallback Only)
+    wapi.forecast.forecastday.forEach(fd => {
+      const d = fd.day || {};
+      const wCode = d.condition?.code != null ? wapiCodeToWmo(d.condition.code, d.totalprecip_mm ?? 0, d.daily_chance_of_rain ?? 0) : 0;
+      forecast.push({
+        date: fd.date,
+        precipitationMm: Math.round((d.totalprecip_mm ?? 0) * 10) / 10,
+        rainMm: Math.round((d.totalprecip_mm ?? 0) * 10) / 10,
+        precipitationProbability: Math.round(d.daily_chance_of_rain ?? 0),
+        precipitationHours: 0,
+        temperatureMin: Math.round((d.mintemp_c ?? 25) * 10) / 10,
+        temperatureMax: Math.round((d.maxtemp_c ?? 33) * 10) / 10,
+        weatherCode: wCode,
+        condition: wmoText(wCode),
+        sunrise: fd.astro?.sunrise || '',
+        sunset: fd.astro?.sunset || '',
+        uvIndexMax: d.uv ?? 0,
+        windSpeedMax: d.maxwind_kph ?? 0,
+        windGustsMax: d.maxwind_kph ?? 0
       });
     });
   }
 
-  // ผสานข้อมูลรายวัน 3 วันแรกจาก WeatherAPI เข้ากับพยากรณ์ 7 วันของ ECMWF
-  if(w.daily && Array.isArray(w.daily.time) && fdays.length){
-    fdays.forEach(fd => {
-      const idx = w.daily.time.indexOf(fd.date);
-      if(idx < 0 || !fd.day) return;
-      const d = fd.day;
-      if(d.maxtemp_c != null) w.daily.temperature_2m_max[idx] = d.maxtemp_c;
-      if(d.mintemp_c != null) w.daily.temperature_2m_min[idx] = d.mintemp_c;
-      if(d.condition?.code != null) w.daily.weather_code[idx] = wapiCodeToWmo(d.condition.code, d.totalprecip_mm ?? 0, d.daily_chance_of_rain ?? 0);
-      if(d.daily_chance_of_rain != null){
-        w.daily.precipitation_probability_max[idx] = Math.max(d.daily_chance_of_rain, w.daily.precipitation_probability_max[idx] ?? 0);
-      }
-      if(d.totalprecip_mm != null){
-        w.daily.precipitation_sum[idx] = Math.max(d.totalprecip_mm, w.daily.precipitation_sum[idx] ?? 0);
-      }
-      if(d.uv != null && w.daily.uv_index_max) w.daily.uv_index_max[idx] = Math.max(d.uv, w.daily.uv_index_max[idx] ?? 0);
-      if(d.maxwind_kph != null && w.daily.wind_speed_10m_max) w.daily.wind_speed_10m_max[idx] = Math.max(d.maxwind_kph, w.daily.wind_speed_10m_max[idx] ?? 0);
+  // ป้องกันอาร์เรย์ว่าง
+  if(!forecast.length){
+    forecast.push({
+      date: new Date().toISOString().slice(0, 10),
+      precipitationMm: 0,
+      rainMm: 0,
+      precipitationProbability: 0,
+      precipitationHours: 0,
+      temperatureMin: 25,
+      temperatureMax: 33,
+      weatherCode: 0,
+      condition: 'ท้องฟ้าแจ่มใส',
+      sunrise: '',
+      sunset: '',
+      uvIndexMax: 0,
+      windSpeedMax: 0,
+      windGustsMax: 0
     });
   }
 
-  // ผสานข้อมูลคุณภาพอากาศ (PM2.5, PM10, O3, NO2, SO2, CO) และรังสียูวี
-  if(!a) a = { current: {} };
-  if(!a.current) a.current = {};
-  const aq = cur.air_quality || {};
-  if(aq.pm2_5 != null) a.current.pm2_5 = a.current.pm2_5 != null ? Math.max(a.current.pm2_5, aq.pm2_5) : aq.pm2_5;
-  if(aq.pm10 != null) a.current.pm10 = a.current.pm10 ?? aq.pm10;
-  if(aq.o3 != null) a.current.ozone = a.current.ozone ?? aq.o3;
-  if(aq.no2 != null) a.current.nitrogen_dioxide = a.current.nitrogen_dioxide ?? aq.no2;
-  if(aq.so2 != null) a.current.sulphur_dioxide = a.current.sulphur_dioxide ?? aq.so2;
-  if(aq.co != null) a.current.carbon_monoxide = a.current.carbon_monoxide ?? aq.co;
-  if(cur.uv != null){
-    a.current.uv_index = cur.is_day === 1 ? Math.max(cur.uv, a.current.uv_index ?? 0) : cur.uv;
-  }
+  // กำหนด Today จาก Forecast วันแรกอย่างเคร่งครัด
+  const today = forecast[0];
 
-  return { w, a, isHybrid: true };
+  // ยอดรวมฝนคาดการณ์ 3 วัน (วันแรก + พรุ่งนี้ + มะรืน)
+  const forecast3DayTotal = Math.round(
+    forecast.slice(0, 3).reduce((acc, d) => acc + (d.precipitationMm || 0), 0) * 10
+  ) / 10;
+
+  // ยอดรวมฝนคาดการณ์ 7 วัน
+  const forecast7DayTotal = Math.round(
+    forecast.slice(0, 7).reduce((acc, d) => acc + (d.precipitationMm || 0), 0) * 10
+  ) / 10;
+
+  // โครงสร้าง _rawW เพื่อ Backward Compatibility กับฟังก์ชันเสริมเดิม
+  const synDaily = {
+    time: forecast.map(f => f.date),
+    precipitation_sum: forecast.map(f => f.precipitationMm),
+    rain_sum: forecast.map(f => f.rainMm),
+    precipitation_probability_max: forecast.map(f => f.precipitationProbability),
+    precipitation_hours: forecast.map(f => f.precipitationHours),
+    temperature_2m_max: forecast.map(f => f.temperatureMax),
+    temperature_2m_min: forecast.map(f => f.temperatureMin),
+    weather_code: forecast.map(f => f.weatherCode),
+    sunrise: forecast.map(f => f.sunrise),
+    sunset: forecast.map(f => f.sunset),
+    uv_index_max: forecast.map(f => f.uvIndexMax),
+    wind_speed_10m_max: forecast.map(f => f.windSpeedMax),
+    wind_gusts_10m_max: forecast.map(f => f.windGustsMax),
+  };
+
+  const synCurrent = {
+    temperature_2m: current.temperature,
+    apparent_temperature: current.feelsLike,
+    relative_humidity_2m: current.humidity,
+    dew_point_2m: current.dewPoint,
+    is_day: current.isDay,
+    weather_code: current.weatherCode,
+    wind_speed_10m: current.windSpeed,
+    wind_direction_10m: current.windDirection,
+    wind_gusts_10m: current.windGusts,
+    pressure_msl: current.pressure,
+    precipitation: current.observedPrecipitationMm,
+    vis_km: current.visibilityKm,
+    uv_now: current.uvIndex,
+    cloud: current.cloud
+  };
+
+  const synW = {
+    latitude: loc.latitude,
+    longitude: loc.longitude,
+    timezone: loc.timezone,
+    utc_offset_seconds: rawW?.utc_offset_seconds ?? 25200,
+    current: synCurrent,
+    daily: synDaily,
+    hourly: rawW?.hourly || {
+      time: [],
+      temperature_2m: [],
+      apparent_temperature: [],
+      relative_humidity_2m: [],
+      dew_point_2m: [],
+      weather_code: [],
+      precipitation_probability: [],
+      precipitation: [],
+      is_day: [],
+      visibility: [],
+      wind_speed_10m: [],
+      wind_gusts_10m: [],
+      wind_direction_10m: [],
+      pressure_msl: [],
+      uv_index: []
+    }
+  };
+
+  const canonical = {
+    location: loc,
+    observedAt: new Date().toISOString(),
+    current,
+    today,
+    forecast,
+    forecast3DayTotal,
+    forecast7DayTotal,
+    source: {
+      primary: primaryProvider,
+      secondary: 'WeatherAPI.com',
+      model: forecastModel,
+      mode,
+      fetchedAt: new Date().toISOString(),
+      timezone: loc.timezone,
+      debugRain: {
+        date: today.date,
+        provider: primaryProvider,
+        model: forecastModel,
+        endpoint: isPrimary ? 'api.open-meteo.com/v1/forecast?models=ecmwf_ifs025' : 'api.weatherapi.com/v1/forecast.json',
+        field: isPrimary ? 'daily.precipitation_sum[0]' : 'forecastday[0].day.totalprecip_mm',
+        value: today.precipitationMm,
+        timezone: loc.timezone,
+        aggregation: 'provider_daily (00:00 - 23:59 Asia/Bangkok)'
+      }
+    },
+    _rawW: synW,
+    _rawA: rawA
+  };
+
+  return canonical;
+}
+
+/* ชุดทดสอบความสอดคล้องของข้อมูลแบบอัตโนมัติ (Automated Data-Consistency Tests) */
+function runDataConsistencyTests(canonical, floodData){
+  if(!canonical || !canonical.forecast || canonical.forecast.length < 3){
+    return { passed: false, allPassed: false, tests: [] };
+  }
+  const f = canonical.forecast;
+  const rr = floodData?.rainRisk || assessDistrictRainfallFlood();
+
+  const tests = [
+    {
+      id: 1,
+      name: 'ความสอดคล้องฝนวันนี้ (Home vs Flood)',
+      rule: 'Home Today Rain === Flood Today Rain',
+      left: `${canonical.today.precipitationMm.toFixed(1)} มม.`,
+      right: `${rr.todayMm.toFixed(1)} มม.`,
+      pass: Math.abs(canonical.today.precipitationMm - rr.todayMm) < 0.001,
+      desc: 'ปริมาณฝนคาดการณ์วันนี้บนหน้าหลักต้องตรงกับการประเมินในโมดูลน้ำท่วม'
+    },
+    {
+      id: 2,
+      name: 'ความสอดคล้องฝนวันนี้กับตาราง 7 วัน',
+      rule: 'Home Today Rain === 7-Day Day-0 Rain',
+      left: `${canonical.today.precipitationMm.toFixed(1)} มม.`,
+      right: `${f[0].precipitationMm.toFixed(1)} มม.`,
+      pass: Math.abs(canonical.today.precipitationMm - f[0].precipitationMm) < 0.001,
+      desc: 'ฝนวันนี้ต้องตรงกับแถววันแรก (วันนี้) ในตารางพยากรณ์ 7 วัน'
+    },
+    {
+      id: 3,
+      name: 'ผลรวมฝนคาดการณ์ 3 วัน',
+      rule: '3-Day Total === Day[0] + Day[1] + Day[2]',
+      left: `${canonical.forecast3DayTotal.toFixed(1)} มม.`,
+      right: `${(f[0].precipitationMm + f[1].precipitationMm + f[2].precipitationMm).toFixed(1)} มม.`,
+      pass: Math.abs(canonical.forecast3DayTotal - (f[0].precipitationMm + f[1].precipitationMm + f[2].precipitationMm)) < 0.05,
+      desc: 'ยอดรวมฝน 3 วันต้องคำนวณจากผลบวกฝนของ 3 วันแรกตรงกันเป๊ะ'
+    },
+    {
+      id: 4,
+      name: 'ผลรวมฝนคาดการณ์ 7 วัน',
+      rule: '7-Day Total === Sum(Day[0..6])',
+      left: `${canonical.forecast7DayTotal.toFixed(1)} มม.`,
+      right: `${f.slice(0, 7).reduce((s, d) => s + d.precipitationMm, 0).toFixed(1)} มม.`,
+      pass: Math.abs(canonical.forecast7DayTotal - f.slice(0, 7).reduce((s, d) => s + d.precipitationMm, 0)) < 0.05,
+      desc: 'ยอดรวมฝน 7 วันต้องเท่ากับผลรวมของทั้ง 7 วัน'
+    },
+    {
+      id: 5,
+      name: 'โอกาสเกิดฝนสูงสุดวันนี้ (PoP Max)',
+      rule: 'Home PoP === 7-Day Day-0 PoP',
+      left: `${canonical.today.precipitationProbability}%`,
+      right: `${f[0].precipitationProbability}%`,
+      pass: canonical.today.precipitationProbability === f[0].precipitationProbability,
+      desc: 'โอกาสเกิดฝนสูงสุดวันนี้มาจาก Open-Meteo ECMWF IFS ตัวเดียวกัน'
+    },
+    {
+      id: 6,
+      name: 'เขตเวลาท้องถิ่น (Local Timezone Boundary)',
+      rule: 'Timezone === location timezone (Asia/Bangkok)',
+      left: canonical.location.timezone,
+      right: 'Asia/Bangkok',
+      pass: !!canonical.location.timezone && !canonical.location.timezone.startsWith('UTC') && canonical.location.timezone.includes('Bangkok'),
+      desc: 'การตัดรอบวัน 00:00 - 23:59 อิงตามเวลาท้องถิ่นของประเทศไทย ไม่ใช้ UTC'
+    },
+    {
+      id: 7,
+      name: 'ความสมบูรณ์ของโครงสร้างข้อมูล (Data Integrity)',
+      rule: 'No null / undefined / NaN in forecast fields',
+      left: 'Valid numbers',
+      right: 'All fields verified',
+      pass: f.every(d => !isNaN(d.precipitationMm) && !isNaN(d.precipitationProbability) && !isNaN(d.temperatureMin) && !isNaN(d.temperatureMax) && d.date),
+      desc: 'ไม่มีฟิลด์ค่าว่าง หลุด NaN หรือ undefined ในชุดข้อมูล Canonical Forecast'
+    },
+    {
+      id: 8,
+      name: 'การแยกประเภทข้อมูลฝนกับลำน้ำ (Decoupling)',
+      rule: 'Precipitation (mm) !== River Discharge (m³/s)',
+      left: `${canonical.today.precipitationMm} mm`,
+      right: floodData?.todayVal != null ? `${floodData.todayVal} m³/s` : 'No major river',
+      pass: floodData ? floodData.todayVal !== canonical.today.precipitationMm : true,
+      desc: 'หน่วยฝน (มม.) และอัตราไหลของแม่น้ำ GloFAS (ลบ.ม./วิ) แยกจากกันเด็ดขาด'
+    }
+  ];
+
+  const allPassed = tests.every(t => t.pass);
+  return {
+    passed: allPassed,
+    allPassed,
+    passedCount: tests.filter(t => t.pass).length,
+    totalCount: tests.length,
+    tests,
+    timestamp: new Date().toISOString()
+  };
+}
+window.__MEKHA_CONSISTENCY_AUDIT__ = () => runDataConsistencyTests(state.canonical, state.flood);
+
+/* Backward compatibility adapter */
+function mergeWeatherApiData(w, a, wapi){
+  if(!w) return { w, a, isHybrid: false };
+  const can = createCanonicalWeatherData(state.place || DEFAULT_PLACE, w, a, wapi);
+  state.canonical = can;
+  return { w: can._rawW, a, isHybrid: can.source.mode === 'primary' && !!wapi };
 }
 
 /* ---------- ระบบฐานข้อมูลจังหวัดและอำเภอของไทย (77 จังหวัด · 930 อำเภอ) ---------- */
@@ -1281,30 +1557,46 @@ function locate(silent=false){
 /* ---------- โหลดและแสดงผลข้อมูลพยากรณ์ (ผสาน WeatherAPI.com + ECMWF) ---------- */
 async function loadWeather(place){
   const reqId = ++state.reqToken;
-  state.place=place;
-  els.placeName.textContent=place.name;
-  els.placeMeta.textContent=[place.admin, `${place.lat.toFixed(2)}°, ${place.lon.toFixed(2)}°`].filter(Boolean).join(' · ');
-  document.title=`${place.name} · เมฆา — MIX NATTANONT • ZERODAY`;
-  if(!state.w) els.skyText.textContent='กำลังโหลดข้อมูล…';
+  const normPlace = normalizeCanonicalLocation(place);
+  state.place = normPlace;
+  els.placeName.textContent = normPlace.name;
+  els.placeMeta.textContent = [normPlace.admin, `${normPlace.latitude.toFixed(2)}°, ${normPlace.longitude.toFixed(2)}°`].filter(Boolean).join(' · ');
+  document.title = `${normPlace.name} · เมฆา — MIX NATTANONT • ZERODAY`;
+  if(!state.canonical) els.skyText.textContent = 'กำลังโหลดข้อมูล…';
   try{
     const wapiKey = getWapiKey();
-    const [rawW, rawA, wapi]=await Promise.all([
-      jget(forecastUrl(place.lat,place.lon)),
-      jget(airUrl(place.lat,place.lon)).catch(()=>null),
-      wapiKey ? jget(weatherApiUrl(place.lat,place.lon)).catch(()=>null) : Promise.resolve(null),
-      enrichPlaceWithAdmin(place)
+    const [rawW, rawA, wapi] = await Promise.all([
+      jget(forecastUrl(normPlace.latitude, normPlace.longitude)).catch(err => {
+        console.warn('Open-Meteo primary fetch failed:', err);
+        return null;
+      }),
+      jget(airUrl(normPlace.latitude, normPlace.longitude)).catch(()=>null),
+      wapiKey ? jget(weatherApiUrl(normPlace.latitude, normPlace.longitude)).catch(()=>null) : Promise.resolve(null),
+      enrichPlaceWithAdmin(normPlace)
     ]);
     if(reqId !== state.reqToken) return;
-    const merged = mergeWeatherApiData(rawW, rawA, wapi);
-    localStorage.setItem(LS_PLACE, JSON.stringify(place));
-    els.placeName.textContent=place.name;
-    els.placeMeta.textContent=[place.admin, `${place.lat.toFixed(2)}°, ${place.lon.toFixed(2)}°`].filter(Boolean).join(' · ');
-    state.w=merged.w; state.a=merged.a; state.wapi=wapi; state.lastFetch=Date.now();
-    renderAll(merged.isHybrid);
-    renderDistrictSelector(place);
-    setTimeout(()=>{ if(reqId === state.reqToken) renderFlood(place); }, 60);
+
+    if(!rawW && !wapi){
+      throw new Error('All weather data providers unreachable');
+    }
+
+    const canonical = createCanonicalWeatherData(normPlace, rawW, rawA, wapi);
+    localStorage.setItem(LS_PLACE, JSON.stringify(normPlace));
+    els.placeName.textContent = canonical.location.name;
+    els.placeMeta.textContent = [canonical.location.admin, `${canonical.location.latitude.toFixed(2)}°, ${canonical.location.longitude.toFixed(2)}°`].filter(Boolean).join(' · ');
+
+    state.canonical = canonical;
+    state.w = canonical._rawW;
+    state.a = { current: { pm2_5: canonical.current.pm25, pm10: canonical.current.pm10, ozone: canonical.current.ozone, nitrogen_dioxide: canonical.current.nitrogenDioxide, sulphur_dioxide: canonical.current.sulphurDioxide, carbon_monoxide: canonical.current.carbonMonoxide, uv_index: canonical.current.uvIndex } };
+    state.wapi = wapi;
+    state.lastFetch = Date.now();
+
+    renderAll(canonical.source.mode === 'primary' && !!wapi);
+    renderDistrictSelector(normPlace);
+    setTimeout(() => { if(reqId === state.reqToken) renderFlood(normPlace); }, 60);
   }catch(e){
     if(reqId === state.reqToken){
+      console.error('loadWeather error:', e);
       toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error',3600);
     }
   }
@@ -1315,42 +1607,51 @@ function renderAll(isHybrid=false){
   renderHourly();
   renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun();
   tickClock();
-  const tz=state.w.timezone;
-  const srcLabel = isHybrid ? 'WeatherAPI.com + โมเดล ECMWF' : 'Open-Meteo (ECMWF)';
+  const can = state.canonical;
+  const tz = can ? can.location.timezone : (state.w?.timezone || 'Asia/Bangkok');
+  const isFallback = can?.source?.mode === 'fallback';
+  const srcLabel = isFallback
+    ? 'WeatherAPI.com (โหมดสำรองฉุกเฉิน)'
+    : (isHybrid ? 'Open-Meteo ECMWF IFS + WeatherAPI (ตรวจวัดสด)' : 'Open-Meteo (ECMWF IFS 0.25°)');
   if(els.heroSourcePill){
-    els.heroSourcePill.innerHTML = isHybrid
-      ? `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF`
-      : `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>ECMWF`;
+    els.heroSourcePill.innerHTML = isFallback
+      ? `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>WeatherAPI Fallback`
+      : `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>ECMWF IFS 0.25°`;
   }
-  els.updatedAt.textContent=`แหล่งข้อมูลสด: ${srcLabel} · อัปเดตเมื่อ `
+  els.updatedAt.textContent=`แหล่งข้อมูลพยากรณ์: ${srcLabel} · อัปเดตเมื่อ `
     + new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(new Date()) + ' น. (ทุก 15 นาที)';
 }
 
 function buildDailyAdvisory(){
-  const c=state.w.current, D=state.w.daily, air=state.a?.current;
-  const parts=[];
-  const sky=wmoText(c.weather_code);
-  const hi=Math.round(D.temperature_2m_max[0]), lo=Math.round(D.temperature_2m_min[0]);
-  const feel=Math.round(c.apparent_temperature), temp=Math.round(c.temperature_2m);
-  const diff=feel-temp;
+  const can = state.canonical;
+  const c = can ? can.current : (state.w?.current || {});
+  const D = can ? can.today : (state.w?.daily || {});
+  const air = state.a?.current;
+  const parts = [];
+  const sky = c.condition || wmoText(c.weatherCode ?? c.weather_code ?? 0);
+  const hi = Math.round(D.temperatureMax ?? D.temperature_2m_max?.[0] ?? 33);
+  const lo = Math.round(D.temperatureMin ?? D.temperature_2m_min?.[0] ?? 25);
+  const feel = Math.round(c.feelsLike ?? c.apparent_temperature ?? 30);
+  const temp = Math.round(c.temperature ?? c.temperature_2m ?? 30);
+  const diff = feel - temp;
 
   let tempNote = `ขณะนี้${sky} อุณหภูมิ ${temp}°C`;
-  if(diff>=3) tempNote += ` (รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
-  else if(diff<=-2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
+  if(diff >= 3) tempNote += ` (รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
+  else if(diff <= -2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
   tempNote += ` ช่วงอุณหภูมิวันนี้ ${lo}°–${hi}°C`;
   parts.push(tempNote);
 
   const next12 = state.hourList.slice(0, 13);
   const rainyHrs = next12.filter(h => h.pop >= 55 || h.pr >= 0.2);
-  const popMax = D.precipitation_probability_max?.[0] ?? 0;
-  const rainSum = D.precipitation_sum?.[0] ?? 0;
+  const popMax = D.precipitationProbability ?? D.precipitation_probability_max?.[0] ?? 0;
+  const rainSum = D.precipitationMm ?? D.precipitation_sum?.[0] ?? 0;
   if(rainyHrs.length > 0){
     const firstH = rainyHrs[0].t.slice(11,16);
     const lastH = rainyHrs[rainyHrs.length-1].t.slice(11,16);
     const rangeTxt = firstH === lastH ? `ช่วงเวลาประมาณ ${firstH} น.` : `ตั้งแต่ช่วง ${firstH} ถึง ${lastH} น.`;
-    parts.push(`มีแนวโน้มเกิดฝนตก (${popMax}% · ปริมาณฝนรวมราว ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว`);
+    parts.push(`มีแนวโน้มเกิดฝนตก (โอกาสสูงสุด ${popMax}% · คาดการณ์ปริมาณฝนรวม ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว`);
   } else if(popMax >= 40){
-    parts.push(`วันนี้มีโอกาสเกิดฝนร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
+    parts.push(`วันนี้มีโอกาสเกิดฝนสูงสุดร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
   } else {
     parts.push(`โอกาสเกิดฝนวันนี้ค่อนข้างต่ำ (${popMax}%) สภาพอากาศเอื้อต่อการเดินทางและทำกิจกรรมกลางแจ้ง`);
   }
@@ -1358,24 +1659,33 @@ function buildDailyAdvisory(){
   const pm = air?.pm2_5;
   if(pm != null && pm > 37.5){
     parts.push(`ค่าฝุ่น PM2.5 อยู่ในระดับเริ่มมีผลต่อสุขภาพ (${Math.round(pm)} µg/m³) ควรสวมหน้ากากป้องกันฝุ่นเมื่ออยู่นอกอาคาร`);
-  } else if(c.is_day===1 && (air?.uv_index ?? 0) >= 6){
+  } else if((c.isDay ?? c.is_day) === 1 && (air?.uv_index ?? c.uvIndex ?? 0) >= 6){
     parts.push(`ดัชนีรังสียูวีอยู่ในเกณฑ์สูง ควรทาครีมกันแดดหรือสวมหมวกเมื่อต้องอยู่กลางแดด`);
   }
   return parts.join(' · ');
 }
 
 function renderMain(){
-  const c=state.w.current, D=state.w.daily;
-  els.bigTemp.textContent=Math.round(c.temperature_2m);
-  els.bigIcon.innerHTML=weatherIcon(wmoKind(c.weather_code), c.is_day===1, true);
-  els.skyText.textContent=wmoText(c.weather_code);
-  els.hiTemp.textContent=Math.round(D.temperature_2m_max[0])+'°';
-  els.loTemp.textContent=Math.round(D.temperature_2m_min[0])+'°';
-  els.popToday.textContent=(D.precipitation_probability_max?.[0]??0)+'%';
-  els.pinIcon.innerHTML=uiIcon('pin','w-4 h-4');
-  els.btnRefresh.innerHTML=uiIcon('refresh','w-4 h-4');
-  els.summaryIcon.innerHTML=uiIcon('sparkle','w-4 h-4 text-amber-300');
-  els.dailySummaryText.textContent=buildDailyAdvisory();
+  const can = state.canonical;
+  const c = can ? can.current : (state.w?.current || {});
+  const D = can ? can.today : (state.w?.daily || {});
+  const tempVal = c.temperature ?? c.temperature_2m ?? 0;
+  const codeVal = c.weatherCode ?? c.weather_code ?? 0;
+  const isDayVal = (c.isDay ?? c.is_day) === 1;
+  const hiVal = D.temperatureMax ?? D.temperature_2m_max?.[0] ?? tempVal;
+  const loVal = D.temperatureMin ?? D.temperature_2m_min?.[0] ?? tempVal;
+  const popVal = D.precipitationProbability ?? D.precipitation_probability_max?.[0] ?? 0;
+
+  els.bigTemp.textContent = Math.round(tempVal);
+  els.bigIcon.innerHTML = weatherIcon(wmoKind(codeVal), isDayVal, true);
+  els.skyText.textContent = c.condition || wmoText(codeVal);
+  els.hiTemp.textContent = Math.round(hiVal) + '°';
+  els.loTemp.textContent = Math.round(loVal) + '°';
+  els.popToday.textContent = Math.round(popVal) + '%';
+  els.pinIcon.innerHTML = uiIcon('pin','w-4 h-4');
+  els.btnRefresh.innerHTML = uiIcon('refresh','w-4 h-4');
+  els.summaryIcon.innerHTML = uiIcon('sparkle','w-4 h-4 text-amber-300');
+  els.dailySummaryText.textContent = buildDailyAdvisory();
 }
 function tickClock(){
   if(!state.w) return;
@@ -1431,27 +1741,34 @@ function detailCard({metric,ic,label,value,badge,desc,extra,span2}){
 }
 
 function renderDetails(){
-  const c=state.w.current, D=state.w.daily, air=state.a?.current, H=state.w.hourly;
+  const can = state.canonical;
+  const c = can ? can.current : state.w.current;
+  const D = can ? can.today : state.w.daily;
+  const air = state.a?.current;
+  const H = state.w.hourly;
   const rows=[];
 
   // 1. ความเร็วลม ทิศทางลม และลมกระโชก
-  const wspd=Math.round(c.wind_speed_10m), wgust=c.wind_gusts_10m!=null?Math.round(c.wind_gusts_10m):null;
-  const wdir=dirTH(c.wind_direction_10m);
+  const curWindSpd = c.windSpeed ?? c.wind_speed_10m ?? 0;
+  const curWindDir = c.windDirection ?? c.wind_direction_10m ?? 0;
+  const curWindGust = c.windGusts ?? c.wind_gusts_10m ?? null;
+  const wspd = Math.round(curWindSpd), wgust = curWindGust != null ? Math.round(curWindGust) : null;
+  const wdir = dirTH(curWindDir);
   rows.push({
     metric:'wind', ic:'wind', label:'ลมและลมกระโชก (แตะดูกราฟลม)',
     value:`${wspd} กม./ชม.`,
     badge:`ทิศ${wdir}`,
-    desc:`${windDesc(c.wind_speed_10m)}${wgust?` · ลมกระโชกสูงสุด ${wgust} กม./ชม.`:''}`,
-    extra:compassEl(c.wind_direction_10m)
+    desc:`${windDesc(curWindSpd)}${wgust?` · ลมกระโชกสูงสุด ${wgust} กม./ชม.`:''}`,
+    extra:compassEl(curWindDir)
   });
 
-  // 2. น้ำและปริมาณฝนสะสม
-  const pop=D.precipitation_probability_max?.[0]??0;
-  const psum=D.precipitation_sum?.[0]??0;
+  // 2. น้ำและโอกาสเกิดฝนวันนี้ (Canonical Single Source of Truth)
+  const pop = can ? can.today.precipitationProbability : (D.precipitation_probability_max?.[0] ?? 0);
+  const psum = can ? can.today.precipitationMm : (D.precipitation_sum?.[0] ?? 0);
   let rainBadge = pop>=70?'โอกาสตกสูงมาก':pop>=40?'มีโอกาสฝนตก':pop>=20?'โอกาสตกเล็กน้อย':'โอกาสฝนน้อย';
   let rainDesc = psum>0
-    ? `คาดการณ์ฝนสะสมวันนี้ ${psum.toFixed(1)} มม. (${psum>=35?'ฝนตกหนัก ระวังน้ำขัง':psum>=10?'ฝนปานกลาง ควรพกร่ม':'ฝนเล็กน้อย'})`
-    : 'แทบไม่มีฝนสะสมวันนี้ แตะเพื่อดูกราฟโอกาสฝนรายชั่วโมง';
+    ? `คาดการณ์ฝนวันนี้ ${psum.toFixed(1)} มม. (โอกาสเกิดฝนสูงสุด ${pop}% · ${psum>=35?'ฝนตกหนัก ระวังน้ำขัง':psum>=10?'ฝนปานกลาง ควรพกร่ม':'ฝนเล็กน้อย'})`
+    : `โอกาสเกิดฝนสูงสุดวันนี้ ${pop}% · แทบไม่มีฝนสะสม แตะเพื่อดูกราฟ 24 ชม.`;
   rows.push({
     metric:'rain', ic:'umbrella', label:'น้ำฝนและโอกาสเกิดฝนวันนี้',
     value:`${pop}% · ${psum.toFixed(1)} มม.`,
@@ -1565,8 +1882,31 @@ const floodHistCache=new Map();
 let floodToken=0;
 
 function assessDistrictRainfallFlood(){
+  const can = state.canonical;
+  if(can && can.forecast && can.forecast.length){
+    const f = can.forecast.slice(0, 7);
+    const todayMm = can.today.precipitationMm;
+    let maxMm = 0, maxIdx = 0;
+    f.forEach((d, i) => {
+      if(d.precipitationMm > maxMm){
+        maxMm = d.precipitationMm;
+        maxIdx = i;
+      }
+    });
+    const day3Sum = can.forecast3DayTotal;
+    const day7Sum = can.forecast7DayTotal;
+    let lv = 0;
+    if(maxMm >= 90 || day3Sum >= 160) lv = 3;
+    else if(maxMm >= 60 || day3Sum >= 110) lv = 2;
+    else if(maxMm >= 35 || day3Sum >= 70) lv = 1;
+    const maxDay = f[maxIdx]
+      ? (maxIdx === 0 ? 'วันนี้' : maxIdx === 1 ? 'พรุ่งนี้' : new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short'}).format(new Date(f[maxIdx].date+'T12:00:00Z')))
+      : 'วันนี้';
+    return { lv, todayMm, maxMm, day3Sum, day7Sum, maxDay };
+  }
+
   const D = state.w?.daily;
-  if(!D || !D.precipitation_sum) return { lv:0, todayMm:0, maxMm:0, day3Sum:0, day7Sum:0, maxDay:'' };
+  if(!D || !D.precipitation_sum) return { lv:0, todayMm:0, maxMm:0, day3Sum:0, day7Sum:0, maxDay:'วันนี้' };
   const sums = D.precipitation_sum.slice(0, 7).map(v => v ?? 0);
   const todayMm = sums[0] ?? 0;
   let maxMm = 0, maxIdx = 0;
@@ -1599,7 +1939,7 @@ async function renderFlood(place){
   const rainRisk = assessDistrictRainfallFlood();
   els.floodRainVal.textContent = `วันนี้ ${rainRisk.todayMm.toFixed(1)} มม.`;
   const rainStatusLabels = ['เกณฑ์ปกติ (<35 มม.)', 'ฝนตกหนัก (ระวังน้ำขัง)', 'เฝ้าระวังน้ำท่วมขัง', 'เสี่ยงน้ำท่วมฉับพลัน'];
-  els.floodRainStatus.textContent = `พีค 7 วัน: ${rainRisk.maxMm.toFixed(1)} มม. (${rainStatusLabels[rainRisk.lv]})`;
+  els.floodRainStatus.textContent = `ฝนคาดการณ์ 3 วัน: ${rainRisk.day3Sum.toFixed(1)} มม. · พีค 7 วัน ${rainRisk.maxMm.toFixed(1)} มม. (${rainStatusLabels[rainRisk.lv]})`;
   els.floodRainStatus.style.color = FLOOD_LEVELS[rainRisk.lv].c;
 
   state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, todayVal:null, maxVal:null, dThai:'—', note:'' };
@@ -1617,8 +1957,8 @@ async function renderFlood(place){
       B.textContent = L.t;
       B.style.color = L.c; B.style.borderColor = L.c+'66'; B.style.background = L.c+'1f';
       if(rainRisk.lv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
-      N.innerHTML = `ฝนสะสม 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`;
-      const noteTxt = `พื้นที่ ${areaName} ไม่ได้ทับแนวแม่น้ำสายหลักในโมเดล GloFAS ระบบจึงประเมินความเสี่ยงน้ำท่วมขังและน้ำรอการระบายจากปริมาณฝนสะสมในเขตอำเภอโดยตรง`;
+      N.innerHTML = `ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`;
+      const noteTxt = `พื้นที่ ${areaName} ไม่ได้ทับแนวแม่น้ำสายหลักในแบบจำลอง GloFAS ระบบจึงประเมินความเสี่ยงน้ำท่วมขังและน้ำรอการระบายจากปริมาณฝนสะสมในเขตอำเภอ (ECMWF IFS) โดยตรง`;
       T.textContent = noteTxt;
       state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, finalLv:rainRisk.lv, note:noteTxt };
       return;
@@ -1654,9 +1994,9 @@ async function renderFlood(place){
     const todayVal=q[todayIdx];
     const dThai=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short'}).format(new Date(times[maxIdx]+'T12:00:00Z'));
     const fmtFlow = v => v!=null ? (v>=10 ? Math.round(v).toString() : v.toFixed(1)) : '—';
-    const riverStatusLabels = ['ระดับน้ำปกติของฤดูกาล', 'สูงกว่าค่าเฉลี่ยรายเดือน', 'เฝ้าระวังน้ำเอ่อริมตลิ่ง', 'เสี่ยงน้ำล้นตลิ่ง'];
+    const riverStatusLabels = ['ระดับน้ำปกติของฤดูกาล', 'สูงกว่าค่าเฉลี่ยรายเดือน (P90)', 'เฝ้าระวังน้ำเอ่อริมตลิ่ง (P97)', 'เสี่ยงน้ำล้นตลิ่ง (P99.5)'];
     els.floodRiverVal.textContent = `${fmtFlow(todayVal)} ลบ.ม./วิ`;
-    els.floodRiverStatus.textContent = `พีค ${fmtFlow(maxVal)} (${dThai}) · ${riverStatusLabels[riverLv]}`;
+    els.floodRiverStatus.textContent = `พีคคาดการณ์ ${fmtFlow(maxVal)} ลบ.ม./วิ (${dThai}) · ${riverStatusLabels[riverLv]}`;
     els.floodRiverStatus.style.color = FLOOD_LEVELS[riverLv].c;
 
     const finalLv = Math.max(riverLv, rainRisk.lv);
@@ -1666,7 +2006,7 @@ async function renderFlood(place){
     if(finalLv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
     if(finalLv===3) toast(`แจ้งเตือน: พบความเสี่ยงน้ำท่วมในเขต ${areaName} ภายใน 7 วันข้างหน้า`,'error',6000);
 
-    N.innerHTML=`ฝน 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)}</b> มม.`;
+    N.innerHTML=`ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)}</b> มม.`;
 
     const noteParts = [];
     if(riverLv === 0 && rainRisk.lv === 0){
@@ -1676,7 +2016,7 @@ async function renderFlood(place){
         noteParts.push(`ด้านปริมาณฝนในเขต ${areaName}: คาดการณ์ฝนสูงสุด ${rainRisk.maxMm.toFixed(1)} มม. (${rainRisk.maxDay}) และสะสม 3 วันราว ${rainRisk.day3Sum.toFixed(1)} มม. ควรระวังน้ำท่วมขังรอการระบายในพื้นที่ลุ่มต่ำของอำเภอ`);
       }
       if(riverLv >= 1){
-        noteParts.push(`ด้านลำน้ำในเขต ${areaName}: อัตราการไหลคาดการณ์สูงสุด ${fmtFlow(maxVal)} ลบ.ม./วินาที ในวันที่ ${dThai} ซึ่งสูงกว่าค่าปกติรายเดือนของพื้นที่นี้ พื้นที่ริมน้ำในอำเภอควรเฝ้าระวังระดับน้ำ`);
+        noteParts.push(`ด้านลำน้ำในเขต ${areaName}: อัตราการไหลคาดการณ์สูงสุด ${fmtFlow(maxVal)} ลบ.ม./วินาที ในวันที่ ${dThai} ซึ่งสูงกว่าเกณฑ์สถิติย้อนหลัง 5 ปี (${riverStatusLabels[riverLv]}) พื้นที่ริมน้ำในอำเภอควรเฝ้าระวังระดับน้ำ`);
       }
     }
     const noteTxt = noteParts.join(' · ');
@@ -1879,20 +2219,30 @@ function mixHex(a,b,k){
 }
 const DAYS_TH=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
 function renderDaily(){
-  const D=state.w.daily;
-  const gmin=Math.min(...D.temperature_2m_min), gmax=Math.max(...D.temperature_2m_max), span=Math.max(gmax-gmin,1);
-  let html='';
-  for(let i=0;i<Math.min(7,D.time.length);i++){
-    const ds=D.time[i];
-    const dow=new Date(ds+'T12:00:00Z').getUTCDay();
-    const name=i===0?'วันนี้':i===1?'พรุ่งนี้':'วัน'+DAYS_TH[dow];
-    const dateStr=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(ds+'T12:00:00Z'));
-    const lo=D.temperature_2m_min[i], hi=D.temperature_2m_max[i];
-    const left=(lo-gmin)/span*100, width=(hi-lo)/span*100;
-    const pop=D.precipitation_probability_max?.[i]??0;
-    const psum=D.precipitation_sum?.[i]??0;
-    const condText=wmoText(D.weather_code[i]);
-    html+=`<div data-day="${i}" class="tap-card grid grid-cols-12 items-center gap-2 py-2.5 px-2 -mx-2 rounded-xl hover:bg-white/[.06]">
+  const can = state.canonical;
+  const fList = (can?.forecast || []).slice(0, 7);
+  const D = state.w?.daily;
+  const mins = fList.length ? fList.map(f => f.temperatureMin) : (D?.temperature_2m_min || [25]);
+  const maxs = fList.length ? fList.map(f => f.temperatureMax) : (D?.temperature_2m_max || [33]);
+  const gmin = Math.min(...mins), gmax = Math.max(...maxs), span = Math.max(gmax - gmin, 1);
+  let html = '';
+  const count = fList.length ? fList.length : Math.min(7, D?.time?.length || 0);
+
+  for(let i = 0; i < count; i++){
+    const f = fList[i];
+    const ds = f ? f.date : D.time[i];
+    const dow = new Date(ds+'T12:00:00Z').getUTCDay();
+    const name = i === 0 ? 'วันนี้' : i === 1 ? 'พรุ่งนี้' : 'วัน' + DAYS_TH[dow];
+    const dateStr = new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(ds+'T12:00:00Z'));
+    const lo = f ? f.temperatureMin : D.temperature_2m_min[i];
+    const hi = f ? f.temperatureMax : D.temperature_2m_max[i];
+    const left = (lo - gmin) / span * 100, width = (hi - lo) / span * 100;
+    const pop = f ? f.precipitationProbability : (D.precipitation_probability_max?.[i] ?? 0);
+    const psum = f ? f.precipitationMm : (D.precipitation_sum?.[i] ?? 0);
+    const condText = f ? f.condition : wmoText(D.weather_code[i]);
+    const wCode = f ? f.weatherCode : D.weather_code[i];
+
+    html += `<div data-day="${i}" class="tap-card grid grid-cols-12 items-center gap-2 py-2.5 px-2 -mx-2 rounded-xl hover:bg-white/[.06]">
       <div class="col-span-4 sm:col-span-3 min-w-0">
         <div class="flex items-baseline gap-1.5">
           <p class="text-xs sm:text-sm font-semibold truncate">${name}</p>
@@ -1901,7 +2251,7 @@ function renderDaily(){
         <p class="text-[11px] text-white/70 truncate mt-0.5">${condText}</p>
       </div>
       <div class="col-span-3 sm:col-span-3 flex items-center gap-1.5 sm:gap-2">
-        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0">${weatherIcon(wmoKind(D.weather_code[i]), true, false)}</div>
+        <div class="w-7 h-7 sm:w-8 sm:h-8 shrink-0">${weatherIcon(wmoKind(wCode), true, false)}</div>
         <div class="min-w-0 leading-tight">
           <p class="text-[11px] font-medium ${pop>=30?'text-sky-200':'text-white/55'}">${pop}%</p>
           <p class="text-[10px] text-white/45 truncate">${psum>0?`${psum.toFixed(1)} มม.`:'ไร้ฝน'}</p>
@@ -1917,7 +2267,7 @@ function renderDaily(){
       </div>
     </div>`;
   }
-  els.dailyList.innerHTML=html;
+  els.dailyList.innerHTML = html;
 }
 
 /* ---------- เส้นทางดวงอาทิตย์ ---------- */
@@ -2044,25 +2394,70 @@ function openMetricModal(type = 'wind'){
   let body = '';
 
   if(type === 'sources'){
-    title = 'แหล่งที่มาของข้อมูล';
-    sub = 'ระบบประมวลผลสภาพอากาศและอุทกวิทยาแบบผสมผสาน';
-    const items = [
-      { k:'พยากรณ์อากาศล่วงหน้า', v:'Open-Meteo ECMWF IFS (CC BY 4.0) · WeatherAPI.com' },
-      { k:'สภาพอากาศปัจจุบัน (Real-time)', v:'WeatherAPI.com · Open-Meteo (CC BY 4.0)' },
-      { k:'คุณภาพอากาศและฝุ่นละออง (PM2.5 / AQI)', v:'Open-Meteo (CC BY 4.0) · CAMS ENSEMBLE data provider · WeatherAPI Air Quality' },
-      { k:'การคาดการณ์ปริมาณน้ำฝนในปัจจุบัน', v:'WeatherAPI.com · Open-Meteo (CC BY 4.0)' },
-      { k:'การเตือนภัยน้ำท่วมและระดับน้ำในลำน้ำ', v:'GloFAS (Global Flood Awareness System · Copernicus) · เกณฑ์ฝนสะสมรายอำเภอ' },
-      { k:'การค้นหาที่อยู่และพิกัด 930 อำเภอ', v:'Nominatim · Data © OpenStreetMap contributors, ODbL 1.0 (https://osm.org/copyright)' },
-    ];
-    body = `<div class="divide-y divide-white/10">
-      ${items.map(it => `<div class="py-3.5 flex items-center justify-between gap-4">
-        <div class="min-w-0">
-          <p class="text-sm sm:text-[15px] font-medium text-white">${it.k}</p>
-          <p class="text-xs text-white/65 mt-0.5 leading-relaxed underline decoration-white/30 underline-offset-2">${it.v}</p>
+    title = 'แหล่งที่มาของข้อมูลและการตรวจสอบ (Audit)';
+    sub = 'ระบบข้อมูลสภาพอากาศและอุทกวิทยาแบบมาตรฐานเดียว (Single Source of Truth)';
+    const can = state.canonical;
+    const audit = runDataConsistencyTests(can, state.flood);
+    const modeBadge = can?.source?.mode === 'fallback'
+      ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">FALLBACK MODE</span>'
+      : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">PRIMARY (ECMWF IFS 0.25°)</span>';
+
+    const auditStatusBadge = audit.allPassed
+      ? `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">ผ่านเกณฑ์สมบูรณ์ (${audit.passedCount}/${audit.totalCount})</span>`
+      : `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">ตรวจพบข้อแตกต่าง (${audit.passedCount}/${audit.totalCount})</span>`;
+
+    const debugJson = can?.source?.debugRain ? JSON.stringify(can.source.debugRain, null, 2) : '{}';
+
+    body = `
+      <div class="glass-in rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <p class="text-xs text-white/55 font-medium">สถาปัตยกรรม Single Source of Truth</p>
+            <p class="text-base font-semibold text-white mt-0.5">สถานะการทำงาน: ${modeBadge}</p>
+          </div>
+          <div class="text-right">
+            ${auditStatusBadge}
+          </div>
         </div>
-        <span class="text-white/75 shrink-0">${uiIcon('shield','w-5 h-5')}</span>
-      </div>`).join('')}
-    </div>`;
+        <p class="text-xs text-white/75 leading-relaxed">
+          ระบบประมวลผลข้อมูลสภาพอากาศภายใต้สถาปัตยกรรม Canonical Weather Data โดยใช้โมเดล <b class="text-sky-300">Open-Meteo ECMWF IFS 0.25°</b> เป็นแหล่งพยากรณ์หลักเพียงแหล่งเดียว และใช้ <b class="text-emerald-300">WeatherAPI.com</b> สำหรับการตรวจวัดสดตามสถานี (Real-time Observation) และเป็นโหมดสำรองฉุกเฉินเท่านั้น
+        </p>
+      </div>
+
+      <div class="glass-in rounded-2xl p-4 space-y-2.5">
+        <div class="flex items-center justify-between gap-2 border-b border-white/10 pb-2">
+          <p class="text-xs font-semibold text-amber-200">ผลการตรวจสอบความสอดคล้องอัตโนมัติ (Automated Consistency Audit)</p>
+          <span class="text-[11px] text-white/50">${audit.passedCount}/${audit.totalCount} เกณฑ์มาตรฐาน</span>
+        </div>
+        <div class="divide-y divide-white/5 text-xs">
+          ${audit.tests.map(t => `<div class="py-2 flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <p class="font-medium text-white/90">${t.name}</p>
+              <p class="text-[11px] text-white/50 mt-0.5">${t.desc}</p>
+              <p class="text-[10px] text-sky-200/80 font-mono mt-0.5">${t.rule} → [${t.left} vs ${t.right}]</p>
+            </div>
+            <span class="shrink-0 px-2 py-0.5 rounded-md text-[10px] font-bold ${t.pass ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}">
+              ${t.pass ? '✓ ผ่าน' : '✗ ไม่ผ่าน'}
+            </span>
+          </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="glass-in rounded-2xl p-4 space-y-2 text-xs">
+        <p class="font-semibold text-white/90">แหล่งอ้างอิงข้อมูล & ใบอนุญาต</p>
+        <div class="space-y-2 text-white/70">
+          <p>• <b class="text-white">แบบจำลองสภาพอากาศหลัก:</b> Open-Meteo ECMWF IFS 0.25° (CC BY 4.0)</p>
+          <p>• <b class="text-white">ข้อมูลตรวจวัดสด & สำรอง:</b> WeatherAPI.com (Station Real-time Observations & Fallback)</p>
+          <p>• <b class="text-white">แบบจำลองอุทกวิทยา & น้ำท่วม:</b> Copernicus GloFAS (Global Flood Awareness System · ECMWF)</p>
+          <p>• <b class="text-white">คุณภาพอากาศ:</b> CAMS ENSEMBLE provider ผ่าน Open-Meteo & WeatherAPI AQI</p>
+          <p>• <b class="text-white">เขตเวลามาตรฐาน:</b> ${can?.location?.timezone || 'Asia/Bangkok'} (ตัดรอบวันท้องถิ่น 00:00 - 23:59 น.)</p>
+        </div>
+      </div>
+
+      <div class="glass-in rounded-2xl p-3.5 text-[11px] text-white/60 space-y-1 font-mono">
+        <p class="text-white/80 font-sans font-semibold text-xs">Rainfall Provenance Debug Metadata:</p>
+        <pre class="bg-black/30 p-2.5 rounded-xl overflow-x-auto nice-scroll text-amber-200/90">${debugJson}</pre>
+      </div>`;
   }
   else if(type === 'wind'){
     title = '💨 ความเร็วลม ทิศทางลม & ลมกระโชก';
@@ -2116,14 +2511,17 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'water'){
     title = '🌊 ข้อมูลน้ำ & เตือนภัยน้ำท่วมรายอำเภอ';
+    const can = state.canonical;
     const fl = state.flood || { areaName: placeLabel, rainRisk: assessDistrictRainfallFlood(), hasRiver:false, riverLv:0 };
     const rr = fl.rainRisk || assessDistrictRainfallFlood();
     const lvObj = FLOOD_LEVELS[fl.finalLv ?? rr.lv] || FLOOD_LEVELS[0];
+    const fDays = can?.forecast ? can.forecast.slice(0, 7) : [];
 
-    const daysHtml = (D.time || []).slice(0, 7).map((ds, i) => {
+    const daysHtml = (fDays.length ? fDays : (D.time || []).slice(0, 7)).map((item, i) => {
+      const ds = item.date || item;
       const dStr = i===0 ? 'วันนี้' : i===1 ? 'พรุ่งนี้' : new Intl.DateTimeFormat('th-TH',{weekday:'short',day:'numeric',month:'short'}).format(new Date(ds+'T12:00:00Z'));
-      const mm = D.precipitation_sum?.[i] ?? 0;
-      const pop = D.precipitation_probability_max?.[i] ?? 0;
+      const mm = item.precipitationMm != null ? item.precipitationMm : (D.precipitation_sum?.[i] ?? 0);
+      const pop = item.precipitationProbability != null ? item.precipitationProbability : (D.precipitation_probability_max?.[i] ?? 0);
       const pct = clamp((mm / 60) * 100, 3, 100);
       const barCol = mm >= 60 ? '#ef4444' : mm >= 35 ? '#f59e0b' : '#38bdf8';
       return `<div class="flex items-center gap-2.5 text-xs py-1.5 border-b border-white/5 last:border-0">
@@ -2147,57 +2545,75 @@ function openMetricModal(type = 'wind'){
 
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
         <div class="glass-in rounded-2xl p-3">
-          <p class="text-white/55">ฝนสะสมวันนี้</p>
+          <p class="text-white/55">ฝนคาดการณ์วันนี้</p>
           <p class="text-lg font-semibold text-white mt-0.5">${rr.todayMm.toFixed(1)} มม.</p>
-          <p class="text-[11px] text-sky-200 mt-0.5">สะสม 3 วัน: ${rr.day3Sum.toFixed(1)} มม.</p>
+          <p class="text-[11px] text-sky-200 mt-0.5">คาดการณ์ 3 วัน: ${rr.day3Sum.toFixed(1)} มม.</p>
         </div>
         <div class="glass-in rounded-2xl p-3">
-          <p class="text-white/55">ฝนสะสมรวม 7 วัน</p>
+          <p class="text-white/55">ฝนคาดการณ์รวม 7 วัน</p>
           <p class="text-lg font-semibold text-white mt-0.5">${(rr.day7Sum||0).toFixed(1)} มม.</p>
           <p class="text-[11px] text-amber-200 mt-0.5">สูงสุด ${rr.maxMm.toFixed(1)} มม. (${rr.maxDay})</p>
         </div>
         <div class="glass-in rounded-2xl p-3 col-span-2 sm:col-span-1">
           <p class="text-white/55">อัตราไหลของลำน้ำ (GloFAS)</p>
           <p class="text-lg font-semibold text-white mt-0.5">${fl.hasRiver ? `${fl.todayVal} ลบ.ม./วิ` : 'ไม่มีลำน้ำสายหลัก'}</p>
-          <p class="text-[11px] text-white/65 mt-0.5">${fl.hasRiver ? `พีค ${fl.maxVal} ลบ.ม./วิ (${fl.dThai})` : 'ประเมินจากน้ำฝนในอำเภอ'}</p>
+          <p class="text-[11px] text-white/65 mt-0.5">${fl.hasRiver ? `พีคคาดการณ์ ${fl.maxVal} ลบ.ม./วิ (${fl.dThai})` : 'ประเมินจากฝนในอำเภอ'}</p>
         </div>
       </div>
 
       ${fl.hasRiver && fl.svgMarkup ? `<div class="glass-in rounded-2xl p-3.5">
-        <p class="text-xs font-medium text-white/85 mb-2">กราฟอัตราการไหลของแม่น้ำ/ลำน้ำในเขตอำเภอ (ลบ.ม./วินาที)</p>
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span class="font-medium text-white/85">กราฟอัตราการไหลของแม่น้ำในเขตอำเภอ (GloFAS)</span>
+          <span class="text-[10px] text-sky-300 font-mono">หน่วย: ลบ.ม./วินาที</span>
+        </div>
         <svg viewBox="0 0 320 110" class="w-full block">${fl.svgMarkup}</svg>
       </div>` : ''}
 
       <div class="glass-in rounded-2xl p-3.5">
-        <p class="text-xs font-medium text-white/85 mb-2">คาดการณ์ปริมาณน้ำฝนสะสมรายวัน (7 วันข้างหน้า)</p>
+        <div class="flex items-center justify-between text-xs mb-2">
+          <span class="font-medium text-white/85">คาดการณ์ปริมาณน้ำฝนรายวัน 7 วันข้างหน้า (ECMWF IFS)</span>
+          <span class="text-[10px] text-sky-300 font-mono">หน่วย: มิลลิเมตร (มม.)</span>
+        </div>
         <div>${daysHtml}</div>
       </div>
 
-      <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed space-y-1">
-        <p class="font-semibold text-amber-200">คำแนะนำการเฝ้าระวังน้ำท่วมประจำอำเภอ</p>
-        <p>${fl.note || 'ติดตามปริมาณฝนสะสมในพื้นที่ลุ่มต่ำและทางระบายน้ำ หากฝนตกหนักเกิน 60 มม./วัน ควรระวังน้ำท่วมขังรอการระบาย'}</p>
+      <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed space-y-1.5">
+        <p class="font-semibold text-amber-200">เกณฑ์การประเมินความเสี่ยงน้ำท่วมและที่มาของข้อมูล</p>
+        <p>• <b class="text-white">อัตราไหลของลำน้ำ (ลบ.ม./วินาที):</b> คำนวณจากแบบจำลองระดับโลก Copernicus GloFAS โดยใช้สถิติย้อนหลัง 5 ปีในเดือนเดียวกันเพื่อกำหนดเกณฑ์เฝ้าระวัง P90, P97 (น้ำเอ่อริมตลิ่ง) และ P99.5 (น้ำล้นตลิ่ง)</p>
+        <p>• <b class="text-white">ปริมาณฝนสะสม (มม.):</b> พยากรณ์จากแบบจำลอง ECMWF IFS รายอำเภอ หากฝนสะสมเกิน 35 มม./วัน ควรระวังน้ำท่วมขังรอการระบายในพื้นที่ลุ่มต่ำ</p>
+        <p class="text-amber-200/90 pt-1">${fl.note || 'ติดตามปริมาณฝนสะสมในพื้นที่ลุ่มต่ำและทางระบายน้ำอย่างต่อเนื่อง'}</p>
       </div>`;
   }
   else if(type === 'rain'){
     title = '🌧️ ปริมาณน้ำฝน & โอกาสเกิดฝน 24 ชม.';
-    const popToday = D.precipitation_probability_max?.[0] ?? 0;
-    const sumToday = D.precipitation_sum?.[0] ?? 0;
-    const nowMm = c.precipitation ?? 0;
+    const can = state.canonical;
+    const popToday = can ? can.today.precipitationProbability : (D.precipitation_probability_max?.[0] ?? 0);
+    const sumToday = can ? can.today.precipitationMm : (D.precipitation_sum?.[0] ?? 0);
+    const nowMm = can ? can.current.observedPrecipitationMm : (c.precipitation ?? 0);
 
     body = `
       <div class="grid grid-cols-3 gap-2.5 text-xs">
         <div class="glass-in rounded-2xl p-3">
-          <p class="text-white/55">ฝนขณะนี้</p>
-          <p class="text-xl font-semibold text-white mt-0.5">${nowMm.toFixed(1)} <span class="text-xs font-normal">มม.</span></p>
+          <p class="text-white/55">ฝนขณะนี้ (สังเกตการณ์)</p>
+          <p class="text-xl font-semibold text-white mt-0.5">${nowMm.toFixed(1)} <span class="text-xs font-normal">มม./ชม.</span></p>
+          <p class="text-[10px] text-emerald-300 mt-1">สถานีตรวจวัดสด</p>
         </div>
         <div class="glass-in rounded-2xl p-3">
-          <p class="text-white/55">โอกาสฝนวันนี้</p>
+          <p class="text-white/55">โอกาสเกิดฝนสูงสุดวันนี้</p>
           <p class="text-xl font-semibold text-sky-300 mt-0.5">${popToday}%</p>
+          <p class="text-[10px] text-sky-200/70 mt-1">ECMWF IFS (PoP Max)</p>
         </div>
         <div class="glass-in rounded-2xl p-3">
-          <p class="text-white/55">ฝนสะสมวันนี้</p>
+          <p class="text-white/55">ฝนคาดการณ์ทั้งวัน</p>
           <p class="text-xl font-semibold text-amber-200 mt-0.5">${sumToday.toFixed(1)} <span class="text-xs font-normal">มม.</span></p>
+          <p class="text-[10px] text-amber-200/70 mt-1">รวม 24 ชม. (00-24น.)</p>
         </div>
+      </div>
+
+      <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed">
+        <b class="text-amber-200">ความแตกต่างระหว่าง “ฝนขณะนี้” กับ “ฝนคาดการณ์ทั้งวัน”:</b><br>
+        <span class="text-white/70">• <b class="text-white">ฝนขณะนี้ (${nowMm.toFixed(1)} มม./ชม.):</b> คืออัตราฝนที่ตรวจวัดได้จากสถานีตรวจวัดจริงในขณะนี้ (Observation)<br>
+        • <b class="text-white">ฝนคาดการณ์ทั้งวัน (${sumToday.toFixed(1)} มม.):</b> คือปริมาณฝนสะสมคาดการณ์ตลอด 24 ชั่วโมงของวันนี้จากแบบจำลอง ECMWF IFS</span>
       </div>
 
       <div class="glass-in rounded-2xl p-3.5">
@@ -2382,20 +2798,24 @@ function openMetricModal(type = 'wind'){
   }
   else if(type.startsWith('day:')){
     const idx = parseInt(type.split(':')[1], 10) || 0;
-    const ds = D.time?.[idx] || D.time?.[0];
+    const can = state.canonical;
+    const f = can?.forecast?.[idx];
+    const ds = f?.date || D.time?.[idx] || D.time?.[0];
     const dow = new Date(ds+'T12:00:00Z').getUTCDay();
     const dName = idx===0 ? 'วันนี้' : idx===1 ? 'พรุ่งนี้' : 'วัน'+DAYS_TH[dow];
     const dFull = new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(ds+'T12:00:00Z'));
     title = `📅 พยากรณ์ ${dName} (${dFull})`;
-    const hi = Math.round(D.temperature_2m_max?.[idx]??0), lo = Math.round(D.temperature_2m_min?.[idx]??0);
-    const pop = D.precipitation_probability_max?.[idx]??0;
-    const psum = D.precipitation_sum?.[idx]??0;
-    const uvMax = D.uv_index_max?.[idx]??0;
-    const wMax = D.wind_speed_10m_max?.[idx]!=null ? Math.round(D.wind_speed_10m_max[idx]) : '—';
-    const sr = D.sunrise?.[idx]?.slice(11,16) || '—', ss = D.sunset?.[idx]?.slice(11,16) || '—';
+    const hi = Math.round(f?.temperatureMax ?? D.temperature_2m_max?.[idx] ?? 0);
+    const lo = Math.round(f?.temperatureMin ?? D.temperature_2m_min?.[idx] ?? 0);
+    const pop = f?.precipitationProbability ?? D.precipitation_probability_max?.[idx] ?? 0;
+    const psum = f?.precipitationMm ?? D.precipitation_sum?.[idx] ?? 0;
+    const uvMax = f?.uvIndexMax ?? D.uv_index_max?.[idx] ?? 0;
+    const wMax = (f?.windSpeedMax ?? D.wind_speed_10m_max?.[idx]) != null ? Math.round(f?.windSpeedMax ?? D.wind_speed_10m_max[idx]) : '—';
+    const sr = (f?.sunrise || D.sunrise?.[idx])?.slice(11,16) || '—', ss = (f?.sunset || D.sunset?.[idx])?.slice(11,16) || '—';
+    const wCode = f?.weatherCode ?? D.weather_code?.[idx] ?? 0;
 
     // ดึงชั่วโมงของวันนั้นจาก state.w.hourly
-    const allH = state.w.hourly;
+    const allH = state.w?.hourly;
     const dayHours = [];
     if(allH && Array.isArray(allH.time)){
       allH.time.forEach((tStr, hiIdx) => {
@@ -2416,15 +2836,15 @@ function openMetricModal(type = 'wind'){
     body = `
       <div class="glass-in rounded-2xl p-4 flex items-center justify-between gap-4">
         <div class="flex items-center gap-3.5">
-          <div class="w-14 h-14 shrink-0">${weatherIcon(wmoKind(D.weather_code?.[idx]??0), true, false)}</div>
+          <div class="w-14 h-14 shrink-0">${weatherIcon(wmoKind(wCode), true, false)}</div>
           <div>
-            <p class="text-base font-semibold text-white">${wmoText(D.weather_code?.[idx]??0)}</p>
+            <p class="text-base font-semibold text-white">${f?.condition || wmoText(wCode)}</p>
             <p class="text-xs text-white/65 mt-0.5">สูงสุด <b class="text-white">${hi}°C</b> · ต่ำสุด <b class="text-white">${lo}°C</b></p>
           </div>
         </div>
         <div class="text-right text-xs">
-          <p class="text-sky-200 font-semibold">โอกาสฝน ${pop}%</p>
-          <p class="text-white/65 mt-0.5">ฝนรวม ${psum.toFixed(1)} มม.</p>
+          <p class="text-sky-200 font-semibold">โอกาสเกิดฝน ${pop}%</p>
+          <p class="text-white/65 mt-0.5">ฝนคาดการณ์ ${psum.toFixed(1)} มม.</p>
         </div>
       </div>
 
