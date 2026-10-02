@@ -40,9 +40,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@100..700&display=swap" rel="stylesheet">
 
-<!-- แผนที่ Leaflet สำหรับปักหมุดเลือกพื้นที่อำเภอ/ตำบลของตัวเอง (โหลดแบบ defer ไม่บล็อกหน้าจอหลัก) -->
+<!-- แผนที่ Leaflet สำหรับปักหมุดเลือกพื้นที่อำเภอ/ตำบลของตัวเอง: โหลด CSS ก่อน ส่วน JS (~140KB) จะถูกดึงแบบ Lazy เมื่อเปิดหน้าต่างปักหมุดครั้งแรกเท่านั้น เพื่อลดภาระตอนเปิดแอปบนมือถือ -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
 <!-- ============================================================
      ส่วนที่ 2: รูปแบบดีไซน์ (Tailwind CSS + สไตล์เสริมรองรับ 60/120fps บนมือถือ)
@@ -168,12 +167,14 @@ tailwind.config = {
     border-radius: 26px 26px 0 0;
   }
 
-  /* ปรับแต่งประสิทธิภาพบนหน้าจอมือถือ (ลด Recursive Blur ป้องกันอาการทัชสะดุด 100%) */
+  /* ปรับแต่งประสิทธิภาพบนหน้าจอมือถือ: ตัด backdrop-filter ออกทั้งหมด
+     (blur บน GPU ต้องเรนเดอร์ซ้ำทุกเฟรมขณะเลื่อนจอ เป็นสาเหตุหลักของอาการไถสะดุด
+     จึงใช้พื้นหลังไล่สีทึบขึ้นแทน ให้หน้าตาใกล้เคียงเดิมแต่ลื่นเป็นพิเศษ) */
   @media (max-width: 768px){
     .glass{
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      background: linear-gradient(135deg, rgba(22, 34, 64, 0.82) 0%, rgba(12, 19, 36, 0.90) 100%);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: linear-gradient(135deg, rgba(22, 34, 64, 0.93) 0%, rgba(12, 19, 36, 0.96) 100%);
       box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.42);
     }
     .glass-in{
@@ -183,12 +184,19 @@ tailwind.config = {
       border-color: rgba(255, 255, 255, 0.16);
     }
     header.top-header{
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: linear-gradient(180deg, rgba(8, 14, 28, 0.97) 0%, rgba(12, 20, 38, 0.95) 100%);
     }
     #mobileNav{
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: linear-gradient(0deg, rgba(6, 10, 22, 0.98) 0%, rgba(14, 24, 46, 0.96) 100%);
+    }
+    /* โมเดลและป็อปอัป (แสดงครั้งละชั้น ไม่อยู่ในระหว่างการไถเลื่อน) คงเบลอไว้แต่ลดความเข้มลง */
+    .glass-strong{
+      backdrop-filter: blur(12px) saturate(160%);
+      -webkit-backdrop-filter: blur(12px) saturate(160%);
     }
   }
 
@@ -363,11 +371,11 @@ tailwind.config = {
   </div>
   <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5">
     <div class="flex items-center gap-2 sm:gap-3">
-      <!-- โลโก้และชื่อแอป -->
-      <div class="flex items-center gap-2 shrink-0">
-        <img src="icon-192.png" alt="เมฆา" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover shadow-md border border-white/20 shrink-0"
+      <!-- โลโก้และชื่อแอป (ไอคอนใหม่ M ภูเขาหิมะ พร้อมป้ายสถานะสด) -->
+      <div class="flex items-center gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="เมฆา พยากรณ์อากาศ">
+        <img src="icon-192.png" alt="เมฆา" class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-cover shadow-lg border border-sky-400/35 shrink-0 transform-gpu transition-transform hover:scale-105"
              onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
-        <svg viewBox="0 0 40 40" class="hidden w-8 h-8 sm:w-9 sm:h-9 shrink-0" aria-hidden="true">
+        <svg viewBox="0 0 40 40" class="hidden w-9 h-9 sm:w-10 sm:h-10 shrink-0" aria-hidden="true">
           <circle cx="27" cy="13" r="5.4" fill="#ffd166"/>
           <g stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" opacity=".9">
             <line x1="27" y1="3.6" x2="27" y2="6"/><line x1="36.4" y1="13" x2="39" y2="13"/><line x1="33.8" y1="6.2" x2="35.6" y2="4.4"/>
@@ -375,14 +383,19 @@ tailwind.config = {
           <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
                 transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
         </svg>
-        <div class="hidden xs:block sm:block min-w-0">
-          <p class="font-semibold leading-none tracking-wide text-sm sm:text-[15px]">เมฆา</p>
-          <p class="hidden sm:block text-[10px] text-amber-200/80 leading-none mt-1 font-medium">MIX NATTANONT • ZERODAY</p>
+        <div class="flex flex-col justify-center min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-bold leading-none tracking-wide text-base sm:text-lg text-white">เมฆา</span>
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[10px] text-emerald-300 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>สด
+            </span>
+          </div>
+          <span class="text-[10px] text-sky-200/60 leading-none mt-1 font-medium hidden sm:inline">พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม</span>
         </div>
       </div>
 
-      <!-- ช่องค้นหาตรงกลาง (อยู่แถวเดียวกับโลโก้ทั้งบนมือถือและคอมพิวเตอร์) -->
-      <div class="relative flex-1 max-w-md mx-auto">
+      <!-- ช่องค้นหาตรงกลาง (ขยายขนาดสมดุลทั้งบนมือถือและคอมพิวเตอร์) -->
+      <div class="relative flex-1 max-w-lg mx-auto">
         <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
@@ -413,6 +426,78 @@ tailwind.config = {
 </header>
 
 <main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-8 pt-3 sm:pt-4">
+  <!-- ============================================================
+       แถบสรุปสถานะด่วน 4 ตัวชี้วัดสำคัญ (Weather Highlights Ticker)
+       - เชื่อมต่อและซิงก์ข้อมูลสภาพอากาศสดแบบ Real-time
+       - รองรับ 60/120fps ลื่นไหล แตะเพื่อเลื่อนไปยังรายละเอียดได้ทันที
+       ============================================================ -->
+  <section id="topWeatherTicker" class="mb-3.5 sm:mb-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+      
+      <!-- การ์ดที่ 1: โอกาสฝน & ฝนสะสม 3 วัน -->
+      <div onclick="document.getElementById('secFlood')?.scrollIntoView({behavior:'smooth'})"
+        class="glass-in p-3 sm:p-3.5 rounded-2xl border border-white/15 hover:border-sky-400/40 cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group shadow-sm hover:shadow-sky-500/10">
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <span class="text-[11px] sm:text-xs text-white/60 font-medium truncate group-hover:text-sky-300 transition">โอกาสฝนวันนี้</span>
+          <span class="w-6 h-6 rounded-full bg-sky-500/15 flex items-center justify-center text-xs shrink-0">🌧️</span>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="tickerRainVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">--%</span>
+        </div>
+        <div id="tickerRainSub" class="text-[10px] sm:text-[11px] text-sky-200/75 truncate mt-0.5 font-medium">
+          คำนวณฝนสะสม 3 วัน…
+        </div>
+      </div>
+
+      <!-- การ์ดที่ 2: ความเร็วลม & ลมกระโชก -->
+      <div onclick="document.querySelector('[data-metric=\'wind\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
+        class="glass-in p-3 sm:p-3.5 rounded-2xl border border-white/15 hover:border-teal-400/40 cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group shadow-sm hover:shadow-teal-500/10">
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <span class="text-[11px] sm:text-xs text-white/60 font-medium truncate group-hover:text-teal-300 transition">กระแสลม &amp; ลมกระโชก</span>
+          <span class="w-6 h-6 rounded-full bg-teal-500/15 flex items-center justify-center text-xs shrink-0">💨</span>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="tickerWindVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">-- กม./ชม.</span>
+        </div>
+        <div id="tickerWindSub" class="text-[10px] sm:text-[11px] text-teal-200/75 truncate mt-0.5 font-medium">
+          กำลังวัดความเร็วลม…
+        </div>
+      </div>
+
+      <!-- การ์ดที่ 3: ดัชนีรังสี UV -->
+      <div onclick="document.querySelector('[data-metric=\'uv\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
+        class="glass-in p-3 sm:p-3.5 rounded-2xl border border-white/15 hover:border-amber-400/40 cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group shadow-sm hover:shadow-amber-500/10">
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <span class="text-[11px] sm:text-xs text-white/60 font-medium truncate group-hover:text-amber-300 transition">ดัชนีรังสี UV</span>
+          <span class="w-6 h-6 rounded-full bg-amber-500/15 flex items-center justify-center text-xs shrink-0">☀️</span>
+        </div>
+        <div class="flex items-baseline gap-1.5">
+          <span id="tickerUvVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">ระดับ --</span>
+        </div>
+        <div id="tickerUvSub" class="text-[10px] sm:text-[11px] text-amber-200/75 truncate mt-0.5 font-medium">
+          ประเมินความเข้มแสงแดด…
+        </div>
+      </div>
+
+      <!-- การ์ดที่ 4: คุณภาพอากาศ PM2.5 -->
+      <div onclick="document.getElementById('secPM')?.scrollIntoView({behavior:'smooth'}) || document.querySelector('[data-metric=\'pm25\']')?.click()"
+        class="glass-in p-3 sm:p-3.5 rounded-2xl border border-white/15 hover:border-emerald-400/40 cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group shadow-sm hover:shadow-emerald-500/10">
+        <div class="flex items-center justify-between gap-1 mb-1">
+          <span class="text-[11px] sm:text-xs text-white/60 font-medium truncate group-hover:text-emerald-300 transition">คุณภาพอากาศ PM2.5</span>
+          <span class="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center text-xs shrink-0">🍃</span>
+        </div>
+        <div class="flex items-baseline gap-2">
+          <span id="tickerPmVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">-- µg/m³</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-200/80 truncate mt-0.5 font-medium">
+          <span id="tickerPmDot" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+          <span id="tickerPmSub" class="truncate">กำลังตรวจวัด…</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- ใช้ contents บนมือถือเพื่อเรียงลำดับการ์ดให้เหมาะกับการไถนิ้วบนมือถือโดยเฉพาะ และแยก 2 คอลัมน์สมดุลบนจอใหญ่ -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
 
@@ -521,17 +606,13 @@ tailwind.config = {
             </button>
           </div>
 
-          <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ + ปุ่มสลับอำเภอในจังหวัดเดียวกัน -->
+          <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ (ปุ่ม GPS รวมเป็นปุ่มเดียวที่หัวเว็บแล้ว) -->
           <div class="mt-2.5 glass-in rounded-2xl p-3">
             <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
                 <p class="text-[11px] text-white/55">พื้นที่อำเภอเฝ้าระวังของคุณ</p>
                 <p id="floodAreaTitle" class="text-sm font-semibold text-amber-200 mt-0.5 truncate">กำลังระบุอำเภอที่ปักหมุด…</p>
               </div>
-              <button id="btnFloodSyncGps" title="ปักหมุดตามพิกัด GPS ปัจจุบัน"
-                class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-[11px] text-white/90 transition shrink-0">
-                พิกัดฉัน
-              </button>
             </div>
 
             <div id="provinceDistrictWrap" class="mt-2.5 pt-2.5 border-t border-white/10 hidden">
@@ -781,11 +862,10 @@ tailwind.config = {
         </div>
       </div>
 
-      <!-- แผนที่อินเทอร์แอคทีฟสำหรับจิ้มปักหมุดจุดที่ต้องการ -->
+      <!-- แผนที่อินเทอร์แอคทีฟสำหรับจิ้มปักหมุดจุดที่ต้องการ (ปุ่ม GPS รวมเป็นปุ่มเดียวที่หัวเว็บแล้ว) -->
       <div class="mt-3.5">
-        <div class="flex items-center justify-between text-[11px] text-white/65 mb-1.5">
+        <div class="text-[11px] text-white/65 mb-1.5">
           <span>แตะหรือลากหมุดบนแผนที่เพื่อเลือกจุดพิกัดโดยตรง:</span>
-          <button id="btnMapMyGps" class="text-amber-300 hover:underline font-medium">ใช้พิกัด GPS ของฉัน</button>
         </div>
         <div id="pinMapContainer" class="w-full h-56 sm:h-72 rounded-2xl overflow-hidden border border-white/15"></div>
       </div>
@@ -837,7 +917,7 @@ const els = {
   metricModalTabs:$('#metricModalTabs'), metricModalBody:$('#metricModalBody'), btnMetricModalClose:$('#btnMetricModalClose'),
   pinModal:$('#pinModal'), btnPinModalClose:$('#btnPinModalClose'),
   selectProvince:$('#selectProvince'), selectDistrict:$('#selectDistrict'),
-  btnMapMyGps:$('#btnMapMyGps'), pinMapContainer:$('#pinMapContainer'),
+  pinMapContainer:$('#pinMapContainer'),
   pinPreviewTitle:$('#pinPreviewTitle'), pinPreviewSub:$('#pinPreviewSub'), btnConfirmPin:$('#btnConfirmPin'),
   placeName:$('#placeName'), placeMeta:$('#placeMeta'), clockLine:$('#clockLine'),
   pinIcon:$('#pinIcon'), btnRefresh:$('#btnRefresh'), bigIcon:$('#bigIcon'),
@@ -847,7 +927,7 @@ const els = {
   detailGrid:$('#detailGrid'),
   pmValue:$('#pmValue'), pmLevel:$('#pmLevel'), pmBar:$('#pmBar'), pmNeedle:$('#pmNeedle'), pmAdvice:$('#pmAdvice'),
   btnFloodPinMap:$('#btnFloodPinMap'), floodPinBtnIcon:$('#floodPinBtnIcon'),
-  floodAreaTitle:$('#floodAreaTitle'), btnFloodSyncGps:$('#btnFloodSyncGps'),
+  floodAreaTitle:$('#floodAreaTitle'),
   provinceDistrictWrap:$('#provinceDistrictWrap'), provinceDistrictLabel:$('#provinceDistrictLabel'),
   districtPills:$('#districtPills'),
   floodBadge:$('#floodBadge'), floodNow:$('#floodNow'),
@@ -923,6 +1003,36 @@ function calcDewPoint(tempC, rh){
   const a = 17.27, b = 237.7;
   const alpha = ((a * tempC) / (b + tempC)) + Math.log(Math.max(rh, 1) / 100);
   return (b * alpha) / (a - alpha);
+}
+
+/* แปลงสตริงเวลาให้เป็นรูปแบบ HH:MM มาตรฐาน
+   รองรับ ISO datetime "2026-10-02T06:12" (Open-Meteo), เวลาล้วน "06:12"
+   และฟอร์แมต "6:12 AM" (WeatherAPI โหมดสำรอง) — คืนค่า null หากข้อมูลไม่ถูกต้อง
+   ป้องกัน Date.parse ได้ NaN */
+function timeHHMM(s){
+  if(!s || typeof s !== 'string') return null;
+  const m = /(?:^|T)\s*(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?\s*$/i.exec(s);
+  if(!m) return null;
+  let h = parseInt(m[1], 10);
+  const min = m[2];
+  const ap = m[3] ? m[3].toUpperCase() : null;
+  if(ap === 'PM' && h !== 12) h += 12;
+  if(ap === 'AM' && h === 12) h = 0;
+  if(h > 23) return null;
+  return `${String(h).padStart(2, '0')}:${min}`;
+}
+
+/* แปลงเวลาพระอาทิตย์ขึ้น-ตกเป็น timestamp ในระบบ "เวลาท้องถิ่นเขียนแบบ UTC" ของแอป
+   (ระบบเก็บเวลาท้องถิ่นเป็น epoch เสมือน: nowL = Date.now() + utc_offset_seconds*1000)
+   รองรับ ISO "2026-10-02T06:12" (Open-Meteo) และ "6:12 AM" (WeatherAPI โหมดสำรอง) */
+function sunTimeToTs(s){
+  const t = timeHHMM(s);
+  if(!t) return null;
+  let day;
+  const dm = /^\s*(\d{4}-\d{2}-\d{2})T/.exec(s);
+  if(dm) day = dm[1];
+  else day = new Date(Date.now() + (state?.w?.utc_offset_seconds || 0) * 1000).toISOString().slice(0, 10);
+  return Date.parse(day + 'T' + t + ':00Z');
 }
 
 /* ---------- ชุดไอคอนเวกเตอร์ ---------- */
@@ -1154,8 +1264,8 @@ function applyTheme(){
   const nowL = Date.now() + (w.utc_offset_seconds || 25200) * 1000;
   
   const rawD = w.daily;
-  const sr = rawD && rawD.sunrise && rawD.sunrise[0] ? Date.parse(rawD.sunrise[0]+':00Z') : null;
-  const ss = rawD && rawD.sunset && rawD.sunset[0] ? Date.parse(rawD.sunset[0]+':00Z') : null;
+  const sr = sunTimeToTs(rawD && rawD.sunrise ? rawD.sunrise[0] : null);
+  const ss = sunTimeToTs(rawD && rawD.sunset ? rawD.sunset[0] : null);
   
   const sky = getAtmosphericSky(kind, isDayVal, nowL, sr, ss, c);
   state.skyPhaseLabel = sky.label;
@@ -2024,10 +2134,96 @@ async function loadWeather(place){
   }
 }
 
+function renderTopTicker(){
+  const can = state.canonical;
+  const c = can ? can.current : (state.w?.current || {});
+  const D = can ? can.today : (state.w?.daily || {});
+  const H = state.w?.hourly || {};
+  const air = state.a?.current;
+
+  // 1. โอกาสฝนวันนี้ & ฝนสะสม 3 วัน
+  const popVal = D.precipitationProbability ?? D.precipitation_probability_max?.[0] ?? (c.precipitationProbability ?? 0);
+  let rain3d = 0;
+  if (state.w?.daily?.precipitation_sum) {
+    const sums = state.w.daily.precipitation_sum;
+    rain3d = (sums[0] || 0) + (sums[1] || 0) + (sums[2] || 0);
+  } else if (D.precipitationSum != null) {
+    rain3d = D.precipitationSum;
+  }
+  const rainEl = document.getElementById('tickerRainVal');
+  const rainSub = document.getElementById('tickerRainSub');
+  if (rainEl) rainEl.textContent = `${Math.round(popVal)}%`;
+  if (rainSub) {
+    rainSub.textContent = rain3d > 0.05 ? `ฝนสะสม 3 วัน ${rain3d.toFixed(1)} มม.` : 'ไม่มีฝนสะสมตกหนัก';
+  }
+
+  // 2. ความเร็วลม & ลมกระโชก
+  const curWindSpd = Math.round(c.windSpeed ?? c.wind_speed_10m ?? 0);
+  const curWindGust = c.windGusts ?? c.wind_gusts_10m ?? null;
+  const curWindDir = c.windDirection ?? c.wind_direction_10m ?? 0;
+  const wdir = typeof dirTH === 'function' ? dirTH(curWindDir) : 'ลมสงบ';
+  const windEl = document.getElementById('tickerWindVal');
+  const windSub = document.getElementById('tickerWindSub');
+  if (windEl) windEl.textContent = `${curWindSpd} กม./ชม.`;
+  if (windSub) {
+    windSub.textContent = curWindGust != null && curWindGust > curWindSpd
+      ? `ลมกระโชก ${Math.round(curWindGust)} กม./ชม.`
+      : `ทิศ${wdir} · พัดสบาย`;
+  }
+
+  // 3. ดัชนีรังสี UV
+  let curUV = c.uvIndex ?? c.uv_index;
+  if (curUV == null && H.uv_index) {
+    const hr = new Date().getHours();
+    curUV = H.uv_index[hr] ?? 0;
+  }
+  curUV = curUV != null ? Math.round(curUV) : 0;
+  const maxUV = Math.round(D.uvIndexMax ?? D.uv_index_max?.[0] ?? curUV);
+  const uvEl = document.getElementById('tickerUvVal');
+  const uvSub = document.getElementById('tickerUvSub');
+  if (uvEl) uvEl.textContent = `ระดับ ${curUV}`;
+  if (uvSub) {
+    let uvTxt = 'ปลอดภัย';
+    if (typeof uvLevel === 'function') {
+      const uInfo = uvLevel(curUV);
+      uvTxt = uInfo[0] || 'ปลอดภัย';
+    } else {
+      if (curUV >= 11) uvTxt = 'ระดับอันตราย';
+      else if (curUV >= 8) uvTxt = 'ระดับสูงมาก';
+      else if (curUV >= 6) uvTxt = 'ระดับสูง';
+      else if (curUV >= 3) uvTxt = 'ระดับปานกลาง';
+      else uvTxt = 'ระดับต่ำ (ปลอดภัย)';
+    }
+    uvSub.textContent = `${uvTxt} · สูงสุด ${maxUV}`;
+  }
+
+  // 4. คุณภาพอากาศ PM2.5
+  const pm = air?.pm2_5;
+  const pmEl = document.getElementById('tickerPmVal');
+  const pmSub = document.getElementById('tickerPmSub');
+  const pmDot = document.getElementById('tickerPmDot');
+  if (pmEl) {
+    if (pm == null) {
+      pmEl.textContent = '—';
+      if (pmSub) pmSub.textContent = 'ไม่มีข้อมูลเซนเซอร์';
+    } else {
+      const pmNum = Math.round(pm);
+      pmEl.textContent = `${pmNum} µg/m³`;
+      if (typeof pmLevelOf === 'function') {
+        const lv = pmLevelOf(pm);
+        if (pmSub) pmSub.textContent = lv.name;
+        if (pmDot) pmDot.style.backgroundColor = lv.color;
+      } else {
+        if (pmSub) pmSub.textContent = pmNum <= 15 ? 'คุณภาพอากาศดีมาก' : pmNum <= 25 ? 'คุณภาพอากาศดี' : 'เริ่มมีผลต่อสุขภาพ';
+      }
+    }
+  }
+}
+
 function renderAll(isHybrid=false){
   applyTheme();
   renderHourly();
-  renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun();
+  renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun(); renderTopTicker();
   tickClock();
   const can = state.canonical;
   const tz = can ? can.location.timezone : (state.w?.timezone || 'Asia/Bangkok');
@@ -2503,6 +2699,22 @@ async function updatePinPreview(lat, lon){
   }
 }
 
+/* โหลด Leaflet.js แบบ Lazy เฉพาะเมื่อต้องใช้แผนที่ครั้งแรก (ลดขนาดงาน JS ตอนเปิดแอปบนมือถือ) */
+let leafletLoading=null;
+function ensureLeaflet(){
+  if(window.L) return Promise.resolve();
+  if(leafletLoading) return leafletLoading;
+  leafletLoading = new Promise((resolve, reject)=>{
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    s.crossOrigin='';
+    s.onload=()=>resolve();
+    s.onerror=()=>{ leafletLoading=null; reject(new Error('Leaflet load failed')); };
+    document.head.appendChild(s);
+  });
+  return leafletLoading;
+}
+
 async function openPinModal(){
   await loadThaiDistricts();
   els.pinModal.classList.remove('hidden');
@@ -2516,28 +2728,29 @@ async function openPinModal(){
   els.pinPreviewSub.textContent = `พิกัด ${cur.lat.toFixed(4)}°, ${cur.lon.toFixed(4)}°`;
 
   setTimeout(()=>{
-    if(!window.L) return;
-    if(!state.map){
-      state.map = L.map(els.pinMapContainer).setView([cur.lat, cur.lon], 11);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap'
-      }).addTo(state.map);
-      state.mapMarker = L.marker([cur.lat, cur.lon], { draggable: true }).addTo(state.map);
-      state.map.on('click', e => {
-        const { lat, lng } = e.latlng;
-        state.mapMarker.setLatLng([lat, lng]);
-        updatePinPreview(lat, lng);
-      });
-      state.mapMarker.on('dragend', () => {
-        const { lat, lng } = state.mapMarker.getLatLng();
-        updatePinPreview(lat, lng);
-      });
-    } else {
-      state.map.invalidateSize();
-      state.map.setView([cur.lat, cur.lon], 11);
-      state.mapMarker.setLatLng([cur.lat, cur.lon]);
-    }
+    ensureLeaflet().then(()=>{
+      if(!state.map){
+        state.map = L.map(els.pinMapContainer).setView([cur.lat, cur.lon], 11);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          attribution: '© OpenStreetMap'
+        }).addTo(state.map);
+        state.mapMarker = L.marker([cur.lat, cur.lon], { draggable: true }).addTo(state.map);
+        state.map.on('click', e => {
+          const { lat, lng } = e.latlng;
+          state.mapMarker.setLatLng([lat, lng]);
+          updatePinPreview(lat, lng);
+        });
+        state.mapMarker.on('dragend', () => {
+          const { lat, lng } = state.mapMarker.getLatLng();
+          updatePinPreview(lat, lng);
+        });
+      } else {
+        state.map.invalidateSize();
+        state.map.setView([cur.lat, cur.lon], 11);
+        state.mapMarker.setLatLng([cur.lat, cur.lon]);
+      }
+    }).catch(()=>{ /* โหลดแผนที่ไม่สำเร็จ (เช่นออฟไลน์) — ยังเลือกจังหวัด/อำเภอจากลิสต์ได้ตามปกติ */ });
   }, 80);
 }
 const closePinModal = () => els.pinModal.classList.add('hidden');
@@ -2580,6 +2793,16 @@ function renderHourly(){
     });
   }
   state.hourList=list;
+  /* โหมดสำรอง (Open-Meteo ใช้งานไม่ได้) อาจไม่มีข้อมูลรายชั่วโมงเลย
+     ต้องจบการวาดกราฟอย่างปลอดภัย ไม่เช่นนั้นสมการคำนวณจุดจะพังและหยุด renderAll ทั้งหมด */
+  if(!list.length){
+    state.hourW=0;
+    els.hourInner.style.width='0px';
+    els.hourSvg.setAttribute('width', 0);
+    els.hourSvg.innerHTML='<text x="8" y="120" font-size="12" fill="rgba(255,255,255,.55)">ไม่มีข้อมูลพยากรณ์รายชั่วโมงจากแหล่งข้อมูลหลัก — แสดงโหมดสำรอง</text>';
+    els.hourTip.classList.add('hidden'); els.hourCursor.classList.add('hidden');
+    return;
+  }
   const step=62, W=list.length*step; state.hourW=W;
   els.hourInner.style.width=W+'px';
   const temps=list.map(o=>o.temp), tmin=Math.min(...temps), tmax=Math.max(...temps);
@@ -2701,10 +2924,17 @@ function renderDaily(){
 /* ---------- เส้นทางดวงอาทิตย์ ---------- */
 function renderSun(){
   const D=state.w.daily, off=state.w.utc_offset_seconds;
-  const sr=D.sunrise[0], ss=D.sunset[0];
-  els.sunriseTime.textContent=sr.slice(11,16)+' น.';
-  els.sunsetTime.textContent=ss.slice(11,16)+' น.';
-  const a=Date.parse(sr+':00Z'), b=Date.parse(ss+':00Z');
+  const srT=timeHHMM(D.sunrise?.[0]), ssT=timeHHMM(D.sunset?.[0]);
+  if(!srT || !ssT){
+    els.sunriseTime.textContent='--:--'; els.sunsetTime.textContent='--:--';
+    els.sunDayLength.textContent='—';
+    els.sunStatus.textContent='ไม่พบข้อมูลเวลาพระอาทิตย์ขึ้น-ตกสำหรับพื้นที่นี้ในขณะนี้';
+    els.sunSvg.innerHTML='';
+    return;
+  }
+  els.sunriseTime.textContent=srT+' น.';
+  els.sunsetTime.textContent=ssT+' น.';
+  const a=sunTimeToTs(D.sunrise?.[0]), b=sunTimeToTs(D.sunset?.[0]);
   const dur=b-a, h=Math.floor(dur/3600000), m=Math.round(dur%3600000/60000);
   els.sunDayLength.textContent=`${h} ชม. ${m} น.`;
   const nowL=Date.now()+off*1000;
@@ -2722,8 +2952,8 @@ function renderSun(){
     const remain=b-nowL, rh=Math.floor(remain/3600000), rm=Math.round(remain%3600000/60000);
     els.sunStatus.textContent=`ขณะนี้ดวงอาทิตย์อยู่บนฟ้า (ผ่านเวลากลางวันแล้ว ${Math.round(p*100)}%) จะตกลับขอบฟ้าในอีก ${rh} ชั่วโมง ${rm} นาที`;
   }else{
-    const next=D.sunrise[1]||sr;
-    els.sunStatus.textContent=`ขณะนี้อยู่ในช่วงเวลากลางคืน ดวงอาทิตย์จะขึ้นรับวันใหม่อีกครั้งเวลา ${next.slice(11,16)} น.`;
+    const nextT=timeHHMM(D.sunrise?.[1]) || srT;
+    els.sunStatus.textContent=`ขณะนี้อยู่ในช่วงเวลากลางคืน ดวงอาทิตย์จะขึ้นรับวันใหม่อีกครั้งเวลา ${nextT} น.`;
   }
 }
 
@@ -3202,8 +3432,8 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'sun'){
     title = '🌅 เส้นทางดวงอาทิตย์ & ช่วงเวลาแสง';
-    const sr = D.sunrise?.[0]?.slice(11,16) || '06:00';
-    const ss = D.sunset?.[0]?.slice(11,16) || '18:00';
+    const sr = timeHHMM(D.sunrise?.[0]) || '06:00';
+    const ss = timeHHMM(D.sunset?.[0]) || '18:00';
     body = `
       <div class="grid grid-cols-3 gap-2.5 text-center text-xs">
         <div class="glass-in rounded-2xl p-3">
@@ -3325,11 +3555,13 @@ function toast(msg, type='info', ms=2800){
 }
 
 /* ---------- ระบบค้นหาในช่องด้านบน ---------- */
-let searchTimer=null, lastResults=[];
+let searchTimer=null, lastResults=[], searchToken=0, lastSearchQ='';
 function doSearch(q){
+  const myTok=++searchToken; lastSearchQ=q;
   els.searchSpin.innerHTML=uiIcon('refresh','w-4 h-4 animate-spin');
   els.searchSpin.classList.remove('hidden'); els.searchIcon.classList.add('hidden');
   geocodeSearch(q).then(res=>{
+    if(myTok!==searchToken) return; /* ผู้ใช้พิมพ์คำใหม่แล้ว ทิ้งผลของคำเก่า ไม่ให้ทับหน้าจอ */
     lastResults=res;
     els.searchSpin.classList.add('hidden'); els.searchIcon.classList.remove('hidden');
     if(!res.length){ els.searchResults.innerHTML=`<p class="px-4 py-3.5 text-sm text-white/70">ไม่พบข้อมูลสถานที่ กรุณาลองคำอื่น</p>`; els.searchResults.classList.remove('hidden'); return; }
@@ -3341,6 +3573,7 @@ function doSearch(q){
       </button>`).join('');
     els.searchResults.classList.remove('hidden');
   }).catch(()=>{
+    if(myTok!==searchToken) return;
     els.searchSpin.classList.add('hidden'); els.searchIcon.classList.remove('hidden');
     toast('เกิดข้อผิดพลาดในการเชื่อมต่อ กรุณาลองอีกครั้ง','error');
   });
@@ -3445,7 +3678,7 @@ function bindEvents(){
     const dayRow = e.target.closest('[data-day]');
     if(dayRow){ openMetricModal('day:' + dayRow.dataset.day); return; }
     const metricEl = e.target.closest('[data-metric]');
-    if(metricEl && !e.target.closest('#btnFloodPinMap') && !e.target.closest('#btnFloodSyncGps') && !e.target.closest('#districtPills')){
+    if(metricEl && !e.target.closest('#btnFloodPinMap') && !e.target.closest('#districtPills')){
       openMetricModal(metricEl.dataset.metric);
     }
   });
@@ -3465,7 +3698,11 @@ function bindEvents(){
     els.searchInput.focus();
   });
   els.searchInput.addEventListener('keydown', e=>{
-    if(e.key==='Enter'&&lastResults.length){ chooseResult(lastResults[0]); }
+    if(e.key==='Enter' && lastResults.length
+       && !els.searchResults.classList.contains('hidden')
+       && els.searchInput.value.trim()===lastSearchQ){
+      chooseResult(lastResults[0]);
+    }
     if(e.key==='Escape') els.searchResults.classList.add('hidden');
   });
   els.searchResults.addEventListener('click', e=>{
@@ -3525,18 +3762,6 @@ function bindEvents(){
     }catch(e){}
   });
 
-  els.btnMapMyGps.addEventListener('click', ()=>{
-    if(!navigator.geolocation){ toast('เบราว์เซอร์ไม่รองรับ GPS','error'); return; }
-    navigator.geolocation.getCurrentPosition(pos=>{
-      const { latitude:lat, longitude:lon } = pos.coords;
-      if(state.map && state.mapMarker){
-        state.map.setView([lat, lon], 13);
-        state.mapMarker.setLatLng([lat, lon]);
-      }
-      updatePinPreview(lat, lon);
-    }, ()=>toast('ไม่สามารถดึงพิกัด GPS ได้','error'));
-  });
-
   els.btnConfirmPin.addEventListener('click', ()=>{
     if(!state.pendingPin) return;
     closePinModal();
@@ -3544,8 +3769,9 @@ function bindEvents(){
     toast(`ปักหมุดพื้นที่ “${state.pendingPin.admin || state.pendingPin.name}” เรียบร้อยแล้ว`, 'success');
   });
 
+  /* ปุ่ม GPS ปุ่มเดียวของแอป (หัวเว็บ): กดครั้งเดียวแล้วทุกการ์ดเปลี่ยนเป็นตำแหน่งปัจจุบัน
+     ผ่าน loadWeather() ซึ่งอัปเดตทั้งสภาพอากาศ พยากรณ์ ฝุ่น ดวงอาทิตย์ และเตือนภัยน้ำท่วมพร้อมกัน */
   els.btnLocate.addEventListener('click', ()=>locate(false));
-  els.btnFloodSyncGps.addEventListener('click', ()=>locate(false));
   els.btnRefresh.addEventListener('click', ()=>{
     if(!state.place) return;
     toast('กำลังดึงข้อมูลพยากรณ์อากาศและระดับน้ำล่าสุด…','info',1800);
@@ -3603,21 +3829,16 @@ async function initVisitorCounter() {
     const isNewVisit = !sessionStorage.getItem('mekha_session_real_visit');
     if (isNewVisit) {
       sessionStorage.setItem('mekha_session_real_visit', '1');
-    }
-
-    // เรียก API คลาวด์จริง 100% (นับครั้งใหม่เฉพาะเมื่อเปิดเซสชันใหม่)
-    const endpoint = isNewVisit
-      ? 'https://counterapi.com/api/counter/mekha-miximage-live/increment'
-      : 'https://counterapi.com/api/counter/mekha-miximage-live/increment';
-
-    const res = await fetch(endpoint, { cache: 'no-cache' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data.value === 'number') {
-        const realCount = data.value;
-        localStorage.setItem('mekha_real_visitors', String(realCount));
-        animateCounter(el, Math.max(1, localCount), realCount);
-        return;
+      /* เรียก API นับครั้งใหม่เฉพาะเมื่อเปิดเซสชันใหม่ — เซสชันเดิมใช้ค่าที่บันทึกไว้ในเครื่อง ไม่ยิงเครือข่ายซ้ำ */
+      const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-live/increment', { cache: 'no-cache' });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.value === 'number') {
+          const realCount = data.value;
+          localStorage.setItem('mekha_real_visitors', String(realCount));
+          animateCounter(el, Math.max(1, localCount), realCount);
+          return;
+        }
       }
     }
   } catch (e) {

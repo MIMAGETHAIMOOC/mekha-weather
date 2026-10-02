@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mekha-weather-v20';
+const CACHE_NAME = 'mekha-weather-v21';
 const ASSETS = [
   '/',
   '/index.html',
@@ -37,7 +37,10 @@ self.addEventListener('fetch', event => {
         const clone = res.clone();
         caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         return res;
-      }).catch(() => caches.match(event.request) || caches.match('/index.html'))
+      }).catch(() =>
+        // caches.match() คืน Promise (truthy เสมอ) ต้องเทียบภายใน .then จึงจะ fallback ไปหน้า index ได้
+        caches.match(event.request).then(hit => hit || caches.match('/index.html'))
+      )
     );
     return;
   }
