@@ -672,6 +672,14 @@ tailwind.config = {
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-in border border-amber-300/25 text-amber-200 font-semibold text-xs tracking-wide shadow-sm">
         <span>ผู้พัฒนา: MIX NATTANONT • ZERODAY</span>
       </div>
+      <!-- Visitor Counter: Style 3 Cyber Neon Pill -->
+      <div id="visitorCounter" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 border border-indigo-500/35 text-white shadow-lg shadow-indigo-500/10 backdrop-blur-md">
+        <span class="text-xs">👁️</span>
+        <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
+        <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
+          001,482
+        </div>
+      </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
         <span>🛡️ แหล่งที่มาของข้อมูล · ดูเพิ่ม</span>
       </button>
@@ -3561,10 +3569,67 @@ function bindEvents(){
   });
 }
 
+/* ---------- ระบบนับยอดผู้เข้าชม (Style 3: Cyber Neon Pill) ---------- */
+function animateCounter(el, start, end) {
+  if (start >= end) {
+    el.textContent = String(end).padStart(6, '0');
+    return;
+  }
+  const duration = 1200;
+  const startTime = performance.now();
+  function step(now) {
+    const progress = Math.min((now - startTime) / duration, 1);
+    const easeOutQuad = progress * (2 - progress);
+    const current = Math.floor(start + (end - start) * easeOutQuad);
+    el.textContent = String(current).padStart(6, '0');
+    if (progress < 1) {
+      requestAnimationFrame(step);
+    } else {
+      el.textContent = String(end).padStart(6, '0');
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+async function initVisitorCounter() {
+  const el = document.getElementById('visitorCountNum');
+  if (!el) return;
+
+  let cached = parseInt(localStorage.getItem('mekha_visitor_count') || '1480', 10);
+  el.textContent = String(cached).padStart(6, '0');
+
+  try {
+    const isNewVisit = !sessionStorage.getItem('mekha_session_visited');
+    if (isNewVisit) {
+      sessionStorage.setItem('mekha_session_visited', '1');
+      cached += 1;
+      localStorage.setItem('mekha_visitor_count', String(cached));
+    }
+
+    const res = await fetch('https://counterapi.com/api/counter/mekha-weather-miximage/increment', {
+      cache: 'no-cache'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data.value === 'number') {
+        const finalCount = Math.max(data.value, cached);
+        localStorage.setItem('mekha_visitor_count', String(finalCount));
+        animateCounter(el, cached - (isNewVisit ? 1 : 0), finalCount);
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Counter sync fallback:', e);
+  }
+
+  animateCounter(el, Math.max(1480, cached - 1), cached);
+}
+
 /* ---------- เริ่มต้นการทำงาน ---------- */
 (function boot(){
   bindEvents();
   loadThaiDistricts();
+  initVisitorCounter();
   const saved=localStorage.getItem(LS_PLACE);
   if(saved){
     try{
