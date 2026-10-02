@@ -6,34 +6,34 @@
 <meta name="theme-color" content="#0b111d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="เมฆา">
+<meta name="apple-mobile-web-app-title" content="MIXIMAGE - MEKHA">
 <meta name="author" content="MIX NATTANONT • ZERODAY">
-<meta name="description" content="เมฆา (Mekha Weather) พยากรณ์อากาศสดแม่นยำสูง เตือนภัยน้ำท่วมรายอำเภอ เรดาร์ฝน 24 ชม. และคุณภาพอากาศ PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY">
+<meta name="description" content="MIXIMAGE - MEKHA พยากรณ์อากาศสดแม่นยำสูง เตือนภัยน้ำท่วมรายอำเภอ เรดาร์ฝน 24 ชม. และคุณภาพอากาศ PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY">
 
 <!-- Open Graph / Facebook / LINE Hero Image Preview -->
 <meta property="og:type" content="website">
 <meta property="og:locale" content="th_TH">
 <meta property="og:url" content="https://mekha-miximage.netlify.app/">
-<meta property="og:site_name" content="เมฆา · MIXIMAGE WEATHER">
-<meta property="og:title" content="เมฆา (Mekha Weather) — พยากรณ์อากาศ & เตือนภัยน้ำท่วมรายอำเภอ · MIX NATTANONT • ZERODAY">
+<meta property="og:site_name" content="MIXIMAGE - MEKHA">
+<meta property="og:title" content="MIXIMAGE - MEKHA — พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม">
 <meta property="og:description" content="เช็กสภาพอากาศสดแม่นยำสูง พยากรณ์ฝนรายชั่วโมง เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY">
 <meta property="og:image" content="https://mekha-miximage.netlify.app/og-hero.jpg">
 <meta property="og:image:secure_url" content="https://mekha-miximage.netlify.app/og-hero.jpg">
 <meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1024">
 <meta property="og:image:height" content="535">
-<meta property="og:image:alt" content="เมฆา MIXIMAGE WEATHER — MIX NATTANONT • ZERODAY">
+<meta property="og:image:alt" content="MIXIMAGE - MEKHA — MIX NATTANONT • ZERODAY">
 
 <!-- Twitter / X Large Summary Card -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="เมฆา (Mekha Weather) — พยากรณ์อากาศ & เตือนภัยน้ำท่วมรายอำเภอ">
+<meta name="twitter:title" content="MIXIMAGE - MEKHA — พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม">
 <meta name="twitter:description" content="เช็กสภาพอากาศสดแม่นยำสูง พยากรณ์ฝนรายชั่วโมง เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY">
 <meta name="twitter:image" content="https://mekha-miximage.netlify.app/og-hero.jpg">
 
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
-<title>เมฆา — พยากรณ์อากาศส่วนตัว · MIX NATTANONT • ZERODAY</title>
+<title>MIXIMAGE - MEKHA — พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม</title>
 
 <!-- ฟอนต์ไทย Anuphan: โมเดิร์น สะอาด มีน้ำหนักบางสำหรับตัวเลขอุณหภูมิ -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -385,9 +385,9 @@ tailwind.config = {
         </svg>
         <div class="flex flex-col justify-center min-w-0">
           <div class="flex items-center gap-1.5">
-            <span class="font-bold leading-none tracking-wide text-base sm:text-lg text-white">เมฆา</span>
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[10px] text-emerald-300 font-medium">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>สด
+            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase">MIXIMAGE - MEKHA</span>
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[10px] text-emerald-300 font-semibold tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE
             </span>
           </div>
           <span class="text-[10px] text-sky-200/60 leading-none mt-1 font-medium hidden sm:inline">พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม</span>
@@ -1137,42 +1137,42 @@ function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
     
     if (diffSr >= -45 && diffSr <= 30) {
       phase = 'dawn';
-      label = '🌅 รุ่งอรุณ (Dawn)';
+      label = '🌅 เช้ามืด (Dawn)';
       celestial = 'sunrise';
     } else if (diffSs >= -60 && diffSs <= 20) {
       phase = 'golden';
-      label = '🌇 ยามอัสดง (Golden Hour)';
+      label = '🌇 พระอาทิตย์ตก (Sunset)';
       celestial = 'sunset';
     } else if (diffSs > 20 && diffSs <= 90) {
       phase = 'twilight';
-      label = '🌆 พลบค่ำ (Twilight)';
+      label = '🌆 หัวค่ำ (Twilight)';
       celestial = 'twilight-horizon';
     } else if (!isDay || diffSs > 90 || diffSr < -45) {
       phase = 'night';
-      label = '🌙 ราตรีกาล (Night)';
+      label = '🌙 กลางคืน (Night)';
       celestial = 'moon-stars';
     } else if (hour >= 11.5 && hour <= 14.5) {
       phase = 'noon';
-      label = '☀️ เที่ยงวันแดดจัด (Midday)';
+      label = '☀️ เที่ยงวัน (Midday)';
       celestial = 'sun';
     } else if (hour > 14.5 && hour < 17.25) {
       phase = 'afternoon';
-      label = '🌤️ แดดร่มลมตก (Afternoon)';
+      label = '🌤️ บ่าย (Afternoon)';
       celestial = 'sun';
     } else {
       phase = 'morning';
-      label = '🌤️ ยามเช้า (Morning)';
+      label = '🌤️ เช้า (Morning)';
       celestial = 'sun';
     }
   } else {
     // Fallback เมื่อไม่มีข้อมูลพระอาทิตย์
-    if (hour >= 5.25 && hour < 6.75) { phase = 'dawn'; label = '🌅 รุ่งอรุณ'; celestial = 'sunrise'; }
-    else if (hour >= 6.75 && hour < 11.5) { phase = 'morning'; label = '🌤️ ยามเช้า'; celestial = 'sun'; }
-    else if (hour >= 11.5 && hour < 14.5) { phase = 'noon'; label = '☀️ เที่ยงวัน'; celestial = 'sun'; }
-    else if (hour >= 14.5 && hour < 17.25) { phase = 'afternoon'; label = '🌤️ แดดร่มลมตก'; celestial = 'sun'; }
-    else if (hour >= 17.25 && hour < 18.5) { phase = 'golden'; label = '🌇 ยามอัสดง'; celestial = 'sunset'; }
-    else if (hour >= 18.5 && hour < 19.75) { phase = 'twilight'; label = '🌆 พลบค่ำ'; celestial = 'twilight-horizon'; }
-    else { phase = 'night'; label = '🌙 ราตรีกาล'; celestial = 'moon-stars'; }
+    if (hour >= 5.25 && hour < 6.75) { phase = 'dawn'; label = '🌅 เช้ามืด (Dawn)'; celestial = 'sunrise'; }
+    else if (hour >= 6.75 && hour < 11.5) { phase = 'morning'; label = '🌤️ เช้า (Morning)'; celestial = 'sun'; }
+    else if (hour >= 11.5 && hour < 14.5) { phase = 'noon'; label = '☀️ เที่ยงวัน (Midday)'; celestial = 'sun'; }
+    else if (hour >= 14.5 && hour < 17.25) { phase = 'afternoon'; label = '🌤️ บ่าย (Afternoon)'; celestial = 'sun'; }
+    else if (hour >= 17.25 && hour < 18.5) { phase = 'golden'; label = '🌇 พระอาทิตย์ตก (Sunset)'; celestial = 'sunset'; }
+    else if (hour >= 18.5 && hour < 19.75) { phase = 'twilight'; label = '🌆 หัวค่ำ (Twilight)'; celestial = 'twilight-horizon'; }
+    else { phase = 'night'; label = '🌙 กลางคืน (Night)'; celestial = 'moon-stars'; }
   }
 
   // คำนวณสีพื้นหลัง Gradient ตามช่วงเวลาและสภาพอากาศ
