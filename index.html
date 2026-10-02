@@ -758,7 +758,7 @@ tailwind.config = {
         <span class="text-xs">👁️</span>
         <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
         <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
-          000,001
+          001,073
         </div>
       </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
@@ -3796,9 +3796,20 @@ function bindEvents(){
 }
 
 /* ---------- ระบบนับยอดผู้เข้าชม (Style 3: Cyber Neon Pill) ---------- */
+const BASE_VISITOR_COUNT = 1073;
+
+function formatVisitorCount(num) {
+  const val = Math.max(0, Math.floor(num));
+  if (val < 1000000) {
+    const s = String(val).padStart(6, '0');
+    return s.slice(0, 3) + ',' + s.slice(3);
+  }
+  return val.toLocaleString('en-US');
+}
+
 function animateCounter(el, start, end) {
   if (start >= end) {
-    el.textContent = String(end).padStart(6, '0');
+    el.textContent = formatVisitorCount(end);
     return;
   }
   const duration = 1200;
@@ -3807,11 +3818,11 @@ function animateCounter(el, start, end) {
     const progress = Math.min((now - startTime) / duration, 1);
     const easeOutQuad = progress * (2 - progress);
     const current = Math.floor(start + (end - start) * easeOutQuad);
-    el.textContent = String(current).padStart(6, '0');
+    el.textContent = formatVisitorCount(current);
     if (progress < 1) {
       requestAnimationFrame(step);
     } else {
-      el.textContent = String(end).padStart(6, '0');
+      el.textContent = formatVisitorCount(end);
     }
   }
   requestAnimationFrame(step);
@@ -3821,9 +3832,10 @@ async function initVisitorCounter() {
   const el = document.getElementById('visitorCountNum');
   if (!el) return;
 
-  // โหลดค่าจริงล่าสุดที่เคยบันทึกไว้ในเครื่องนี้ (ถ้ายังไม่มี ให้แสดง 000,001 รอข้อมูลสด)
-  let localCount = parseInt(localStorage.getItem('mekha_real_visitors') || '1', 10);
-  el.textContent = String(localCount).padStart(6, '0');
+  // โหลดค่าจริงที่เคยบันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือต่ำกว่าฐาน 1073 ให้เริ่มที่ 1073)
+  const rawStored = parseInt(localStorage.getItem('mekha_real_visitors') || '0', 10);
+  const localTotal = rawStored >= BASE_VISITOR_COUNT ? rawStored : BASE_VISITOR_COUNT;
+  el.textContent = formatVisitorCount(localTotal);
 
   try {
     const isNewVisit = !sessionStorage.getItem('mekha_session_real_visit');
@@ -3834,9 +3846,10 @@ async function initVisitorCounter() {
       if (res.ok) {
         const data = await res.json();
         if (data && typeof data.value === 'number') {
-          const realCount = data.value;
-          localStorage.setItem('mekha_real_visitors', String(realCount));
-          animateCounter(el, Math.max(1, localCount), realCount);
+          // data.value = 1 คือจุดเริ่มต้นครั้งแรก -> 1073 ครั้ง, ครั้งถัดไปนับเพิ่มจริงตามธรรมชาติ
+          const totalVisits = BASE_VISITOR_COUNT + Math.max(0, data.value - 1);
+          localStorage.setItem('mekha_real_visitors', String(totalVisits));
+          animateCounter(el, Math.max(BASE_VISITOR_COUNT - 18, localTotal), totalVisits);
           return;
         }
       }
@@ -3845,7 +3858,7 @@ async function initVisitorCounter() {
     console.warn('Real visitor counter sync:', e);
   }
 
-  animateCounter(el, 1, localCount);
+  animateCounter(el, Math.max(0, localTotal - 15), localTotal);
 }
 
 /* ---------- เริ่มต้นการทำงาน ---------- */
