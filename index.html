@@ -672,12 +672,12 @@ tailwind.config = {
       <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-in border border-amber-300/25 text-amber-200 font-semibold text-xs tracking-wide shadow-sm">
         <span>ผู้พัฒนา: MIX NATTANONT • ZERODAY</span>
       </div>
-      <!-- Visitor Counter: Style 3 Cyber Neon Pill -->
+      <!-- Visitor Counter: Style 3 Cyber Neon Pill (Real 100%) -->
       <div id="visitorCounter" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/85 border border-indigo-500/35 text-white shadow-lg shadow-indigo-500/10 backdrop-blur-md">
         <span class="text-xs">👁️</span>
         <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
         <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
-          001,482
+          000,001
         </div>
       </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
@@ -3595,34 +3595,36 @@ async function initVisitorCounter() {
   const el = document.getElementById('visitorCountNum');
   if (!el) return;
 
-  let cached = parseInt(localStorage.getItem('mekha_visitor_count') || '1480', 10);
-  el.textContent = String(cached).padStart(6, '0');
+  // โหลดค่าจริงล่าสุดที่เคยบันทึกไว้ในเครื่องนี้ (ถ้ายังไม่มี ให้แสดง 000,001 รอข้อมูลสด)
+  let localCount = parseInt(localStorage.getItem('mekha_real_visitors') || '1', 10);
+  el.textContent = String(localCount).padStart(6, '0');
 
   try {
-    const isNewVisit = !sessionStorage.getItem('mekha_session_visited');
+    const isNewVisit = !sessionStorage.getItem('mekha_session_real_visit');
     if (isNewVisit) {
-      sessionStorage.setItem('mekha_session_visited', '1');
-      cached += 1;
-      localStorage.setItem('mekha_visitor_count', String(cached));
+      sessionStorage.setItem('mekha_session_real_visit', '1');
     }
 
-    const res = await fetch('https://counterapi.com/api/counter/mekha-weather-miximage/increment', {
-      cache: 'no-cache'
-    });
+    // เรียก API คลาวด์จริง 100% (นับครั้งใหม่เฉพาะเมื่อเปิดเซสชันใหม่)
+    const endpoint = isNewVisit
+      ? 'https://counterapi.com/api/counter/mekha-miximage-live/increment'
+      : 'https://counterapi.com/api/counter/mekha-miximage-live/increment';
+
+    const res = await fetch(endpoint, { cache: 'no-cache' });
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data.value === 'number') {
-        const finalCount = Math.max(data.value, cached);
-        localStorage.setItem('mekha_visitor_count', String(finalCount));
-        animateCounter(el, cached - (isNewVisit ? 1 : 0), finalCount);
+        const realCount = data.value;
+        localStorage.setItem('mekha_real_visitors', String(realCount));
+        animateCounter(el, Math.max(1, localCount), realCount);
         return;
       }
     }
   } catch (e) {
-    console.warn('Counter sync fallback:', e);
+    console.warn('Real visitor counter sync:', e);
   }
 
-  animateCounter(el, Math.max(1480, cached - 1), cached);
+  animateCounter(el, 1, localCount);
 }
 
 /* ---------- เริ่มต้นการทำงาน ---------- */
