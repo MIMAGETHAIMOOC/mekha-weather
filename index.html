@@ -69,6 +69,8 @@ tailwind.config = {
     -webkit-tap-highlight-color: transparent; 
     background-color: #060913; 
     color: #fff; 
+    overflow-x: hidden;
+    max-width: 100%;
   }
   body{ 
     min-height: 100dvh; 
@@ -77,6 +79,8 @@ tailwind.config = {
     background-color: #060913; 
     color: #fff; 
     overscroll-behavior-y: auto;
+    overflow-x: hidden;
+    max-width: 100%;
   }
   ::selection{ background: rgba(255, 209, 102, .35); }
 
@@ -416,9 +420,6 @@ tailwind.config = {
     .tap-card:active{ background-color: rgba(255, 255, 255, 0.10); }
   }
   .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; touch-action:none; }
-  @media (prefers-reduced-motion: reduce){
-    #skyLayer *, .solar-corona, .sun-rays, .sun-mote, .puff, .meteor, .glass-drop, .raindrop, .flake, .fogband{ animation: none !important; }
-  }
 </style>
 </head>
 
@@ -440,13 +441,13 @@ tailwind.config = {
       DEVELOPED BY <span class="text-white">MIX NATTANONT • ZERODAY</span>
     </p>
   </div>
-  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2 sm:py-2.5">
-    <div class="flex items-center gap-2 sm:gap-3">
+  <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-1.5 sm:py-2.5">
+    <div class="flex items-center gap-1.5 sm:gap-3">
       <!-- โลโก้และชื่อแอป (ไอคอนใหม่ M ภูเขาหิมะ พร้อมป้ายสถานะสด) -->
-      <div class="flex items-center gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="เมฆา พยากรณ์อากาศ">
-        <img src="icon-192.png" alt="เมฆา" class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-cover shadow-lg border border-sky-400/35 shrink-0 transform-gpu transition-transform hover:scale-105"
+      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="เมฆา พยากรณ์อากาศ">
+        <img src="icon-192.png" alt="เมฆา" class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl object-cover shadow-lg border border-sky-400/35 shrink-0 transform-gpu transition-transform hover:scale-105"
              onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
-        <svg viewBox="0 0 40 40" class="hidden w-9 h-9 sm:w-10 sm:h-10 shrink-0" aria-hidden="true">
+        <svg viewBox="0 0 40 40" class="hidden w-8 h-8 sm:w-10 sm:h-10 shrink-0" aria-hidden="true">
           <circle cx="27" cy="13" r="5.4" fill="#ffd166"/>
           <g stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" opacity=".9">
             <line x1="27" y1="3.6" x2="27" y2="6"/><line x1="36.4" y1="13" x2="39" y2="13"/><line x1="33.8" y1="6.2" x2="35.6" y2="4.4"/>
@@ -455,113 +456,113 @@ tailwind.config = {
                 transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
         </svg>
         <div class="flex flex-col justify-center min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase">MIXIMAGE - MEKHA</span>
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[10px] text-emerald-300 font-semibold tracking-wider">
+          <div class="flex items-center gap-1 sm:gap-1.5">
+            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase"><span class="hidden sm:inline">MIXIMAGE - </span>MEKHA</span>
+            <span class="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[9px] sm:text-[10px] text-emerald-300 font-semibold tracking-wider shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE
             </span>
           </div>
-          <span class="text-[10px] text-sky-200/60 leading-none mt-1 font-medium hidden sm:inline">พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม</span>
+          <span class="text-[10px] text-sky-200/60 leading-none mt-1 font-medium hidden md:inline">พยากรณ์อากาศ &amp; เตือนภัยน้ำท่วม</span>
         </div>
       </div>
 
       <!-- ช่องค้นหาตรงกลาง (ขยายขนาดสมดุลทั้งบนมือถือและคอมพิวเตอร์) -->
-      <div class="relative flex-1 max-w-lg mx-auto">
-        <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
-        <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+      <div class="relative flex-1 min-w-0 max-w-lg mx-auto">
+        <span id="searchSpin" class="hidden absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+        <span id="searchIcon" class="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
-          class="glass-in w-full rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-amber-300/40 transition"
-          placeholder="ค้นหาตำบล อำเภอ จังหวัด…">
+          class="glass-in w-full min-w-0 rounded-xl pl-8 sm:pl-9 pr-7 sm:pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-amber-300/40 transition placeholder:text-white/40"
+          placeholder="ค้นหาพื้นที่…">
         <button id="btnSearchClear" type="button" aria-label="ล้างคำค้นหา"
-          class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/50 hover:text-white flex items-center justify-center"></button>
+          class="hidden absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 rounded-full text-white/50 hover:text-white flex items-center justify-center"></button>
         <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50 shadow-2xl max-h-[65dvh] overflow-y-auto nice-scroll"></div>
       </div>
 
       <!-- ปุ่มควบคุมมุมขวาบน (ซ่อนหน้าตั้งค่า API ออกทั้งหมด คงเหลือปุ่มปักหมุด, โหลดแอป .APK และพิกัด GPS) -->
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
         <button id="btnOpenMapTop" title="ปักหมุดเลือกพื้นที่อำเภอของตัวเองบนแผนที่"
           class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-amber-200 hover:bg-white/15 transition shrink-0">
           <span id="mapTopIcon"></span>
           <span class="hidden md:inline">ปักหมุดอำเภอ</span>
         </button>
         <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
-          class="flex h-9 w-9 sm:w-auto sm:px-3 rounded-xl glass-in items-center justify-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
+          class="flex h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-xl glass-in items-center justify-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
           <span id="apkIcon"></span>
           <span class="hidden md:inline">โหลดแอป .APK</span>
         </a>
         <button id="btnLocate" title="ใช้ตำแหน่ง GPS ปัจจุบัน"
-          class="w-9 h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+          class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
       </div>
     </div>
   </div>
 </header>
 
-<main class="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 pb-8 pt-3 sm:pt-4">
+<main class="relative z-10 max-w-7xl mx-auto px-2.5 sm:px-6 pb-8 pt-2.5 sm:pt-4">
   <!-- ============================================================
        แถบสรุปสถานะด่วน 4 ตัวชี้วัดสำคัญ (Weather Highlights Ticker)
        - เชื่อมต่อและซิงก์ข้อมูลสภาพอากาศสดแบบ Real-time
        - รองรับ 60/120fps ลื่นไหล แตะเพื่อเลื่อนไปยังรายละเอียดได้ทันที
        ============================================================ -->
-  <section id="topWeatherTicker" class="mb-3.5 sm:mb-4">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+  <section id="topWeatherTicker" class="mb-3 sm:mb-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
       
       <!-- การ์ดที่ 1: โอกาสฝน & ฝนสะสม 3 วัน -->
       <div onclick="document.getElementById('secFlood')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-3 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-sky-400/50 hover:shadow-sky-500/20">
+        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-sky-400/50 hover:shadow-sky-500/20">
         <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[11px] sm:text-xs text-white/75 font-medium truncate group-hover:text-sky-300 transition">โอกาสฝนวันนี้</span>
-          <span class="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center text-xs shrink-0">🌧️</span>
+          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-sky-300 transition">โอกาสฝนวันนี้</span>
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-sky-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">🌧️</span>
         </div>
-        <div class="flex items-baseline gap-1.5">
-          <span id="tickerRainVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">--%</span>
+        <div class="flex items-baseline gap-1">
+          <span id="tickerRainVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">--%</span>
         </div>
-        <div id="tickerRainSub" class="text-[10px] sm:text-[11px] text-sky-200/90 truncate mt-0.5 font-medium">
+        <div id="tickerRainSub" class="text-[9px] sm:text-[11px] text-sky-200/90 truncate mt-0.5 font-medium">
           คำนวณฝนสะสม 3 วัน…
         </div>
       </div>
 
       <!-- การ์ดที่ 2: ความเร็วลม & ลมกระโชก -->
       <div onclick="document.querySelector('[data-metric=\'wind\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-3 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-teal-400/50 hover:shadow-teal-500/20">
+        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-teal-400/50 hover:shadow-teal-500/20">
         <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[11px] sm:text-xs text-white/75 font-medium truncate group-hover:text-teal-300 transition">กระแสลม &amp; ลมกระโชก</span>
-          <span class="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center text-xs shrink-0">💨</span>
+          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-teal-300 transition">กระแสลม &amp; ลมกระโชก</span>
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">💨</span>
         </div>
-        <div class="flex items-baseline gap-1.5">
-          <span id="tickerWindVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">-- กม./ชม.</span>
+        <div class="flex items-baseline gap-1">
+          <span id="tickerWindVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">-- กม./ชม.</span>
         </div>
-        <div id="tickerWindSub" class="text-[10px] sm:text-[11px] text-teal-200/90 truncate mt-0.5 font-medium">
+        <div id="tickerWindSub" class="text-[9px] sm:text-[11px] text-teal-200/90 truncate mt-0.5 font-medium">
           กำลังวัดความเร็วลม…
         </div>
       </div>
 
       <!-- การ์ดที่ 3: ดัชนีรังสี UV -->
       <div onclick="document.querySelector('[data-metric=\'uv\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-3 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-amber-400/50 hover:shadow-amber-500/20">
+        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-amber-400/50 hover:shadow-amber-500/20">
         <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[11px] sm:text-xs text-white/75 font-medium truncate group-hover:text-amber-300 transition">ดัชนีรังสี UV</span>
-          <span class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-xs shrink-0">☀️</span>
+          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-amber-300 transition">ดัชนีรังสี UV</span>
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">☀️</span>
         </div>
-        <div class="flex items-baseline gap-1.5">
-          <span id="tickerUvVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">ระดับ --</span>
+        <div class="flex items-baseline gap-1">
+          <span id="tickerUvVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">ระดับ --</span>
         </div>
-        <div id="tickerUvSub" class="text-[10px] sm:text-[11px] text-amber-200/90 truncate mt-0.5 font-medium">
+        <div id="tickerUvSub" class="text-[9px] sm:text-[11px] text-amber-200/90 truncate mt-0.5 font-medium">
           ประเมินความเข้มแสงแดด…
         </div>
       </div>
 
       <!-- การ์ดที่ 4: คุณภาพอากาศ PM2.5 -->
       <div onclick="document.getElementById('secPM')?.scrollIntoView({behavior:'smooth'}) || document.querySelector('[data-metric=\'pm25\']')?.click()"
-        class="ticker-card p-3 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-emerald-400/50 hover:shadow-emerald-500/20">
+        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-emerald-400/50 hover:shadow-emerald-500/20">
         <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[11px] sm:text-xs text-white/75 font-medium truncate group-hover:text-emerald-300 transition">คุณภาพอากาศ PM2.5</span>
-          <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-xs shrink-0">🍃</span>
+          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-emerald-300 transition">คุณภาพอากาศ PM2.5</span>
+          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">🍃</span>
         </div>
-        <div class="flex items-baseline gap-2">
-          <span id="tickerPmVal" class="text-lg sm:text-xl font-bold font-mono text-white tracking-tight">-- µg/m³</span>
+        <div class="flex items-baseline gap-1.5">
+          <span id="tickerPmVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">-- µg/m³</span>
         </div>
-        <div class="flex items-center gap-1.5 text-[10px] sm:text-[11px] text-emerald-200/90 truncate mt-0.5 font-medium">
-          <span id="tickerPmDot" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+        <div class="flex items-center gap-1 text-[9px] sm:text-[11px] text-emerald-200/90 truncate mt-0.5 font-medium">
+          <span id="tickerPmDot" class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shrink-0"></span>
           <span id="tickerPmSub" class="truncate">กำลังตรวจวัด…</span>
         </div>
       </div>
@@ -606,14 +607,14 @@ tailwind.config = {
           </span>
         </div>
 
-        <div class="mt-4 sm:mt-5 flex items-center gap-4 sm:gap-6 tap-card rounded-2xl p-1 -m-1" data-metric="feelslike" title="แตะเพื่อดูกราฟอุณหภูมิและความรู้สึกจริง 24 ชม.">
-          <div id="bigIcon" class="w-20 h-20 sm:w-28 sm:h-28 shrink-0"></div>
+        <div class="mt-3.5 sm:mt-5 flex items-center gap-3 sm:gap-6 tap-card rounded-2xl p-1" data-metric="feelslike" title="แตะเพื่อดูกราฟอุณหภูมิและความรู้สึกจริง 24 ชม.">
+          <div id="bigIcon" class="w-16 h-16 sm:w-28 sm:h-28 shrink-0"></div>
           <div class="min-w-0">
             <div class="flex items-start">
-              <span id="bigTemp" class="text-[4.5rem] sm:text-[6rem] leading-[.92] font-extralight tracking-tighter">--</span>
-              <span class="text-xl sm:text-2xl font-light text-white/75 mt-1.5 ml-1">°C</span>
+              <span id="bigTemp" class="text-[3.6rem] sm:text-[6rem] leading-[.92] font-extralight tracking-tighter">--</span>
+              <span class="text-xl sm:text-2xl font-light text-white/75 mt-1 sm:mt-1.5 ml-1">°C</span>
             </div>
-            <p id="skyText" class="mt-1 text-base sm:text-lg text-white/95 font-medium">กำลังโหลดข้อมูล…</p>
+            <p id="skyText" class="mt-0.5 sm:mt-1 text-sm sm:text-lg text-white/95 font-medium truncate">กำลังโหลดข้อมูล…</p>
           </div>
         </div>
 
@@ -719,7 +720,7 @@ tailwind.config = {
           </div>
         </div>
 
-        <div data-metric="water" class="tap-card rounded-2xl p-1 -mx-1 my-auto pt-2" title="แตะเพื่อดูข้อมูลระดับน้ำและแนวโน้มน้ำท่วมเชิงลึก">
+        <div data-metric="water" class="tap-card rounded-2xl p-1 my-auto pt-2" title="แตะเพื่อดูข้อมูลระดับน้ำและแนวโน้มน้ำท่วมเชิงลึก">
           <svg id="floodSvg" viewBox="0 0 320 110" class="w-full block" role="img"
                aria-label="กราฟระดับน้ำในแม่น้ำและลำน้ำของอำเภอที่ปักหมุด"></svg>
         </div>
@@ -744,7 +745,7 @@ tailwind.config = {
           <h2 class="card-title">พยากรณ์รายชั่วโมง · 24 ชม. ข้างหน้า</h2>
           <p class="text-[11px] text-white/55 whitespace-nowrap">เลื่อนซ้าย-ขวา หรือแตะที่ชั่วโมง</p>
         </div>
-        <div class="mt-3.5 overflow-x-auto nice-scroll touch-pan-xy -mx-2 px-2">
+        <div class="mt-3.5 overflow-x-auto nice-scroll touch-pan-xy -mx-1 sm:-mx-2 px-1 sm:px-2 rounded-xl">
           <div id="hourInner" class="relative cursor-pointer select-none">
             <svg id="hourSvg" height="232" display="block"></svg>
             <div id="hourCursor" class="hidden absolute w-px bg-amber-300/70 transition-all duration-150 pointer-events-none" style="top:36px;height:164px"></div>
@@ -842,7 +843,7 @@ tailwind.config = {
 </main>
 
 <!-- แถบเมนูนำทางด้านล่างสำหรับจอมือถือ (Mobile Bottom Navigation Bar) -->
-<nav id="mobileNav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/15 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))]">
+<nav id="mobileNav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/15 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))] w-full max-w-full overflow-hidden">
   <div class="grid grid-cols-5 items-center max-w-md mx-auto text-[10px]">
     <button type="button" data-nav="secWeather" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-amber-300 font-medium">
       <span id="navIconWeather"></span>
@@ -1254,10 +1255,6 @@ function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
     }
   }
 
-  // ซิงก์สถานะกลางวัน/กลางคืนให้ตรงกับช่วงเวลาที่คำนวณได้เสมอ (กันดวงอาทิตย์/ดวงดาวสลับกัน)
-  if (phase === 'night') isDay = false;
-  else if (phase === 'morning' || phase === 'noon' || phase === 'afternoon') isDay = true;
-
   // คำนวณสีพื้นหลัง Gradient ตามช่วงเวลาและสภาพอากาศ
   let gradient = '';
 
@@ -1325,7 +1322,6 @@ function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
   return {
     name: `${phase}-${kind}`,
     phase,
-    isDay,
     label,
     celestial,
     gradient,
@@ -1363,7 +1359,6 @@ function applyTheme(){
   const ss = sunTimeToTs(rawD && rawD.sunset ? rawD.sunset[0] : null);
 
   const sky = getAtmosphericSky(kind, isDayVal, nowL, sr, ss, c || {});
-  isDayVal = sky.isDay;
   state.skyPhaseLabel = sky.label;
 
   const front = els.bgA.dataset.front==='1' ? els.bgA : els.bgB;
@@ -1484,13 +1479,13 @@ function buildSky(kind, isDay, sky, current){
     </div>`;
   } else if (celestial === 'sunrise' || phase === 'dawn') {
     // รุ่งอรุณ: ดวงอาทิตย์โผล่พ้นขอบฟ้าเช้าตรู่
-    s += `<div class="solar-corona" style="left:calc(50% - 140px); bottom:8%; width:280px; height:160px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.95) 0%, rgba(245,158,11,0.60) 40%, rgba(217,119,6,0.25) 72%, transparent 100%); filter:blur(14px);"></div>`;
+    s += `<div class="solar-corona" style="left:50%; bottom:8%; transform:translateX(-50%); width:280px; height:160px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.95) 0%, rgba(245,158,11,0.60) 40%, rgba(217,119,6,0.25) 72%, transparent 100%); filter:blur(14px);"></div>`;
   } else if (celestial === 'sunset' || phase === 'golden') {
     // พระอาทิตย์ตกดิน: ดวงกลมโตสีส้มทอง
     s += `<div class="solar-corona" style="right:18%; bottom:12%; width:240px; height:140px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.95) 0%, rgba(234,88,12,0.65) 45%, rgba(159,18,57,0.30) 75%, transparent 100%); filter:blur(16px);"></div>`;
   } else if (phase === 'twilight' || celestial === 'twilight-horizon') {
     // แสงทไวไลท์เรืองรองที่แนวขอบฟ้า
-    s += `<div style="position:absolute; left:0; right:0; bottom:0; height:190px; background:linear-gradient(0deg, rgba(244,63,94,0.28) 0%, rgba(168,85,247,0.18) 50%, transparent 100%); filter:blur(20px); pointer-events:none;"></div>`;
+    s += `<div style="position:absolute; inset-x:0; bottom:0; height:190px; background:linear-gradient(0deg, rgba(244,63,94,0.28) 0%, rgba(168,85,247,0.18) 50%, transparent 100%); filter:blur(20px); pointer-events:none;"></div>`;
   } else {
     // กลางวัน (เช้า, เที่ยง, บ่าย) มีดวงอาทิตย์พร้อมรัศมีหมุนช้าๆ
     s += `<div class="solar-corona" style="right:10%; top:6%; width:136px; height:136px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(254,240,138,0.58) 40%, rgba(56,189,248,0.20) 75%, transparent 100%); filter:blur(12px);"></div>`;
@@ -3089,7 +3084,7 @@ function renderDaily(){
     const condText = f ? f.condition : wmoText(D.weather_code[i]);
     const wCode = f ? f.weatherCode : D.weather_code[i];
 
-    html += `<div data-day="${i}" class="tap-card grid grid-cols-12 items-center gap-2 py-2.5 px-2 -mx-2 rounded-xl hover:bg-white/[.06]">
+    html += `<div data-day="${i}" class="tap-card grid grid-cols-12 items-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-1.5 sm:px-2 rounded-xl hover:bg-white/[.06]">
       <div class="col-span-4 sm:col-span-3 min-w-0">
         <div class="flex items-baseline gap-1.5">
           <p class="text-xs sm:text-sm font-semibold truncate">${name}</p>
@@ -3977,7 +3972,7 @@ function bindEvents(){
   initMobileScrollSpy();
 
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
   }
 
   setInterval(tickClock, 30000);
