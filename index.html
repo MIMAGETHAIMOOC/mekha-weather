@@ -416,6 +416,9 @@ tailwind.config = {
     .tap-card:active{ background-color: rgba(255, 255, 255, 0.10); }
   }
   .leaflet-container{ font-family:'Anuphan',sans-serif; background:#0f172a; touch-action:none; }
+  @media (prefers-reduced-motion: reduce){
+    #skyLayer *, .solar-corona, .sun-rays, .sun-mote, .puff, .meteor, .glass-drop, .raindrop, .flake, .fogband{ animation: none !important; }
+  }
 </style>
 </head>
 
@@ -1251,6 +1254,10 @@ function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
     }
   }
 
+  // ซิงก์สถานะกลางวัน/กลางคืนให้ตรงกับช่วงเวลาที่คำนวณได้เสมอ (กันดวงอาทิตย์/ดวงดาวสลับกัน)
+  if (phase === 'night') isDay = false;
+  else if (phase === 'morning' || phase === 'noon' || phase === 'afternoon') isDay = true;
+
   // คำนวณสีพื้นหลัง Gradient ตามช่วงเวลาและสภาพอากาศ
   let gradient = '';
 
@@ -1318,6 +1325,7 @@ function getAtmosphericSky(kind, isDay, nowL, sr, ss, current) {
   return {
     name: `${phase}-${kind}`,
     phase,
+    isDay,
     label,
     celestial,
     gradient,
@@ -1355,6 +1363,7 @@ function applyTheme(){
   const ss = sunTimeToTs(rawD && rawD.sunset ? rawD.sunset[0] : null);
 
   const sky = getAtmosphericSky(kind, isDayVal, nowL, sr, ss, c || {});
+  isDayVal = sky.isDay;
   state.skyPhaseLabel = sky.label;
 
   const front = els.bgA.dataset.front==='1' ? els.bgA : els.bgB;
@@ -1475,13 +1484,13 @@ function buildSky(kind, isDay, sky, current){
     </div>`;
   } else if (celestial === 'sunrise' || phase === 'dawn') {
     // รุ่งอรุณ: ดวงอาทิตย์โผล่พ้นขอบฟ้าเช้าตรู่
-    s += `<div class="solar-corona" style="left:50%; bottom:8%; transform:translateX(-50%); width:280px; height:160px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.95) 0%, rgba(245,158,11,0.60) 40%, rgba(217,119,6,0.25) 72%, transparent 100%); filter:blur(14px);"></div>`;
+    s += `<div class="solar-corona" style="left:calc(50% - 140px); bottom:8%; width:280px; height:160px; border-radius:50%; background:radial-gradient(ellipse, rgba(254,215,170,0.95) 0%, rgba(245,158,11,0.60) 40%, rgba(217,119,6,0.25) 72%, transparent 100%); filter:blur(14px);"></div>`;
   } else if (celestial === 'sunset' || phase === 'golden') {
     // พระอาทิตย์ตกดิน: ดวงกลมโตสีส้มทอง
     s += `<div class="solar-corona" style="right:18%; bottom:12%; width:240px; height:140px; border-radius:50%; background:radial-gradient(ellipse, rgba(251,146,60,0.95) 0%, rgba(234,88,12,0.65) 45%, rgba(159,18,57,0.30) 75%, transparent 100%); filter:blur(16px);"></div>`;
   } else if (phase === 'twilight' || celestial === 'twilight-horizon') {
     // แสงทไวไลท์เรืองรองที่แนวขอบฟ้า
-    s += `<div style="position:absolute; inset-x:0; bottom:0; height:190px; background:linear-gradient(0deg, rgba(244,63,94,0.28) 0%, rgba(168,85,247,0.18) 50%, transparent 100%); filter:blur(20px); pointer-events:none;"></div>`;
+    s += `<div style="position:absolute; left:0; right:0; bottom:0; height:190px; background:linear-gradient(0deg, rgba(244,63,94,0.28) 0%, rgba(168,85,247,0.18) 50%, transparent 100%); filter:blur(20px); pointer-events:none;"></div>`;
   } else {
     // กลางวัน (เช้า, เที่ยง, บ่าย) มีดวงอาทิตย์พร้อมรัศมีหมุนช้าๆ
     s += `<div class="solar-corona" style="right:10%; top:6%; width:136px; height:136px; border-radius:50%; background:radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(254,240,138,0.58) 40%, rgba(56,189,248,0.20) 75%, transparent 100%); filter:blur(12px);"></div>`;
