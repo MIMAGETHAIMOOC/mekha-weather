@@ -799,7 +799,7 @@ tailwind.config = {
         <span class="text-xs">👁️</span>
         <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
         <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
-          001,073
+          001,094
         </div>
       </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
@@ -3892,7 +3892,7 @@ function bindEvents(){
 }
 
 /* ---------- ระบบนับยอดผู้เข้าชม (Style 3: Cyber Neon Pill) ---------- */
-const BASE_VISITOR_COUNT = 1073;
+const BASE_VISITOR_COUNT = 1094;
 
 function formatVisitorCount(num) {
   const val = Math.max(0, Math.floor(num));
@@ -3928,33 +3928,34 @@ async function initVisitorCounter() {
   const el = document.getElementById('visitorCountNum');
   if (!el) return;
 
-  // โหลดค่าจริงที่เคยบันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือต่ำกว่าฐาน 1073 ให้เริ่มที่ 1073)
+  // อ่านค่ายอดเข้าชมล่าสุดที่บันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือน้อยกว่า 1094 ให้ตั้งต้นที่ 1094)
   const rawStored = parseInt(localStorage.getItem('mekha_real_visitors') || '0', 10);
-  const localTotal = rawStored >= BASE_VISITOR_COUNT ? rawStored : BASE_VISITOR_COUNT;
-  el.textContent = formatVisitorCount(localTotal);
+  const prevTotal = rawStored >= BASE_VISITOR_COUNT ? rawStored : BASE_VISITOR_COUNT;
 
+  // ทุกครั้งที่เปิดเข้าเว็บ ให้นับเพิ่ม 1 ครั้งเสมอตามความต้องการของผู้ใช้ (+1 Real-time)
+  const newTotal = prevTotal + 1;
+  localStorage.setItem('mekha_real_visitors', String(newTotal));
+
+  // แสดงตัวเลขเดิมก่อนแล้วหมุนตัวเลขขึ้น +1 ให้เห็นชัดเจน
+  el.textContent = formatVisitorCount(prevTotal);
+  animateCounter(el, prevTotal, newTotal);
+
+  // ซิงก์ยอดเข้าชมกับระบบคลาวด์ในเบื้องหลัง
   try {
-    const isNewVisit = !sessionStorage.getItem('mekha_session_real_visit');
-    if (isNewVisit) {
-      sessionStorage.setItem('mekha_session_real_visit', '1');
-      /* เรียก API นับครั้งใหม่เฉพาะเมื่อเปิดเซสชันใหม่ — เซสชันเดิมใช้ค่าที่บันทึกไว้ในเครื่อง ไม่ยิงเครือข่ายซ้ำ */
-      const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-live/increment', { cache: 'no-cache' });
-      if (res.ok) {
-        const data = await res.json();
-        if (data && typeof data.value === 'number') {
-          // data.value = 1 คือจุดเริ่มต้นครั้งแรก -> 1073 ครั้ง, ครั้งถัดไปนับเพิ่มจริงตามธรรมชาติ
-          const totalVisits = BASE_VISITOR_COUNT + Math.max(0, data.value - 1);
-          localStorage.setItem('mekha_real_visitors', String(totalVisits));
-          animateCounter(el, Math.max(BASE_VISITOR_COUNT - 18, localTotal), totalVisits);
-          return;
+    const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-live/increment', { cache: 'no-cache' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data.value === 'number') {
+        const cloudTotal = BASE_VISITOR_COUNT + Math.max(0, data.value - 1);
+        if (cloudTotal > newTotal) {
+          localStorage.setItem('mekha_real_visitors', String(cloudTotal));
+          animateCounter(el, newTotal, cloudTotal);
         }
       }
     }
   } catch (e) {
-    console.warn('Real visitor counter sync:', e);
+    console.warn('Visitor counter sync:', e);
   }
-
-  animateCounter(el, Math.max(0, localTotal - 15), localTotal);
 }
 
 /* ---------- เริ่มต้นการทำงาน ---------- */
