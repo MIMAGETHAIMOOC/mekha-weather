@@ -1,13 +1,13 @@
-const CACHE_NAME = 'mekha-weather-v27';
+const CACHE_NAME = 'mekha-weather-v28';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json',
-  '/thai-districts.json',
-  '/icon.jpg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/og-hero.jpg'
+  './',
+  './index.html',
+  './manifest.json',
+  './thai-districts.json',
+  './icon.jpg',
+  './icon-192.png',
+  './icon-512.png',
+  './og-hero.jpg'
 ];
 
 self.addEventListener('install', event => {
@@ -31,7 +31,7 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.endsWith('.apk')) return;
 
-  if (event.request.mode === 'navigate' || url.pathname === '/' || url.pathname.endsWith('.html')) {
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('.html')) {
     event.respondWith(
       fetch(event.request, { cache: 'no-store' }).then(res => {
         const clone = res.clone();
@@ -39,7 +39,7 @@ self.addEventListener('fetch', event => {
         return res;
       }).catch(() =>
         // caches.match() คืน Promise (truthy เสมอ) ต้องเทียบภายใน .then จึงจะ fallback ไปหน้า index ได้
-        caches.match(event.request).then(hit => hit || caches.match('/index.html'))
+        caches.match(event.request).then(hit => hit || caches.match('./index.html'))
       )
     );
     return;

@@ -3977,7 +3977,7 @@ function bindEvents(){
   initMobileScrollSpy();
 
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
   }
 
   setInterval(tickClock, 30000);

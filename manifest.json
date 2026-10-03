@@ -1,10 +1,10 @@
 {
-  "id": "/",
+  "id": "./",
   "name": "MIXIMAGE - MEKHA — พยากรณ์อากาศ & เตือนภัยน้ำท่วม",
   "short_name": "MIXIMAGE - MEKHA",
   "description": "แอปพยากรณ์อากาศแบบเรียลไทม์ เตือนภัยน้ำท่วมรายอำเภอ และฝุ่น PM2.5 พัฒนาโดย MIX NATTANONT • ZERODAY",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0b111d",
@@ -14,13 +14,13 @@
   "categories": ["weather", "utilities"],
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
