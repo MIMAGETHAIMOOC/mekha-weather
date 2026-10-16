@@ -1035,7 +1035,11 @@ const WMO = {
   85:'หิมะตกเล็กน้อยเป็นระยะ', 86:'หิมะตกหนักเป็นระยะ',
   95:'พายุฝนฟ้าคะนอง', 96:'ฝนฟ้าคะนองและมีลูกเห็บเล็กน้อย', 99:'พายุฝนฟ้าคะนองรุนแรงและมีลูกเห็บ'
 };
-const wmoText = c => WMO[c] ?? 'สภาพอากาศแปรปรวน';
+const wmoText = (c, isDay = true) => {
+  if (c === 0) return isDay ? 'ท้องฟ้าแจ่มใส' : 'ท้องฟ้าโปร่ง';
+  if (c === 1) return isDay ? 'ท้องฟ้าโปร่งเป็นส่วนมาก' : 'ท้องฟ้าโปร่ง มีเมฆบางส่วน';
+  return WMO[c] ?? 'สภาพอากาศแปรปรวน';
+};
 function wmoKind(c){
   if(c<=1) return 'clear';  if(c===2) return 'partly';  if(c===3) return 'cloud';
   if(c===45||c===48) return 'fog';
@@ -1053,16 +1057,19 @@ function windDesc(kmh){
   if(kmh<49) return 'ลมค่อนข้างแรง กิ่งไม้ใหญ่สั่นไหว';
   return 'ลมแรงจัด ควรระวังสิ่งปลูกสร้างและป้ายโฆษณา';
 }
-function uvLevel(v){
-  if(v<3) return ['ระดับต่ำ','#3fae6a','แสงแดดอ่อน สามารถอยู่กลางแจ้งได้ตามปกติ'];
+function uvLevel(v, isDay = true){
+  if(!isDay || (v === 0 && !isDay)){
+    return ['เวลากลางคืน', '#94a3b8', 'ช่วงเวลากลางคืนไม่มีรังสียูวีจากแสงแดด ปลอดภัยต่อผิวหนังโดยไม่ต้องทาครีมกันแดด'];
+  }
+  if(v<3) return ['ระดับต่ำ (ปลอดภัย)','#3fae6a','แสงแดดอ่อน สามารถอยู่กลางแจ้งได้ตามปกติ'];
   if(v<6) return ['ระดับปานกลาง','#e6c440','ควรสวมหมวกหรือทาครีมกันแดดหากอยู่กลางแดดเกิน 30 นาที'];
   if(v<8) return ['ระดับสูง','#e07b39','แดดแรง ควรทาครีมกันแดด SPF 30+ สวมแว่นกันแดด และหลบในร่มช่วงเที่ยง'];
   if(v<11) return ['ระดับสูงมาก','#d64545','รังสียูวีเข้มข้นสูง หลีกเลี่ยงการอยู่กลางแดดจัดช่วง 10:00–15:00 น.'];
   return ['ระดับอันตราย','#b04fd8','รังสียูวีรุนแรงมาก ผิวหนังอาจไหม้ได้ในเวลาอันสั้น ควรอยู่ในร่ม'];
 }
 const PM_LEVELS = [
-  { max:15.4, name:'คุณภาพอากาศดีมาก', color:'#4fa3d1', advice:'อากาศบริสุทธิ์ เหมาะอย่างยิ่งสำหรับกิจกรรมกลางแจ้ง การวิ่งออกกำลังกาย และเปิดหน้าต่างระบายอากาศ' },
-  { max:25.4, name:'คุณภาพอากาศดี', color:'#3fae6a', advice:'คุณภาพอากาศอยู่ในเกณฑ์ดี สามารถทำกิจกรรมกลางแจ้งและใช้ชีวิตประจำวันได้ตามปกติ' },
+  { max:15.4, name:'คุณภาพอากาศดีมาก', color:'#4fa3d1', advice:'อากาศบริสุทธิ์ ปลอดภัยต่อสุขภาพ เหมาะสำหรับการพักผ่อน ออกกำลังกาย หรือเปิดหน้าต่างระบายอากาศ' },
+  { max:25.4, name:'คุณภาพอากาศดี', color:'#3fae6a', advice:'คุณภาพอากาศอยู่ในเกณฑ์ดี สามารถใช้ชีวิตประจำวันและทำกิจกรรมต่าง ๆ ได้ตามปกติ' },
   { max:37.4, name:'ปานกลาง (เริ่มมีผล)', color:'#e6c440', advice:'ประชาชนทั่วไปทำกิจกรรมได้ตามปกติ แต่เด็กเล็ก ผู้สูงอายุ และผู้มีโรคระบบทางเดินหายใจควรลดเวลาทำกิจกรรมหนักกลางแจ้ง' },
   { max:75, name:'เริ่มมีผลกระทบต่อสุขภาพ', color:'#e07b39', advice:'ควรสวมหน้ากากป้องกันฝุ่น PM2.5 (เช่น N95 หรือ KN95) เมื่อออกนอกอาคาร และลดระยะเวลากิจกรรมกลางแจ้งที่ใช้แรงมาก' },
   { max:1e9, name:'มีผลกระทบต่อสุขภาพมาก', color:'#d64545', advice:'ฝุ่นหนาแน่นในระดับอันตราย ควรหลีกเลี่ยงกิจกรรมกลางแจ้งทุกชนิด ปิดประตูหน้าต่างให้มิดชิด และเปิดเครื่องฟอกอากาศ' },
@@ -1592,7 +1599,7 @@ function forecastUrl(lat,lon){
     + `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,precipitation_probability,precipitation,is_day,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,pressure_msl,uv_index`
     + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,rain_sum,precipitation_hours,sunrise,sunset,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max`;
 }
-const seamlessPopUrl=(lat,lon)=>`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_probability_max&hourly=precipitation_probability&timezone=auto&forecast_days=8`;
+const seamlessPopUrl=(lat,lon)=>`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_probability_max,uv_index_max&hourly=precipitation_probability,uv_index&timezone=auto&forecast_days=8`;
 const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index&timezone=auto`;
 const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
 
@@ -1682,6 +1689,9 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
   }
   if(curWeatherCode == null) curWeatherCode = 0;
 
+  const curIsDayRaw = curApi.is_day != null ? curApi.is_day : (curW.is_day != null ? curW.is_day : 1);
+  const curIsDay = curIsDayRaw === 1;
+
   // สภาพอากาศปัจจุบัน (Current Conditions) - ไม่ปนกับพยากรณ์รวมทั้งวัน
   const current = {
     temperature: curW.temperature_2m != null ? Math.round(curW.temperature_2m * 10) / 10 : (curApi.temp_c != null ? curApi.temp_c : 28),
@@ -1691,13 +1701,13 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
     windDirection: curW.wind_direction_10m != null ? Math.round(curW.wind_direction_10m) : (curApi.wind_degree != null ? curApi.wind_degree : 0),
     windGusts: curApi.gust_kph != null ? Math.round(curApi.gust_kph * 10) / 10 : (curW.wind_gusts_10m != null ? Math.round(curW.wind_gusts_10m * 10) / 10 : 0),
     weatherCode: curWeatherCode,
-    condition: wmoText(curWeatherCode),
-    isDay: curApi.is_day != null ? curApi.is_day : (curW.is_day != null ? curW.is_day : 1),
+    condition: wmoText(curWeatherCode, curIsDay),
+    isDay: curIsDayRaw,
     observedPrecipitationMm,
     pressure: curApi.pressure_mb != null ? Math.round(curApi.pressure_mb) : (curW.pressure_msl != null ? Math.round(curW.pressure_msl) : 1010),
     visibilityKm: curApi.vis_km != null ? curApi.vis_km : (rawW?.hourly?.visibility?.[0] != null ? Math.round(rawW.hourly.visibility[0] / 100) / 10 : 10),
     dewPoint: curApi.dewpoint_c != null ? Math.round(curApi.dewpoint_c * 10) / 10 : (curW.dew_point_2m != null ? Math.round(curW.dew_point_2m * 10) / 10 : calcDewPoint(curW.temperature_2m ?? 28, curW.relative_humidity_2m ?? 70)),
-    uvIndex: curApi.uv != null ? curApi.uv : (airCur.uv_index != null ? airCur.uv_index : (rawW?.daily?.uv_index_max?.[0] ?? 0)),
+    uvIndex: !curIsDay ? 0 : (curApi.uv != null ? curApi.uv : (airCur.uv_index != null ? airCur.uv_index : (rawW?.hourly?.uv_index?.[new Date().getHours()] ?? rawW?.daily?.uv_index_max?.[0] ?? 0))),
     cloud: curApi.cloud ?? null,
     pm25: airCur.pm2_5 != null ? Math.round(airCur.pm2_5 * 10) / 10 : (wapiAir.pm2_5 != null ? Math.round(wapiAir.pm2_5 * 10) / 10 : null),
     pm10: airCur.pm10 != null ? Math.round(airCur.pm10 * 10) / 10 : (wapiAir.pm10 != null ? Math.round(wapiAir.pm10 * 10) / 10 : null),
@@ -2305,23 +2315,33 @@ async function loadWeather(place){
       throw new Error('All weather data providers unreachable');
     }
 
-    // ตรวจสอบความสมบูรณ์ของ PoP จาก ecmwf_ifs: หากไม่มีข้อมูล ให้ดึง Seamless Endpoint เสริมทันที
+    // ตรวจสอบความสมบูรณ์ของ PoP และ UV จาก ecmwf_ifs: หากไม่มีข้อมูล ให้ดึง Seamless Endpoint เสริมทันที
     if (rawW && rawW.daily) {
       const hasPop = Array.isArray(rawW.daily.precipitation_probability_max) &&
                      rawW.daily.precipitation_probability_max.length > 0 &&
                      rawW.daily.precipitation_probability_max[0] != null;
-      if (!hasPop) {
+      const hasUv = Array.isArray(rawW.daily.uv_index_max) &&
+                    rawW.daily.uv_index_max.length > 0 &&
+                    rawW.daily.uv_index_max[0] != null;
+      if (!hasPop || !hasUv) {
         try {
           const popData = await jget(seamlessPopUrl(normPlace.latitude, normPlace.longitude), 4000).catch(() => null);
-          if (popData?.daily?.precipitation_probability_max) {
+          if (popData?.daily?.precipitation_probability_max && !hasPop) {
             rawW.daily.precipitation_probability_max = popData.daily.precipitation_probability_max;
           }
-          if (popData?.hourly?.precipitation_probability) {
+          if (popData?.hourly?.precipitation_probability && !hasPop) {
             if (!rawW.hourly) rawW.hourly = {};
             rawW.hourly.precipitation_probability = popData.hourly.precipitation_probability;
           }
+          if (popData?.daily?.uv_index_max && !hasUv) {
+            rawW.daily.uv_index_max = popData.daily.uv_index_max;
+          }
+          if (popData?.hourly?.uv_index) {
+            if (!rawW.hourly) rawW.hourly = {};
+            rawW.hourly.uv_index = popData.hourly.uv_index;
+          }
         } catch (e) {
-          console.warn('Seamless PoP fallback fetch error:', e);
+          console.warn('Seamless PoP/UV fallback fetch error:', e);
         }
       }
     }
@@ -2386,29 +2406,35 @@ function renderTopTicker(){
   }
 
   // 3. ดัชนีรังสี UV
+  const isDayVal = (c.isDay ?? c.is_day) === 1;
   let curUV = c.uvIndex ?? c.uv_index;
   if (curUV == null && H.uv_index) {
     const hr = new Date().getHours();
     curUV = H.uv_index[hr] ?? 0;
   }
+  if (!isDayVal) curUV = 0;
   curUV = curUV != null ? Math.round(curUV) : 0;
   const maxUV = Math.round(D.uvIndexMax ?? D.uv_index_max?.[0] ?? curUV);
   const uvEl = document.getElementById('tickerUvVal');
   const uvSub = document.getElementById('tickerUvSub');
-  if (uvEl) uvEl.textContent = `ระดับ ${curUV}`;
+  if (uvEl) uvEl.textContent = !isDayVal ? `ระดับ 0` : `ระดับ ${curUV}`;
   if (uvSub) {
-    let uvTxt = 'ปลอดภัย';
-    if (typeof uvLevel === 'function') {
-      const uInfo = uvLevel(curUV);
-      uvTxt = uInfo[0] || 'ปลอดภัย';
+    if (!isDayVal) {
+      uvSub.textContent = `กลางคืน (ไม่มีแสงแดด) · สูงสุดกลางวัน ${maxUV}`;
     } else {
-      if (curUV >= 11) uvTxt = 'ระดับอันตราย';
-      else if (curUV >= 8) uvTxt = 'ระดับสูงมาก';
-      else if (curUV >= 6) uvTxt = 'ระดับสูง';
-      else if (curUV >= 3) uvTxt = 'ระดับปานกลาง';
-      else uvTxt = 'ระดับต่ำ (ปลอดภัย)';
+      let uvTxt = 'ปลอดภัย';
+      if (typeof uvLevel === 'function') {
+        const uInfo = uvLevel(curUV, true);
+        uvTxt = uInfo[0] || 'ปลอดภัย';
+      } else {
+        if (curUV >= 11) uvTxt = 'ระดับอันตราย';
+        else if (curUV >= 8) uvTxt = 'ระดับสูงมาก';
+        else if (curUV >= 6) uvTxt = 'ระดับสูง';
+        else if (curUV >= 3) uvTxt = 'ระดับปานกลาง';
+        else uvTxt = 'ระดับต่ำ (ปลอดภัย)';
+      }
+      uvSub.textContent = `${uvTxt} · สูงสุด ${maxUV}`;
     }
-    uvSub.textContent = `${uvTxt} · สูงสุด ${maxUV}`;
   }
 
   // 4. คุณภาพอากาศ PM2.5
@@ -2460,38 +2486,74 @@ function buildDailyAdvisory(){
   const D = can ? can.today : (state.w?.daily || {});
   const air = state.a?.current;
   const parts = [];
-  const sky = c.condition || wmoText(c.weatherCode ?? c.weather_code ?? 0);
+  const isDay = (c.isDay ?? c.is_day) === 1;
+  const sky = c.condition || wmoText(c.weatherCode ?? c.weather_code ?? 0, isDay);
   const hi = Math.round(D.temperatureMax ?? D.temperature_2m_max?.[0] ?? 33);
   const lo = Math.round(D.temperatureMin ?? D.temperature_2m_min?.[0] ?? 25);
   const feel = Math.round(c.feelsLike ?? c.apparent_temperature ?? 30);
   const temp = Math.round(c.temperature ?? c.temperature_2m ?? 30);
   const diff = feel - temp;
 
-  let tempNote = `ขณะนี้${sky} อุณหภูมิ ${temp}°C`;
-  if(diff >= 3) tempNote += ` (รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
-  else if(diff <= -2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
-  tempNote += ` ช่วงอุณหภูมิวันนี้ ${lo}°–${hi}°C`;
+  // คำนวณช่วงเวลาท้องถิ่นเพื่อเลือกสำนวนภาษาให้สมเหตุสมผลตามเวลาจริง
+  const tz = can?.location?.timezone || state.w?.timezone || 'Asia/Bangkok';
+  let curHour = 12;
+  try {
+    const f = new Intl.DateTimeFormat('en-GB', { hour: 'numeric', hour12: false, timeZone: tz });
+    curHour = parseInt(f.format(new Date()), 10);
+  } catch(e) {
+    curHour = new Date().getHours();
+  }
+  const isNight = !isDay || curHour >= 19 || curHour < 6;
+  const isLateNight = curHour >= 21 || curHour < 5;
+
+  let tempNote = '';
+  if (isNight) {
+    const timePrefix = isLateNight ? 'ยามดึกนี้' : 'ช่วงค่ำนี้';
+    tempNote = `${timePrefix}${sky} อุณหภูมิ ${temp}°C`;
+    if (diff >= 3) tempNote += ` (รู้สึกอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
+    else if (diff <= -2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
+    tempNote += isLateNight
+      ? ` คาดอุณหภูมิต่ำสุดคืนนี้ประมาณ ${lo}°C (อุณหภูมิสูงสุดช่วงกลางวัน ${hi}°C)`
+      : ` อุณหภูมิจะทยอยลดลงแตะต่ำสุด ${lo}°C ในคืนนี้ (สูงสุดกลางวัน ${hi}°C)`;
+  } else {
+    tempNote = `ขณะนี้${sky} อุณหภูมิ ${temp}°C`;
+    if (diff >= 3) tempNote += ` (รู้สึกร้อนอบอ้าวเหมือน ${feel}°C จากความชื้นสะสม)`;
+    else if (diff <= -2) tempNote += ` (รู้สึกเย็นสบายเหมือน ${feel}°C จากกระแสลม)`;
+    tempNote += ` ช่วงอุณหภูมิวันนี้ ${lo}°–${hi}°C`;
+  }
   parts.push(tempNote);
 
   const next12 = state.hourList.slice(0, 13);
   const rainyHrs = next12.filter(h => h.pop >= 55 || h.pr >= 0.2);
   const popMax = D.precipitationProbability ?? D.precipitation_probability_max?.[0] ?? 0;
   const rainSum = D.precipitationMm ?? D.precipitation_sum?.[0] ?? 0;
-  if(rainyHrs.length > 0){
+  if (rainyHrs.length > 0) {
     const firstH = rainyHrs[0].t.slice(11,16);
     const lastH = rainyHrs[rainyHrs.length-1].t.slice(11,16);
     const rangeTxt = firstH === lastH ? `ช่วงเวลาประมาณ ${firstH} น.` : `ตั้งแต่ช่วง ${firstH} ถึง ${lastH} น.`;
-    parts.push(`มีแนวโน้มเกิดฝนตก (โอกาสสูงสุด ${popMax}% · คาดการณ์ปริมาณฝนรวม ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว`);
-  } else if(popMax >= 40){
-    parts.push(`วันนี้มีโอกาสเกิดฝนสูงสุดร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
+    if (isNight) {
+      parts.push(`มีแนวโน้มเกิดฝนตก (โอกาสสูงสุด ${popMax}% · ปริมาณฝนรวม ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} หากจำเป็นต้องเดินทางสัญจรยามค่ำคืนควรระวังถนนลื่น`);
+    } else {
+      parts.push(`มีแนวโน้มเกิดฝนตก (โอกาสสูงสุด ${popMax}% · คาดการณ์ปริมาณฝนรวม ${rainSum.toFixed(1)} มม.) โดยเฉพาะ${rangeTxt} แนะนำให้พกร่มหรือเสื้อกันฝนติดตัว`);
+    }
+  } else if (popMax >= 40) {
+    if (isNight) {
+      parts.push(`คืนนี้มีโอกาสเกิดฝนตกสูงสุดร้อยละ ${popMax} ควรระมัดระวังฝนตกขณะเดินทางสัญจร`);
+    } else {
+      parts.push(`วันนี้มีโอกาสเกิดฝนสูงสุดร้อยละ ${popMax} ในบางช่วงของวัน ควรพกร่มพับติดกระเป๋าไว้เผื่อฝนโปรย`);
+    }
   } else {
-    parts.push(`โอกาสเกิดฝนวันนี้ค่อนข้างต่ำ (${popMax}%) สภาพอากาศเอื้อต่อการเดินทางและทำกิจกรรมกลางแจ้ง`);
+    if (isNight) {
+      parts.push(`คืนนี้โอกาสเกิดฝนต่ำ (${popMax}%) สภาพอากาศปลอดโปร่ง นอนหลับพักผ่อนสบาย การสัญจรยามค่ำคืนราบรื่น`);
+    } else {
+      parts.push(`โอกาสเกิดฝนวันนี้ค่อนข้างต่ำ (${popMax}%) สภาพอากาศเอื้อต่อการเดินทางและทำกิจกรรมกลางแจ้ง`);
+    }
   }
 
   const pm = air?.pm2_5;
-  if(pm != null && pm > 37.5){
+  if (pm != null && pm > 37.5) {
     parts.push(`ค่าฝุ่น PM2.5 อยู่ในระดับเริ่มมีผลต่อสุขภาพ (${Math.round(pm)} µg/m³) ควรสวมหน้ากากป้องกันฝุ่นเมื่ออยู่นอกอาคาร`);
-  } else if((c.isDay ?? c.is_day) === 1 && (air?.uv_index ?? c.uvIndex ?? 0) >= 6){
+  } else if (isDay && (air?.uv_index ?? c.uvIndex ?? 0) >= 6) {
     parts.push(`ดัชนีรังสียูวีอยู่ในเกณฑ์สูง ควรทาครีมกันแดดหรือสวมหมวกเมื่อต้องอยู่กลางแดด`);
   }
   return parts.join(' · ');
@@ -2510,7 +2572,7 @@ function renderMain(){
 
   els.bigTemp.textContent = Math.round(tempVal);
   els.bigIcon.innerHTML = weatherIcon(wmoKind(codeVal), isDayVal, true);
-  els.skyText.textContent = c.condition || wmoText(codeVal);
+  els.skyText.textContent = c.condition || wmoText(codeVal, isDayVal);
   els.hiTemp.textContent = Math.round(hiVal) + '°';
   els.loTemp.textContent = Math.round(loVal) + '°';
   els.popToday.textContent = Math.round(popVal) + '%';
@@ -2659,16 +2721,20 @@ function renderDetails(){
   });
 
   // 5. ดัชนีรังสียูวี
-  const uv=air?.uv_index ?? c.uvIndex, uvMax=D.uv_index_max?.[0];
-  const uvVal = uv!=null ? uv : (uvMax??0);
-  const lv=uvLevel(uvVal);
+  const isDayVal = (c.isDay ?? c.is_day) === 1;
+  const uv = isDayVal ? (air?.uv_index ?? c.uvIndex) : 0;
+  const uvMax = D.uvIndexMax ?? D.uv_index_max?.[0] ?? 0;
+  const uvVal = uv != null ? uv : (isDayVal ? (uvMax ?? 0) : 0);
+  const lv = uvLevel(uvVal, isDayVal);
   rows.push({
     metric:'uv', ic:'uv',
-    label: uv!=null ? 'ดัชนีรังสียูวี (ขณะนี้)' : 'ดัชนีรังสียูวี (สูงสุดวันนี้)',
-    value: (Math.round(uvVal*10)/10).toString(),
-    badge: lv[0],
-    desc: `${lv[2]}${uv!=null&&uvMax!=null?` (สูงสุดวันนี้ ${(Math.round(uvMax*10)/10)})`:''}`,
-    extra: arcGauge((uvVal/11)*100, lv[1], `UV`)
+    label: !isDayVal ? 'ดัชนีรังสียูวี (กลางคืน)' : (uv!=null ? 'ดัชนีรังสียูวี (ขณะนี้)' : 'ดัชนีรังสียูวี (สูงสุดวันนี้)'),
+    value: !isDayVal ? '0' : (Math.round(uvVal*10)/10).toString(),
+    badge: !isDayVal ? 'กลางคืน' : lv[0],
+    desc: !isDayVal
+      ? `เวลากลางคืนไม่มีรังสียูวีจากแสงแดด (ค่ารังสียูวีสูงสุดช่วงกลางวัน ${Math.round(uvMax*10)/10})`
+      : `${lv[2]}${uv!=null&&uvMax!=null?` (สูงสุดวันนี้ ${(Math.round(uvMax*10)/10)})`:''}`,
+    extra: arcGauge(!isDayVal ? 0 : (uvVal/11)*100, !isDayVal ? '#94a3b8' : lv[1], `UV`)
   });
 
   // 6. ความกดอากาศระดับน้ำทะเล (Barometric Pressure)
@@ -3063,7 +3129,7 @@ function showHourDetail(i){
   els.hourTip.style.left=clamp(x,125,state.hourW-125)+'px';
   els.hourTip.classList.remove('hidden');
   els.hourTip.innerHTML=`<p class="text-[11px] text-amber-200 font-medium">${i===0?'สภาพอากาศตอนนี้':`เวลา ${o.t.slice(11,16)} น.`}</p>
-    <p class="text-xs sm:text-sm font-semibold mt-0.5">${Math.round(o.temp)}°C (รู้สึก ${Math.round(o.feel)}°C) · ${wmoText(o.code)}</p>
+    <p class="text-xs sm:text-sm font-semibold mt-0.5">${Math.round(o.temp)}°C (รู้สึก ${Math.round(o.feel)}°C) · ${wmoText(o.code, o.isDay)}</p>
     <p class="text-[11px] text-sky-200 mt-0.5">โอกาสฝน ${o.pop}%${o.pr>0?` · ปริมาณฝน ${o.pr} มม.`:' · ไม่มีฝนสะสม'}</p>
     <p class="text-[11px] text-white/65 mt-0.5">ความชื้น ${o.hum!=null?Math.round(o.hum)+'%':'—'} · ลม ${o.wind!=null?Math.round(o.wind)+' กม./ชม.':'—'}</p>`;
 }
@@ -3550,23 +3616,24 @@ function openMetricModal(type = 'wind'){
   }
   else if(type === 'uv'){
     title = '☀️ ดัชนีรังสียูวี (UV Index) & การป้องกันแดด';
-    const uvNow = air.uv_index ?? D.uv_index_max?.[0] ?? 0;
-    const uvMax = D.uv_index_max?.[0] ?? uvNow;
-    const lv = uvLevel(uvNow);
+    const isDayVal = (c.isDay ?? c.is_day) === 1;
+    const uvNow = isDayVal ? (air.uv_index ?? c.uvIndex ?? 0) : 0;
+    const uvMax = D.uvIndexMax ?? D.uv_index_max?.[0] ?? uvNow;
+    const lv = uvLevel(uvNow, isDayVal);
     body = `
       <div class="grid grid-cols-2 gap-2.5">
         <div class="glass-in rounded-2xl p-3.5 flex items-center justify-between">
           <div>
-            <p class="text-xs text-white/60">รังสี UV ขณะนี้</p>
+            <p class="text-xs text-white/60">${isDayVal ? 'รังสี UV ขณะนี้' : 'รังสี UV ขณะนี้ (กลางคืน)'}</p>
             <p class="text-2xl font-semibold text-white mt-0.5">${Math.round(uvNow*10)/10}</p>
             <p class="text-xs mt-0.5" style="color:${lv[1]}">${lv[0]}</p>
           </div>
-          ${arcGauge((uvNow/11)*100, lv[1], 'UV')}
+          ${arcGauge(isDayVal ? (uvNow/11)*100 : 0, lv[1], 'UV')}
         </div>
         <div class="glass-in rounded-2xl p-3.5">
           <p class="text-xs text-white/60">UV สูงสุดของวันนี้</p>
           <p class="text-2xl font-semibold text-amber-200 mt-0.5">${Math.round(uvMax*10)/10}</p>
-          <p class="text-[11px] text-white/65 mt-0.5">${uvLevel(uvMax)[0]}</p>
+          <p class="text-[11px] text-white/65 mt-0.5">${uvLevel(uvMax, true)[0]}</p>
         </div>
       </div>
       <div class="glass-in rounded-2xl p-3.5">
@@ -3574,7 +3641,7 @@ function openMetricModal(type = 'wind'){
         ${svgLineChart24h(H.map(h=>h.uv||0), { color:'#f59e0b', unit:'' })}
       </div>
       <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed">
-        <b class="text-amber-200">คำแนะนำการป้องกันแสงแดด:</b> ${lv[2]}
+        <b class="text-amber-200">${isDayVal ? 'คำแนะนำการป้องกันแสงแดด:' : 'สถานะรังสี UV ยามค่ำคืน:'}</b> ${lv[2]}
       </div>`;
   }
   else if(type === 'humidity'){
@@ -3740,7 +3807,7 @@ function openMetricModal(type = 'wind'){
             <span class="w-14 text-white/75 font-medium">${dh.hr} น.</span>
             <span class="flex items-center gap-2 flex-1 min-w-0">
               <span class="w-6 h-6 shrink-0">${weatherIcon(wmoKind(dh.code), dh.isDay, false)}</span>
-              <span class="truncate text-white/85">${wmoText(dh.code)}</span>
+              <span class="truncate text-white/85">${wmoText(dh.code, dh.isDay)}</span>
             </span>
             <span class="w-16 text-right text-sky-200">${dh.pop}% ${dh.pr>0?`(${dh.pr.toFixed(1)})`:''}</span>
             <span class="w-12 text-right font-semibold text-white">${dh.temp}°C</span>
