@@ -600,7 +600,7 @@ tailwind.config = {
         <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
           <p id="clockLine" class="text-xs text-white/55">—</p>
           <button type="button" data-metric="sources" id="heroSourcePill" class="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/15 border border-emerald-300/30 text-emerald-200 hover:bg-emerald-400/25">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>WeatherAPI + ECMWF 9km
           </button>
           <span class="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full bg-amber-400/15 border border-amber-300/30 text-amber-200 font-medium">
             MIX NATTANONT • ZERODAY
@@ -1587,11 +1587,12 @@ const getKey = () => localStorage.getItem(LS_API) || '';
 const getWapiKey = () => WAPI_KEY;
 
 function forecastUrl(lat,lon){
-  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=ecmwf_ifs025&timezone=auto&forecast_days=8`
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=ecmwf_ifs&timezone=auto&forecast_days=8`
     + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,precipitation`
     + `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,precipitation_probability,precipitation,is_day,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,pressure_msl,uv_index`
     + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,rain_sum,precipitation_hours,sunrise,sunset,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max`;
 }
+const seamlessPopUrl=(lat,lon)=>`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_probability_max&hourly=precipitation_probability&timezone=auto&forecast_days=8`;
 const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index&timezone=auto`;
 const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
 
@@ -1665,7 +1666,7 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
   const isPrimary = !!(rawW && rawW.daily && Array.isArray(rawW.daily.time) && rawW.daily.time.length > 0);
   const mode = isPrimary ? 'primary' : 'fallback';
   const primaryProvider = isPrimary ? 'Open-Meteo' : 'WeatherAPI.com (Fallback)';
-  const forecastModel = isPrimary ? 'ECMWF IFS 0.25°' : 'WeatherAPI Forecast System';
+  const forecastModel = isPrimary ? 'ECMWF IFS 9km (HRES)' : 'WeatherAPI Forecast System';
 
   if(rawW?.timezone) loc.timezone = rawW.timezone;
 
@@ -1716,7 +1717,15 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
       const date = dTimes[i];
       const pSum = rawW.daily.precipitation_sum?.[i] ?? 0;
       const rSum = rawW.daily.rain_sum?.[i] ?? pSum;
-      const popMax = rawW.daily.precipitation_probability_max?.[i] ?? 0;
+      let popMax = rawW.daily.precipitation_probability_max?.[i];
+      if (popMax == null && rawW.hourly?.precipitation_probability?.length) {
+        const dayHours = rawW.hourly.precipitation_probability.slice(i * 24, (i + 1) * 24).filter(v => v != null);
+        if (dayHours.length) popMax = Math.max(...dayHours);
+      }
+      if (popMax == null && wapi?.forecast?.forecastday?.[i]?.day?.daily_chance_of_rain != null) {
+        popMax = wapi.forecast.forecastday[i].day.daily_chance_of_rain;
+      }
+      if (popMax == null || isNaN(popMax)) popMax = 0;
       const pHours = rawW.daily.precipitation_hours?.[i] ?? 0;
       const tMin = rawW.daily.temperature_2m_min?.[i] ?? 25;
       const tMax = rawW.daily.temperature_2m_max?.[i] ?? 33;
@@ -1874,7 +1883,7 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
         date: today.date,
         provider: primaryProvider,
         model: forecastModel,
-        endpoint: isPrimary ? 'api.open-meteo.com/v1/forecast?models=ecmwf_ifs025' : 'api.weatherapi.com/v1/forecast.json',
+        endpoint: isPrimary ? 'api.open-meteo.com/v1/forecast?models=ecmwf_ifs' : 'api.weatherapi.com/v1/forecast.json',
         field: isPrimary ? 'daily.precipitation_sum[0]' : 'forecastday[0].day.totalprecip_mm',
         value: today.precipitationMm,
         timezone: loc.timezone,
@@ -1940,7 +1949,7 @@ function runDataConsistencyTests(canonical, floodData){
       left: `${canonical.today.precipitationProbability}%`,
       right: `${f[0].precipitationProbability}%`,
       pass: canonical.today.precipitationProbability === f[0].precipitationProbability,
-      desc: 'โอกาสเกิดฝนสูงสุดวันนี้มาจาก Open-Meteo ECMWF IFS ตัวเดียวกัน'
+      desc: 'โอกาสเกิดฝนสูงสุดวันนี้มาจาก Open-Meteo ECMWF IFS 9km (HRES) ตัวเดียวกัน'
     },
     {
       id: 6,
@@ -2296,6 +2305,27 @@ async function loadWeather(place){
       throw new Error('All weather data providers unreachable');
     }
 
+    // ตรวจสอบความสมบูรณ์ของ PoP จาก ecmwf_ifs: หากไม่มีข้อมูล ให้ดึง Seamless Endpoint เสริมทันที
+    if (rawW && rawW.daily) {
+      const hasPop = Array.isArray(rawW.daily.precipitation_probability_max) &&
+                     rawW.daily.precipitation_probability_max.length > 0 &&
+                     rawW.daily.precipitation_probability_max[0] != null;
+      if (!hasPop) {
+        try {
+          const popData = await jget(seamlessPopUrl(normPlace.latitude, normPlace.longitude), 4000).catch(() => null);
+          if (popData?.daily?.precipitation_probability_max) {
+            rawW.daily.precipitation_probability_max = popData.daily.precipitation_probability_max;
+          }
+          if (popData?.hourly?.precipitation_probability) {
+            if (!rawW.hourly) rawW.hourly = {};
+            rawW.hourly.precipitation_probability = popData.hourly.precipitation_probability;
+          }
+        } catch (e) {
+          console.warn('Seamless PoP fallback fetch error:', e);
+        }
+      }
+    }
+
     const canonical = createCanonicalWeatherData(normPlace, rawW, rawA, wapi);
     localStorage.setItem(LS_PLACE, JSON.stringify(normPlace));
     els.placeName.textContent = canonical.location.name;
@@ -2414,11 +2444,11 @@ function renderAll(isHybrid=false){
   const isFallback = can?.source?.mode === 'fallback';
   const srcLabel = isFallback
     ? 'WeatherAPI.com (โหมดสำรองฉุกเฉิน)'
-    : (isHybrid ? 'Open-Meteo ECMWF IFS + WeatherAPI (ตรวจวัดสด)' : 'Open-Meteo (ECMWF IFS 0.25°)');
+    : (isHybrid ? 'Open-Meteo ECMWF IFS 9km (HRES) + WeatherAPI (ตรวจวัดสด)' : 'Open-Meteo (ECMWF IFS 9km HRES)');
   if(els.heroSourcePill){
     els.heroSourcePill.innerHTML = isFallback
       ? `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>WeatherAPI Fallback`
-      : `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>ECMWF IFS 0.25°`;
+      : `<span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span>ECMWF IFS 9km (HRES)`;
   }
   els.updatedAt.textContent=`แหล่งข้อมูลพยากรณ์: ${srcLabel} · อัปเดตเมื่อ `
     + new Intl.DateTimeFormat('th-TH',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:tz}).format(new Date()) + ' น. (ทุก 15 นาที)';
@@ -3249,7 +3279,7 @@ function openMetricModal(type = 'wind'){
     const audit = runDataConsistencyTests(can, state.flood);
     const modeBadge = can?.source?.mode === 'fallback'
       ? '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">FALLBACK MODE</span>'
-      : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">PRIMARY (ECMWF IFS 0.25°)</span>';
+      : '<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">PRIMARY (ECMWF IFS HRES 9km)</span>';
 
     const auditStatusBadge = audit.allPassed
       ? `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">ผ่านเกณฑ์สมบูรณ์ (${audit.passedCount}/${audit.totalCount})</span>`
@@ -3269,7 +3299,7 @@ function openMetricModal(type = 'wind'){
           </div>
         </div>
         <p class="text-xs text-white/75 leading-relaxed">
-          ระบบประมวลผลข้อมูลสภาพอากาศภายใต้สถาปัตยกรรม Canonical Weather Data โดยใช้โมเดล <b class="text-sky-300">Open-Meteo ECMWF IFS 0.25°</b> เป็นแหล่งพยากรณ์หลักเพียงแหล่งเดียว และใช้ <b class="text-emerald-300">WeatherAPI.com</b> สำหรับการตรวจวัดสดตามสถานี (Real-time Observation) และเป็นโหมดสำรองฉุกเฉินเท่านั้น
+          ระบบประมวลผลข้อมูลสภาพอากาศภายใต้สถาปัตยกรรม Canonical Weather Data โดยใช้โมเดล <b class="text-sky-300">Open-Meteo ECMWF IFS 9km (HRES)</b> เป็นแหล่งพยากรณ์หลักเพียงแหล่งเดียว และใช้ <b class="text-emerald-300">WeatherAPI.com</b> สำหรับการตรวจวัดสดตามสถานี (Real-time Observation) และเป็นโหมดสำรองฉุกเฉินเท่านั้น
         </p>
       </div>
 
@@ -3295,7 +3325,7 @@ function openMetricModal(type = 'wind'){
       <div class="glass-in rounded-2xl p-4 space-y-2 text-xs">
         <p class="font-semibold text-white/90">แหล่งอ้างอิงข้อมูล & ใบอนุญาต</p>
         <div class="space-y-2 text-white/70">
-          <p>• <b class="text-white">แบบจำลองสภาพอากาศหลัก:</b> Open-Meteo ECMWF IFS 0.25° (CC BY 4.0)</p>
+          <p>• <b class="text-white">แบบจำลองสภาพอากาศหลัก:</b> Open-Meteo ECMWF IFS 9km HRES (CC BY 4.0)</p>
           <p>• <b class="text-white">ข้อมูลตรวจวัดสด & สำรอง:</b> WeatherAPI.com (Station Real-time Observations & Fallback)</p>
           <p>• <b class="text-white">แบบจำลองอุทกวิทยา & น้ำท่วม:</b> Copernicus GloFAS (Global Flood Awareness System · ECMWF)</p>
           <p>• <b class="text-white">คุณภาพอากาศ:</b> CAMS ENSEMBLE provider ผ่าน Open-Meteo & WeatherAPI AQI</p>
@@ -3420,7 +3450,7 @@ function openMetricModal(type = 'wind'){
 
       <div class="glass-in rounded-2xl p-3.5">
         <div class="flex items-center justify-between text-xs mb-2">
-          <span class="font-medium text-white/85">คาดการณ์ปริมาณน้ำฝนรายวัน 7 วันข้างหน้า (ECMWF IFS)</span>
+          <span class="font-medium text-white/85">คาดการณ์ปริมาณน้ำฝนรายวัน 7 วันข้างหน้า (ECMWF IFS 9km HRES)</span>
           <span class="text-[10px] text-sky-300 font-mono">หน่วย: มิลลิเมตร (มม.)</span>
         </div>
         <div>${daysHtml}</div>
@@ -3429,7 +3459,7 @@ function openMetricModal(type = 'wind'){
       <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed space-y-1.5">
         <p class="font-semibold text-amber-200">เกณฑ์การประเมินความเสี่ยงน้ำท่วมและที่มาของข้อมูล</p>
         <p>• <b class="text-white">อัตราไหลของลำน้ำ (ลบ.ม./วินาที):</b> คำนวณจากแบบจำลองระดับโลก Copernicus GloFAS โดยใช้สถิติย้อนหลัง 5 ปีในเดือนเดียวกันเพื่อกำหนดเกณฑ์เฝ้าระวัง P90, P97 (น้ำเอ่อริมตลิ่ง) และ P99.5 (น้ำล้นตลิ่ง)</p>
-        <p>• <b class="text-white">ปริมาณฝนสะสม (มม.):</b> พยากรณ์จากแบบจำลอง ECMWF IFS รายอำเภอ หากฝนสะสมเกิน 35 มม./วัน ควรระวังน้ำท่วมขังรอการระบายในพื้นที่ลุ่มต่ำ</p>
+        <p>• <b class="text-white">ปริมาณฝนสะสม (มม.):</b> พยากรณ์จากแบบจำลอง ECMWF IFS 9km (HRES) รายอำเภอ หากฝนสะสมเกิน 35 มม./วัน ควรระวังน้ำท่วมขังรอการระบายในพื้นที่ลุ่มต่ำ</p>
         <p class="text-amber-200/90 pt-1">${fl.note || 'ติดตามปริมาณฝนสะสมในพื้นที่ลุ่มต่ำและทางระบายน้ำอย่างต่อเนื่อง'}</p>
       </div>`;
   }
@@ -3450,7 +3480,7 @@ function openMetricModal(type = 'wind'){
         <div class="glass-in rounded-2xl p-3">
           <p class="text-white/55">โอกาสเกิดฝนสูงสุดวันนี้</p>
           <p class="text-xl font-semibold text-sky-300 mt-0.5">${popToday}%</p>
-          <p class="text-[10px] text-sky-200/70 mt-1">ECMWF IFS (PoP Max)</p>
+          <p class="text-[10px] text-sky-200/70 mt-1">ECMWF IFS 9km HRES (PoP Max)</p>
         </div>
         <div class="glass-in rounded-2xl p-3">
           <p class="text-white/55">ฝนคาดการณ์ทั้งวัน</p>
@@ -3462,7 +3492,7 @@ function openMetricModal(type = 'wind'){
       <div class="glass-in rounded-2xl p-3.5 text-xs text-white/80 leading-relaxed">
         <b class="text-amber-200">ความแตกต่างระหว่าง “ฝนขณะนี้” กับ “ฝนคาดการณ์ทั้งวัน”:</b><br>
         <span class="text-white/70">• <b class="text-white">ฝนขณะนี้ (${nowMm.toFixed(1)} มม./ชม.):</b> คืออัตราฝนที่ตรวจวัดได้จากสถานีตรวจวัดจริงในขณะนี้ (Observation)<br>
-        • <b class="text-white">ฝนคาดการณ์ทั้งวัน (${sumToday.toFixed(1)} มม.):</b> คือปริมาณฝนสะสมคาดการณ์ตลอด 24 ชั่วโมงของวันนี้จากแบบจำลอง ECMWF IFS</span>
+        • <b class="text-white">ฝนคาดการณ์ทั้งวัน (${sumToday.toFixed(1)} มม.):</b> คือปริมาณฝนสะสมคาดการณ์ตลอด 24 ชั่วโมงของวันนี้จากแบบจำลอง ECMWF IFS 9km (HRES)</span>
       </div>
 
       <div class="glass-in rounded-2xl p-3.5">
