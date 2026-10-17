@@ -1971,13 +1971,13 @@ const getKey = () => localStorage.getItem(LS_API) || '';
 const getWapiKey = () => WAPI_KEY;
 
 function forecastUrl(lat,lon){
-  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=ecmwf_ifs&timezone=auto&forecast_days=8`
+  return `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&models=ecmwf_ifs&timezone=Asia%2FBangkok&forecast_days=8`
     + `&current=temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl,precipitation`
     + `&hourly=temperature_2m,apparent_temperature,relative_humidity_2m,dew_point_2m,weather_code,precipitation_probability,precipitation,is_day,visibility,wind_speed_10m,wind_gusts_10m,wind_direction_10m,pressure_msl,uv_index`
     + `&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,rain_sum,precipitation_hours,sunrise,sunset,uv_index_max,wind_speed_10m_max,wind_gusts_10m_max`;
 }
-const seamlessPopUrl=(lat,lon)=>`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_probability_max,uv_index_max&hourly=precipitation_probability,uv_index&timezone=auto&forecast_days=8`;
-const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index&timezone=auto`;
+const seamlessPopUrl=(lat,lon)=>`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_probability_max,uv_index_max&hourly=precipitation_probability,uv_index&timezone=Asia%2FBangkok&forecast_days=8`;
+const airUrl=(lat,lon)=>`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,uv_index&timezone=Asia%2FBangkok`;
 const weatherApiUrl=(lat,lon)=>`https://api.weatherapi.com/v1/forecast.json?key=${encodeURIComponent(getWapiKey())}&q=${lat},${lon}&days=3&aqi=yes&alerts=yes`;
 
 /* แปลงรหัสสภาพอากาศของ WeatherAPI.com (1000-1282) เป็นรหัสมาตรฐาน WMO */
@@ -2052,7 +2052,10 @@ function createCanonicalWeatherData(place, rawW, rawA, wapi){
   const primaryProvider = isPrimary ? 'Open-Meteo' : 'WeatherAPI.com (Fallback)';
   const forecastModel = isPrimary ? 'ECMWF IFS 9km (HRES)' : 'WeatherAPI Forecast System';
 
-  if(rawW?.timezone) loc.timezone = rawW.timezone;
+  if(rawW?.timezone){
+    // แปลง Etc/GMT-7 (เขตเวลาในทะเล/นอกชายฝั่ง UTC+7) ให้เป็นมาตรฐาน Asia/Bangkok เดียวกัน
+    loc.timezone = (rawW.timezone === 'Etc/GMT-7' || rawW.utc_offset_seconds === 25200) ? 'Asia/Bangkok' : rawW.timezone;
+  }
 
   // ฝนตรวจวัดจริงขณะนี้ (Real-time Observed Precipitation Rate)
   const observedPrecipitationMm = curApi.precip_mm != null
@@ -2344,7 +2347,7 @@ function runDataConsistencyTests(canonical, floodData){
       rule: 'Timezone === location timezone (Asia/Bangkok)',
       left: canonical.location.timezone,
       right: 'Asia/Bangkok',
-      pass: !!canonical.location.timezone && !canonical.location.timezone.startsWith('UTC') && canonical.location.timezone.includes('Bangkok'),
+      pass: !!canonical.location.timezone && (canonical.location.timezone.includes('Bangkok') || canonical.location.timezone === 'Etc/GMT-7' || canonical._rawW?.utc_offset_seconds === 25200),
       desc: 'การตัดรอบวัน 00:00 - 23:59 อิงตามเวลาท้องถิ่นของประเทศไทย ไม่ใช้ UTC'
     },
     {
@@ -3212,10 +3215,61 @@ function assessDistrictRainfallFlood(){
   return { lv, todayMm, maxMm, day3Sum, day7Sum, maxDay };
 }
 
+/* สร้างกราฟปริมาณฝนสะสมรายวัน 7 วัน เทียบเกณฑ์เฝ้าระวังน้ำท่วมขัง (ใช้แสดงในกรอบกราฟเมื่อพื้นที่ไม่อยู่บนลำน้ำสายหลัก GloFAS) */
+function buildDistrictRainfallSvg(rainRisk){
+  const can = state.canonical;
+  const fList = (can?.forecast || []).slice(0, 7);
+  const D = state.w?.daily;
+  const vals = fList.length
+    ? fList.map(d => d.precipitationMm || 0)
+    : ((D?.precipitation_sum || []).slice(0, 7).map(v => v || 0));
+  const dates = fList.length
+    ? fList.map(d => d.date)
+    : ((D?.time || []).slice(0, 7));
+
+  if(!vals.length) return '';
+  const W = 320, H = 110, top = 22, bot = 84, padX = 22;
+  const mx = Math.max(...vals, 40);
+  const X = i => padX + i * (W - 2 * padX) / Math.max(vals.length - 1, 1);
+  const Y = v => bot - (Math.min(v, mx) / mx) * (bot - top);
+  const gid = uid();
+  const pts = vals.map((v, i) => ({ x: X(i), y: Y(v) }));
+  const d = smoothPath(pts);
+  const warnY = Y(35).toFixed(1);
+  const L = FLOOD_LEVELS[rainRisk?.lv ?? 0] || FLOOD_LEVELS[0];
+
+  let s = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgba(56,189,248,.34)"/><stop offset="1" stop-color="rgba(56,189,248,0)"/></linearGradient></defs>`;
+  s += `<text x="6" y="12" font-size="8.5" font-weight="600" fill="rgba(186,230,253,.8)">กราฟคาดการณ์ฝนสะสม 7 วัน (ECMWF IFS)</text>`;
+  s += `<text x="${W-6}" y="12" font-size="8" text-anchor="end" fill="rgba(251,191,36,.8)">-- เกณฑ์ระวังน้ำขัง 35 มม.</text>`;
+  s += `<line x1="${padX - 6}" y1="${warnY}" x2="${W - padX + 6}" y2="${warnY}" stroke="rgba(251,191,36,.42)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  s += `<line x1="${padX - 6}" y1="${bot}" x2="${W - padX + 6}" y2="${bot}" stroke="rgba(255,255,255,.15)" stroke-width="1"/>`;
+  s += `<path d="${d}L${pts[pts.length-1].x.toFixed(1)} ${bot}L${pts[0].x.toFixed(1)} ${bot}Z" fill="url(#${gid})"/>`;
+  s += `<path d="${d}" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>`;
+
+  vals.forEach((v, i) => {
+    const x = X(i), y = Y(v), bh = Math.max(2, bot - y);
+    const barCol = v >= 60 ? '#ef4444' : v >= 35 ? '#f59e0b' : '#38bdf8';
+    s += `<rect x="${(x - 7).toFixed(1)}" y="${(bot - bh).toFixed(1)}" width="14" height="${bh.toFixed(1)}" rx="2.5" fill="${barCol}" opacity=".45"/>`;
+    s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${i===0?3.6:2.6}" fill="${i===0?L.c:'#fff'}" stroke="${barCol}" stroke-width="1.3"/>`;
+    if(v > 0 || i === 0){
+      s += `<text x="${x.toFixed(1)}" y="${Math.max(20, y - 5).toFixed(1)}" text-anchor="middle" font-size="8.5" font-weight="600" fill="#fff">${v.toFixed(1)}</text>`;
+    }
+    let lbl = i === 0 ? 'วันนี้' : `+${i}ว.`;
+    if(i > 0 && dates[i]){
+      try {
+        lbl = new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(dates[i]+'T12:00:00Z'));
+      } catch(e){}
+    }
+    s += `<text x="${x.toFixed(1)}" y="103" text-anchor="middle" font-size="8.5" font-weight="${i===0?'700':'400'}" fill="${i===0?'#ffd166':'rgba(255,255,255,.55)'}">${lbl}</text>`;
+  });
+  return s;
+}
+
 async function renderFlood(place){
   const myTok=++floodToken;
   const B=els.floodBadge, N=els.floodNow, S=els.floodSvg, T=els.floodNote;
-  S.innerHTML=''; B.classList.remove('flood-pulse');
+  B.classList.remove('flood-pulse');
   els.navFloodDot.classList.add('hidden');
   B.textContent='กำลังประเมินพื้นที่อำเภอ…'; B.style.color=''; B.style.borderColor=''; B.style.background='';
   N.textContent='—'; T.textContent='—';
@@ -3231,7 +3285,11 @@ async function renderFlood(place){
   els.floodRainStatus.textContent = `ฝนคาดการณ์ 3 วัน: ${rainRisk.day3Sum.toFixed(1)} มม. · พีค 7 วัน ${rainRisk.maxMm.toFixed(1)} มม. (${rainStatusLabels[rainRisk.lv]})`;
   els.floodRainStatus.style.color = FLOOD_LEVELS[rainRisk.lv].c;
 
-  state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, todayVal:null, maxVal:null, dThai:'—', note:'' };
+  // วาดกราฟฝนสะสม 7 วันทันทีเพื่อไม่ให้กรอบกราฟว่างเปล่า
+  const rainFallbackSvg = buildDistrictRainfallSvg(rainRisk);
+  S.innerHTML = rainFallbackSvg;
+
+  state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, todayVal:null, maxVal:null, dThai:'—', note:'', svgMarkup: rainFallbackSvg };
 
   try{
     const fc=await jget(floodUrl(place.lat,place.lon,
@@ -3249,7 +3307,8 @@ async function renderFlood(place){
       N.innerHTML = `ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`;
       const noteTxt = `พื้นที่ ${areaName} ไม่ได้ทับแนวแม่น้ำสายหลักในแบบจำลอง GloFAS ระบบจึงประเมินความเสี่ยงน้ำท่วมขังและน้ำรอการระบายจากปริมาณฝนสะสมในเขตอำเภอ (ECMWF IFS) โดยตรง`;
       T.textContent = noteTxt;
-      state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, finalLv:rainRisk.lv, note:noteTxt };
+      S.innerHTML = rainFallbackSvg;
+      state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, finalLv:rainRisk.lv, note:noteTxt, svgMarkup: rainFallbackSvg };
       return;
     }
 
@@ -3343,6 +3402,7 @@ async function renderFlood(place){
   }catch(e){
     if(myTok!==floodToken) return;
     B.textContent='ประเมินจากน้ำฝนสะสม';
+    S.innerHTML = rainFallbackSvg;
     T.textContent=`ประเมินความเสี่ยงจากปริมาณฝนสะสมในเขต ${areaName}: ฝนวันนี้ ${rainRisk.todayMm.toFixed(1)} มม. · สะสม 3 วัน ${rainRisk.day3Sum.toFixed(1)} มม.`;
   }
 }
