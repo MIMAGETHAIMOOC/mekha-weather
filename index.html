@@ -421,6 +421,8 @@ tailwind.config = {
   }
   .leaflet-container{ font-family:'Anuphan',sans-serif; background:#09111e !important; touch-action:none; outline:none; }
   .leaflet-tile-container img{ -webkit-backface-visibility:hidden; backface-visibility:hidden; transform:translate3d(0,0,0); }
+  .google-dark-tiles{ filter: invert(100%) hue-rotate(185deg) brightness(90%) contrast(94%) saturate(80%); }
+  .google-sat-tiles{ filter: brightness(80%) contrast(108%) saturate(105%); }
   .radar-tile-layer{ filter: saturate(1.32) contrast(1.08) drop-shadow(0 0 6px rgba(56,189,248,.18)); transition: opacity .18s linear; }
   .radar-panel-glass{
     background: rgba(11, 18, 31, 0.88);
@@ -3394,9 +3396,10 @@ async function openPinModal(){
     ensureLeaflet().then(()=>{
       if(!state.map){
         state.map = L.map(els.pinMapContainer).setView([cur.lat, cur.lon], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 18,
-          attribution: '© OpenStreetMap'
+        L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=th', {
+          maxZoom: 20,
+          subdomains: ['0','1','2','3'],
+          attribution: '© Google Maps'
         }).addTo(state.map);
         state.mapMarker = L.marker([cur.lat, cur.lon], { draggable: true }).addTo(state.map);
         state.map.on('click', e => {
@@ -3514,7 +3517,7 @@ function updateRadarDateHeader(epochSec){
   } catch(e){}
 }
 
-/* ระบบสลับและป้องกันบัคแผนที่พื้นหลัง (Anti-Black-Screen Base Map Engine) */
+/* ระบบแผนที่พื้นหลัง Google Maps ภาษาไทย (Google Dark Radar / Google Satellite / Google Terrain) ไร้ลายน้ำ API Key */
 function applyRadarBasemap(style = 'dark'){
   if(!radarState.map || !window.L) return;
   radarState.baseStyle = style;
@@ -3527,37 +3530,27 @@ function applyRadarBasemap(style = 'dark'){
     radarState.labelLayer = null;
   }
 
-  let baseUrl = 'https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png';
-  let labelUrl = 'https://{s}.basemaps.cartocdn.com/dark_only_labels/{z}/{x}/{y}{r}.png';
-  let baseOpts = { maxZoom: 19, subdomains: 'abcd', pane: 'tilePane' };
+  const gSub = ['0', '1', '2', '3'];
+  let baseUrl = 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=th';
+  let labelUrl = 'https://mt{s}.google.com/vt/lyrs=h&x={x}&y={y}&z={z}&hl=th';
+  let baseOpts = { maxZoom: 20, subdomains: gSub, pane: 'tilePane', className: 'google-dark-tiles' };
+  let labelOpts = { maxZoom: 20, subdomains: gSub, pane: 'radarLabelsPane', opacity: 0.45, className: 'google-dark-tiles' };
 
   if(style === 'satellite'){
-    baseUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-    baseOpts = { maxZoom: 18, pane: 'tilePane' };
+    baseUrl = 'https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}&hl=th';
+    baseOpts = { maxZoom: 20, subdomains: gSub, pane: 'tilePane', className: 'google-sat-tiles' };
+    labelOpts = { maxZoom: 20, subdomains: gSub, pane: 'radarLabelsPane', opacity: 0.9 };
   } else if(style === 'street'){
-    baseUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    labelUrl = null;
-    baseOpts = { maxZoom: 19, pane: 'tilePane' };
+    baseUrl = 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}&hl=th';
+    baseOpts = { maxZoom: 20, subdomains: gSub, pane: 'tilePane' };
+    labelOpts = { maxZoom: 20, subdomains: gSub, pane: 'radarLabelsPane', opacity: 0.6 };
   }
 
   radarState.tileErrorCount = 0;
-  radarState.baseLayer = L.tileLayer(baseUrl, baseOpts);
-
-  // หากเซิร์ฟเวอร์แผนที่มืดหลักโหลดไม่ขึ้นเกิน 4 แผ่น ให้สลับเป็นแผนที่สำรองอัตโนมัติ (ไม่ปล่อยให้จอดำเหมือนภาพตัวอย่าง)
-  radarState.baseLayer.on('tileerror', () => {
-    radarState.tileErrorCount++;
-    if(style === 'dark' && radarState.tileErrorCount === 4){
-      applyRadarBasemap('street');
-    }
-  });
-  radarState.baseLayer.addTo(radarState.map);
+  radarState.baseLayer = L.tileLayer(baseUrl, baseOpts).addTo(radarState.map);
 
   if(labelUrl){
-    radarState.labelLayer = L.tileLayer(labelUrl, {
-      maxZoom: 19,
-      subdomains: 'abcd',
-      pane: 'radarLabelsPane'
-    }).addTo(radarState.map);
+    radarState.labelLayer = L.tileLayer(labelUrl, labelOpts).addTo(radarState.map);
   }
 }
 
@@ -3565,7 +3558,11 @@ function cycleRadarBasemap(){
   const order = ['dark', 'satellite', 'street'];
   const next = order[(order.indexOf(radarState.baseStyle) + 1) % order.length];
   applyRadarBasemap(next);
-  const names = { dark:'แผนที่มืดเรดาร์ (Dark Radar)', satellite:'แผนที่ดาวเทียม (Satellite)', street:'แผนที่ถนนมาตรฐาน (OSM)' };
+  const names = {
+    dark: 'Google Maps โหมดมืดเรดาร์ (Dark Radar)',
+    satellite: 'Google Maps ดาวเทียม (Satellite Hybrid)',
+    street: 'Google Maps ภูมิประเทศและถนน (Terrain)'
+  };
   toast(`สลับพื้นหลังเป็น ${names[next]}`, 'info', 1800);
 }
 
