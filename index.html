@@ -472,10 +472,10 @@ tailwind.config = {
       DEVELOPED BY <span class="text-white">MIX NATTANONT • ZERODAY</span>
     </p>
   </div>
-  <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-1.5 sm:py-2.5">
-    <div class="flex items-center gap-1.5 sm:gap-3">
+  <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-2.5">
+    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3">
       <!-- โลโก้และชื่อแอป MIX MEKHA WEATHER FORECAST พร้อมป้ายสถานะสด -->
-      <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="MIX MEKHA พยากรณ์อากาศ & เรดาร์ฝนสด">
+      <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="MIX MEKHA พยากรณ์อากาศ & เรดาร์ฝนสด">
         <img src="icon-192.png?v=29" alt="MIX MEKHA" class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-contain bg-slate-950/60 p-0.5 shadow-lg border border-sky-400/40 shrink-0 transform-gpu transition-transform hover:scale-105"
              onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
         <svg viewBox="0 0 40 40" class="hidden w-9 h-9 sm:w-11 sm:h-11 shrink-0" aria-hidden="true">
@@ -487,30 +487,30 @@ tailwind.config = {
                 transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
         </svg>
         <div class="flex flex-col justify-center min-w-0">
-          <div class="flex items-center gap-1 sm:gap-1.5">
-            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase"><span class="hidden sm:inline">MIX </span>MEKHA</span>
-            <span class="inline-flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[9px] sm:text-[10px] text-emerald-300 font-semibold tracking-wider shrink-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase">MIX MEKHA</span>
+            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[9px] sm:text-[10px] text-emerald-300 font-semibold tracking-wider shrink-0">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE
             </span>
           </div>
-          <span class="text-[10px] text-sky-200/70 leading-none mt-1 font-medium hidden md:inline">เรดาร์ฝนสด · พยากรณ์อากาศ &amp; น้ำท่วม</span>
+          <span class="text-[10px] text-sky-200/70 leading-none mt-1 font-medium hidden md:inline">เรดาร์ฝนสด · พยากรณ์อากาศ &amp; เฝ้าระวังภัย</span>
         </div>
       </div>
 
-      <!-- ช่องค้นหาตรงกลาง (ขยายขนาดสมดุลทั้งบนมือถือและคอมพิวเตอร์) -->
-      <div class="relative flex-1 min-w-0 max-w-lg mx-auto">
-        <span id="searchSpin" class="hidden absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
-        <span id="searchIcon" class="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+      <!-- ช่องค้นหา: บนมือถือแยกเป็นแถวเต็มความกว้างด้านล่างเพื่อไม่ให้เบียดหรือซ้อนทับกับปุ่มเรดาร์ ส่วนบนจอใหญ่จะอยู่ตรงกลางแถวเดียว -->
+      <div class="order-3 sm:order-2 w-full sm:w-auto sm:flex-1 min-w-0 max-w-none sm:max-w-lg mx-auto relative">
+        <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
+        <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
-          class="glass-in w-full min-w-0 rounded-xl pl-8 sm:pl-9 pr-7 sm:pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-transparent outline-none focus:ring-2 focus:ring-amber-300/40 transition placeholder:text-white/40"
-          placeholder="ค้นหาพื้นที่…">
+          class="glass-in w-full min-w-0 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm bg-slate-950/35 outline-none focus:ring-2 focus:ring-amber-300/40 transition placeholder:text-white/45"
+          placeholder="ค้นหาชื่อตำบล อำเภอ จังหวัด หรือสถานที่…">
         <button id="btnSearchClear" type="button" aria-label="ล้างคำค้นหา"
-          class="hidden absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 w-5 h-5 sm:w-6 sm:h-6 rounded-full text-white/50 hover:text-white flex items-center justify-center"></button>
+          class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/50 hover:text-white flex items-center justify-center"></button>
         <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50 shadow-2xl max-h-[65dvh] overflow-y-auto nice-scroll"></div>
       </div>
 
       <!-- ปุ่มควบคุมมุมขวาบน: ปุ่มเรดาร์ฝนสด, แชร์แอป, ปักหมุดอำเภอ, โหลดแอป .APK และพิกัด GPS -->
-      <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+      <div class="order-2 sm:order-3 flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="btnOpenRadarTop" type="button" title="เปิดระบบเรดาร์ฝนสด & วิเคราะห์แนวฝนเข้าพื้นที่ (MEKHA RADAR)"
           class="flex h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-xl bg-sky-500/20 border border-sky-400/45 items-center gap-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition shrink-0 shadow-lg shadow-sky-500/10">
           <span class="relative flex h-2 w-2">
@@ -738,24 +738,27 @@ tailwind.config = {
         <p id="updatedAt" class="mt-2.5 text-[11px] text-white/40"></p>
       </article>
 
-      <!-- ลำดับมือถือ 3: การ์ดเตือนภัยน้ำท่วมเฉพาะพื้นที่อำเภอที่ปักหมุด -->
+      <!-- ลำดับมือถือ 3: ศูนย์เฝ้าระวังภัยพิบัติและเตรียมรับมือ 6 มิติ เฉพาะพื้นที่อำเภอที่ปักหมุด -->
       <article id="secFlood" class="order-3 lg:order-none lg:flex-1 flex flex-col justify-between glass rounded-3xl p-4 sm:p-6 rise" style="animation-delay:.06s">
         <div>
           <div class="flex items-center justify-between gap-2">
-            <h2 class="card-title">เตือนภัยน้ำท่วม · อำเภอที่ปักหมุด</h2>
+            <h2 class="card-title">เฝ้าระวังภัย &amp; รับมือ · อำเภอที่ปักหมุด</h2>
             <button id="btnFloodPinMap" class="text-[11px] px-2.5 py-1.5 rounded-xl glass-in text-amber-200 hover:bg-white/15 transition flex items-center gap-1 shrink-0 font-medium">
               <span id="floodPinBtnIcon"></span>
               <span>เลือกอำเภอ / ปักหมุด</span>
             </button>
           </div>
 
-          <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ (ปุ่ม GPS รวมเป็นปุ่มเดียวที่หัวเว็บแล้ว) -->
+          <!-- แสดงชื่ออำเภอและจังหวัดที่ปักหมุดอยู่ตอนนี้ -->
           <div class="mt-2.5 glass-in rounded-2xl p-3">
             <div class="flex items-center justify-between gap-2">
               <div class="min-w-0">
                 <p class="text-[11px] text-white/55">พื้นที่อำเภอเฝ้าระวังของคุณ</p>
                 <p id="floodAreaTitle" class="text-sm font-semibold text-amber-200 mt-0.5 truncate">กำลังระบุอำเภอที่ปักหมุด…</p>
               </div>
+              <span id="hazardSummaryPill" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 shrink-0">
+                ตรวจ 6 ภัยคุกคาม
+              </span>
             </div>
 
             <div id="provinceDistrictWrap" class="mt-2.5 pt-2.5 border-t border-white/10 hidden">
@@ -764,26 +767,66 @@ tailwind.config = {
             </div>
           </div>
 
-          <!-- สถานะความเสี่ยงรวมของอำเภอที่ปักหมุด -->
+          <!-- แถบสลับหมวดหมู่เฝ้าระวังภัย 6 มิติ (น้ำท่วม · พายุ/ฟ้าผ่า · ลมแดด · อากาศปิด/ฝุ่น · เกษตร/ดินแล้ง · แผ่นดินไหว) -->
+          <div class="mt-2.5">
+            <div class="flex items-center justify-between text-[10px] text-white/55 mb-1.5 px-0.5">
+              <span>แตะเลือกมิติภัยคุกคามเพื่อดูกราฟและวิธีเตรียมรับมือ:</span>
+              <span class="text-amber-200/85 font-medium">ข้อมูลฟิสิกส์จริง</span>
+            </div>
+            <div id="hazardTabs" class="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-3 gap-1.5 text-[11px]">
+              <button type="button" onclick="switchHazardTab('water')" data-hazard-tab="water"
+                class="px-2 py-1.5 rounded-xl font-semibold border border-amber-300 bg-amber-400 text-slate-950 flex items-center justify-between gap-1 transition shadow">
+                <span class="truncate">🌊 น้ำท่วม</span>
+                <span id="hzDot_water" class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+              </button>
+              <button type="button" onclick="switchHazardTab('storm')" data-hazard-tab="storm"
+                class="px-2 py-1.5 rounded-xl font-medium border border-white/12 bg-white/5 text-white/85 hover:bg-white/15 flex items-center justify-between gap-1 transition">
+                <span class="truncate">⚡ พายุ/ฟ้าผ่า</span>
+                <span id="hzDot_storm" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              </button>
+              <button type="button" onclick="switchHazardTab('heat')" data-hazard-tab="heat"
+                class="px-2 py-1.5 rounded-xl font-medium border border-white/12 bg-white/5 text-white/85 hover:bg-white/15 flex items-center justify-between gap-1 transition">
+                <span class="truncate">🥵 ลมแดด/ร้อน</span>
+                <span id="hzDot_heat" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              </button>
+              <button type="button" onclick="switchHazardTab('stagnation')" data-hazard-tab="stagnation"
+                class="px-2 py-1.5 rounded-xl font-medium border border-white/12 bg-white/5 text-white/85 hover:bg-white/15 flex items-center justify-between gap-1 transition">
+                <span class="truncate">😷 อากาศปิด/ฝุ่น</span>
+                <span id="hzDot_stagnation" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              </button>
+              <button type="button" onclick="switchHazardTab('agri')" data-hazard-tab="agri"
+                class="px-2 py-1.5 rounded-xl font-medium border border-white/12 bg-white/5 text-white/85 hover:bg-white/15 flex items-center justify-between gap-1 transition">
+                <span class="truncate">🌾 เกษตร/ดิน</span>
+                <span id="hzDot_agri" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              </button>
+              <button type="button" onclick="switchHazardTab('quake')" data-hazard-tab="quake"
+                class="px-2 py-1.5 rounded-xl font-medium border border-white/12 bg-white/5 text-white/85 hover:bg-white/15 flex items-center justify-between gap-1 transition">
+                <span class="truncate">🌍 แผ่นดินไหว</span>
+                <span id="hzDot_quake" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- สถานะความเสี่ยงของหมวดที่เลือก -->
           <div class="mt-3 flex items-center justify-between gap-2 min-w-0">
             <span id="floodBadge" class="text-xs font-medium px-2.5 py-1 rounded-full border border-white/15 bg-white/10 whitespace-nowrap">กำลังประเมิน…</span>
             <span id="floodNow" class="text-xs text-white/75 truncate text-right">—</span>
           </div>
 
-          <!-- แยกประเมิน 2 มิติในเขตอำเภอ (แตะเพื่อเปิดดูกราฟน้ำเชิงลึก) -->
+          <!-- แยกประเมิน 2 ตัวชี้วัดหลักในหมวดที่เลือก -->
           <div class="mt-2.5 grid grid-cols-2 gap-2 text-xs">
-            <div data-metric="rain" class="glass-in tap-card rounded-xl p-2.5">
+            <div id="hazardBox1" data-metric="hazards" class="glass-in tap-card rounded-xl p-2.5">
               <div class="flex items-center justify-between">
-                <p class="text-[10px] text-white/55">ฝนสะสมในอำเภอ</p>
-                <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+                <p id="hazardBox1Title" class="text-[10px] text-white/55 truncate">ฝนสะสมในอำเภอ</p>
+                <span class="text-[10px] text-sky-300 shrink-0">ดูเพิ่ม ›</span>
               </div>
               <p id="floodRainVal" class="text-sm font-semibold mt-0.5">—</p>
               <p id="floodRainStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
             </div>
-            <div data-metric="water" class="glass-in tap-card rounded-xl p-2.5">
+            <div id="hazardBox2" data-metric="hazards" class="glass-in tap-card rounded-xl p-2.5">
               <div class="flex items-center justify-between">
-                <p class="text-[10px] text-white/55">ลำน้ำในเขตอำเภอ</p>
-                <span class="text-[10px] text-sky-300">ดูเพิ่ม ›</span>
+                <p id="hazardBox2Title" class="text-[10px] text-white/55 truncate">ลำน้ำในเขตอำเภอ</p>
+                <span class="text-[10px] text-sky-300 shrink-0">ดูเพิ่ม ›</span>
               </div>
               <p id="floodRiverVal" class="text-sm font-semibold mt-0.5">—</p>
               <p id="floodRiverStatus" class="text-[11px] text-white/65 mt-0.5 leading-snug">—</p>
@@ -791,15 +834,15 @@ tailwind.config = {
           </div>
         </div>
 
-        <div data-metric="water" class="tap-card rounded-2xl p-1 my-auto pt-2" title="แตะเพื่อดูข้อมูลระดับน้ำและแนวโน้มน้ำท่วมเชิงลึก">
+        <div data-metric="hazards" class="tap-card rounded-2xl p-1 my-auto pt-2" title="แตะเพื่อดูรายงานวิเคราะห์ 6 ภัยคุกคามและวิธีเตรียมรับมือเชิงลึก">
           <svg id="floodSvg" viewBox="0 0 320 110" class="w-full block" role="img"
-               aria-label="กราฟระดับน้ำในแม่น้ำและลำน้ำของอำเภอที่ปักหมุด"></svg>
+               aria-label="กราฟเฝ้าระวังภัยพิบัติของอำเภอที่ปักหมุด"></svg>
         </div>
 
         <div>
           <p id="floodNote" class="mt-1.5 text-xs text-white/75 leading-relaxed">—</p>
-          <button type="button" data-metric="water" class="mt-2.5 w-full py-2 rounded-xl glass-in hover:bg-white/15 text-xs font-medium text-sky-200 flex items-center justify-center gap-1.5">
-            <span>🌊</span><span>แตะดูวิเคราะห์ระดับน้ำ · ปริมาณฝนสะสม 7 วัน & คำแนะนำรับมือ ›</span>
+          <button id="btnHazardDeepDive" type="button" data-metric="hazards" class="mt-2.5 w-full py-2 rounded-xl glass-in hover:bg-white/15 text-xs font-medium text-sky-200 flex items-center justify-center gap-1.5">
+            <span>🛡️</span><span id="btnHazardDeepDiveText">แตะดูสรุป 6 ภัยคุกคามรายอำเภอ &amp; คู่มือเตรียมรับมือทั้งหมด ›</span>
           </button>
         </div>
       </article>
@@ -901,7 +944,7 @@ tailwind.config = {
         <span class="text-xs">👁️</span>
         <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
         <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
-          001,094
+          004,022
         </div>
       </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
@@ -1115,14 +1158,14 @@ tailwind.config = {
 
   <!-- ปุ่มเปิดแผงซ้าย (แสดงเมื่อพับแผงซ้ายเก็บไว้) -->
   <button id="btnRadarExpandLeft" type="button" onclick="toggleRadarLeftSidebar(true)"
-    class="hidden absolute top-3 left-3 z-20 radar-panel-glass rounded-2xl px-3 py-2.5 flex items-center gap-2 text-xs font-bold text-white hover:bg-slate-800/90 transition shadow-2xl">
+    class="hidden absolute top-3 left-3 z-20 radar-panel-glass rounded-2xl px-3 py-2 flex items-center gap-2 text-xs font-bold text-white hover:bg-slate-800/90 transition shadow-2xl">
     <img src="icon-192.png?v=29" alt="MIX MEKHA" class="w-7 h-7 rounded-lg object-contain bg-slate-950 p-0.5 border border-sky-400/40">
-    <span>MIX MEKHA</span>
+    <span>MIX MEKHA · ค้นหาสถานี</span>
     <span class="text-sky-300 text-sm">›</span>
   </button>
 
   <!-- แผงควบคุมด้านซ้าย (แบรนด์ + เวลาเรดาร์ + เครือข่ายสถานีเรดาร์ทั่วไทย + วิเคราะห์ฝน) -->
-  <aside id="radarLeftSidebar" class="absolute top-2.5 left-2.5 bottom-20 sm:bottom-4 z-20 w-[285px] sm:w-[310px] flex flex-col gap-2.5 pointer-events-none transition-transform duration-300">
+  <aside id="radarLeftSidebar" class="absolute top-2.5 left-2.5 bottom-24 sm:bottom-4 z-30 w-[calc(100vw-4.25rem)] max-w-[300px] sm:w-[310px] sm:max-w-none flex flex-col gap-2.5 pointer-events-none transition-transform duration-300">
     
     <!-- กล่องที่ 1: โลโก้ MIX MEKHA + เวลาเรดาร์ + ปุ่มสลับเครือข่าย/สถานี -->
     <div class="radar-panel-glass rounded-2xl p-3 pointer-events-auto shrink-0">
@@ -1218,8 +1261,8 @@ tailwind.config = {
     </div>
   </aside>
 
-  <!-- กล่องแจ้งเตือนวิเคราะห์ฝนเข้าพื้นที่ด้านบนตรงกลาง (Nowcasting Floating Alert Card เหมือนในภาพ) -->
-  <div id="radarNowcastCard" class="absolute top-3 left-1/2 -translate-x-1/2 z-20 w-[92vw] max-w-[390px] radar-panel-glass rounded-2xl p-3.5 sm:p-4 pointer-events-auto transition-all duration-200">
+  <!-- กล่องแจ้งเตือนวิเคราะห์ฝนเข้าพื้นที่ด้านบน (บนมือถือจัดวางใต้ปุ่ม MIX MEKHA และเว้นระยะปุ่มขวา ไม่ให้ซ้อนทับกัน) -->
+  <div id="radarNowcastCard" class="absolute top-16 sm:top-3 left-2.5 right-14 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-20 w-auto sm:w-[92vw] max-w-[390px] radar-panel-glass rounded-2xl p-3 sm:p-4 pointer-events-auto transition-all duration-200">
     <div class="flex items-start justify-between gap-2">
       <span id="radarNowcastBadge" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-slate-200 border border-white/15">
         กำลังประเมินแนวฝน…
@@ -1228,14 +1271,14 @@ tailwind.config = {
         ✕
       </button>
     </div>
-    <div class="mt-2 flex items-start gap-3">
-      <div id="radarNowcastIcon" class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 grid place-items-center text-lg shrink-0">
+    <div class="mt-2 flex items-start gap-2.5 sm:gap-3">
+      <div id="radarNowcastIcon" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/15 border border-amber-400/30 grid place-items-center text-base sm:text-lg shrink-0">
         ☀️
       </div>
       <div class="min-w-0 flex-1">
-        <h3 id="radarNowcastTitle" class="text-sm sm:text-base font-bold text-white leading-snug">กำลังตรวจเช็กกลุ่มฝนเข้าพื้นที่…</h3>
-        <p id="radarNowcastDesc" class="text-xs text-slate-200 font-medium mt-0.5 leading-snug">—</p>
-        <div class="mt-2 space-y-0.5 text-[11px] text-slate-400 leading-relaxed">
+        <h3 id="radarNowcastTitle" class="text-xs sm:text-base font-bold text-white leading-snug">กำลังตรวจเช็กกลุ่มฝนเข้าพื้นที่…</h3>
+        <p id="radarNowcastDesc" class="text-[11px] sm:text-xs text-slate-200 font-medium mt-0.5 leading-snug">—</p>
+        <div class="mt-1.5 sm:mt-2 space-y-0.5 text-[10px] sm:text-[11px] text-slate-400 leading-relaxed">
           <p id="radarNowcastConf">ความมั่นใจผลประเมิน: ปานกลาง–สูง</p>
           <p id="radarNowcastStations" class="truncate">สถานีที่ใช้ประเมิน: —</p>
           <p id="radarNowcastUpdated">ภาพเรดาร์ล่าสุด - เพิ่งอัปเดต</p>
@@ -3266,6 +3309,379 @@ function buildDistrictRainfallSvg(rainRisk){
   return s;
 }
 
+state.activeHazardTab = state.activeHazardTab || 'water';
+state.hazards = state.hazards || {};
+
+function haversineKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function updateHazardDotsAndSummary(){
+  const keys = ['water','storm','heat','stagnation','agri','quake'];
+  let maxLv = 0, watchCount = 0;
+  keys.forEach(k => {
+    const h = state.hazards?.[k];
+    const lv = h ? (h.lv || 0) : 0;
+    if(lv > maxLv) maxLv = lv;
+    if(lv >= 1) watchCount++;
+    const dot = document.getElementById('hzDot_' + k);
+    if(dot){
+      const col = FLOOD_LEVELS[lv]?.c || '#34d399';
+      dot.style.background = col;
+      dot.style.boxShadow = lv >= 2 ? `0 0 8px ${col}` : 'none';
+    }
+  });
+  const pill = document.getElementById('hazardSummaryPill');
+  if(pill){
+    const L = FLOOD_LEVELS[maxLv] || FLOOD_LEVELS[0];
+    pill.textContent = watchCount > 0 ? `เฝ้าระวัง ${watchCount}/6 มิติ · สูงสุด: ${L.t}` : 'ปลอดภัยทั้ง 6 มิติ (6/6 ปกติ)';
+    pill.style.color = L.c;
+    pill.style.borderColor = L.c + '55';
+    pill.style.background = L.c + '18';
+  }
+  if(maxLv >= 2){
+    els.navFloodDot.classList.remove('hidden');
+  } else {
+    els.navFloodDot.classList.add('hidden');
+  }
+}
+
+window.switchHazardTab = function(tabId){
+  state.activeHazardTab = tabId;
+  const tabsWrap = document.getElementById('hazardTabs');
+  if(tabsWrap){
+    tabsWrap.querySelectorAll('[data-hz-tab]').forEach(btn => {
+      const active = btn.getAttribute('data-hz-tab') === tabId;
+      btn.className = `hz-tab px-2.5 py-1.5 rounded-xl text-[11px] font-medium whitespace-nowrap transition border flex items-center gap-1.5 ${
+        active
+          ? 'bg-sky-400/20 text-sky-200 border-sky-300/40 font-semibold shadow-sm'
+          : 'bg-white/5 text-white/70 border-white/10 hover:bg-white/10'
+      }`;
+    });
+  }
+  const h = state.hazards?.[tabId];
+  if(!h) return;
+  const L = FLOOD_LEVELS[h.lv || 0] || FLOOD_LEVELS[0];
+  const B = els.floodBadge;
+  B.textContent = h.badgeText || L.t;
+  B.style.color = L.c;
+  B.style.borderColor = L.c + '66';
+  B.style.background = L.c + '1f';
+  B.classList.toggle('flood-pulse', (h.lv || 0) >= 2);
+
+  const b1Title = document.getElementById('hazardBox1Title');
+  const b2Title = document.getElementById('hazardBox2Title');
+  if(b1Title) b1Title.textContent = h.box1Title || 'ตัวชี้วัดหลัก';
+  if(b2Title) b2Title.textContent = h.box2Title || 'ตัวชี้วัดรอง';
+
+  els.floodRainVal.textContent = h.box1Val || '—';
+  els.floodRainStatus.textContent = h.box1Sub || '—';
+  els.floodRainStatus.style.color = h.box1Col || L.c;
+
+  els.floodRiverVal.textContent = h.box2Val || '—';
+  els.floodRiverStatus.textContent = h.box2Sub || '—';
+  els.floodRiverStatus.style.color = h.box2Col || 'rgba(255,255,255,.75)';
+
+  els.floodNow.innerHTML = h.chartHeaderRight || '';
+  const chartTitleEl = els.floodNow.previousElementSibling;
+  if(chartTitleEl && h.chartHeaderLeft) chartTitleEl.textContent = h.chartHeaderLeft;
+
+  els.floodSvg.innerHTML = h.svgMarkup || '';
+  els.floodNote.innerHTML = h.note || '—';
+};
+
+function buildHazardDualLineSvg(vals1, vals2, labels, { col1='#fbbf24', col2='#38bdf8', threshY=null, threshLabel='', unit1='', footLeft='ตอนนี้', footMid='+12 ชม.', footRight='+24 ชม.' } = {}){
+  if(!vals1 || !vals1.length) return '';
+  const W=320, H=110, top=14, bot=84, padX=12;
+  const all = vals2 && vals2.length ? [...vals1, ...vals2] : [...vals1];
+  if(threshY != null) all.push(threshY);
+  const mn = Math.min(0, ...all);
+  const mx = Math.max(...all, mn + 1);
+  const X = i => padX + i * (W - 2*padX) / Math.max(vals1.length - 1, 1);
+  const Y = v => bot - ((v - mn) / (mx - mn)) * (bot - top);
+  const gid = uid();
+  const pts1 = vals1.map((v,i)=>({x:X(i), y:Y(v)}));
+  const d1 = smoothPath(pts1);
+  let maxIdx = 0;
+  vals1.forEach((v,i)=>{ if(v > vals1[maxIdx]) maxIdx = i; });
+  let s = `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="${col1}" stop-opacity=".30"/><stop offset="1" stop-color="${col1}" stop-opacity="0"/></linearGradient></defs>
+    <line x1="${padX}" y1="${bot}" x2="${W-padX}" y2="${bot}" stroke="rgba(255,255,255,.14)" stroke-width="1"/>`;
+  if(threshY != null && threshY <= mx){
+    const ty = Y(threshY).toFixed(1);
+    s += `<line x1="${padX}" y1="${ty}" x2="${W-padX}" y2="${ty}" stroke="rgba(248,113,113,.5)" stroke-dasharray="3 3" stroke-width="1"/>`;
+    if(threshLabel) s += `<text x="${W-padX-2}" y="${Math.max(10, ty-3)}" text-anchor="end" font-size="8" fill="#fca5a5">${threshLabel}</text>`;
+  }
+  s += `<path d="${d1}L${pts1[pts1.length-1].x.toFixed(1)} ${bot}L${pts1[0].x.toFixed(1)} ${bot}Z" fill="url(#${gid})"/>`;
+  if(vals2 && vals2.length){
+    const pts2 = vals2.map((v,i)=>({x:X(i), y:Y(v)}));
+    s += `<path d="${smoothPath(pts2)}" fill="none" stroke="${col2}" stroke-width="1.6" stroke-dasharray="3 3" stroke-linecap="round"/>`;
+  }
+  s += `<path d="${d1}" fill="none" stroke="${col1}" stroke-width="2.2" stroke-linecap="round"/>`;
+  const mp = pts1[maxIdx];
+  if(mp){
+    s += `<circle cx="${mp.x.toFixed(1)}" cy="${mp.y.toFixed(1)}" r="4" fill="${col1}" stroke="#fff" stroke-width="1.4"/>`;
+    s += `<text x="${clamp(mp.x, 28, W-28).toFixed(1)}" y="${Math.max(11, mp.y-6).toFixed(1)}" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">พีค ${Math.round(vals1[maxIdx]*10)/10}${unit1}</text>`;
+  }
+  s += `<text x="${padX}" y="103" font-size="9" fill="#fde68a" font-weight="600">${footLeft}</text>
+        <text x="${W/2}" y="103" font-size="9" text-anchor="middle" fill="rgba(255,255,255,.55)">${footMid}</text>
+        <text x="${W-padX}" y="103" font-size="9" text-anchor="end" fill="rgba(255,255,255,.55)">${footRight}</text>`;
+  return s;
+}
+
+function buildQuakeRadarSvg(quakes, place){
+  const W=320, H=110, cx=72, cy=54, R=42;
+  let s = `<circle cx="${cx}" cy="${cy}" r="${R}" fill="rgba(15,23,42,.55)" stroke="rgba(148,163,184,.28)" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${(R*0.66).toFixed(1)}" fill="none" stroke="rgba(148,163,184,.18)" stroke-dasharray="2 2" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="${(R*0.33).toFixed(1)}" fill="none" stroke="rgba(148,163,184,.18)" stroke-dasharray="2 2" stroke-width="1"/>
+    <line x1="${cx-R}" y1="${cy}" x2="${cx+R}" y2="${cy}" stroke="rgba(148,163,184,.15)" stroke-width="1"/>
+    <line x1="${cx}" y1="${cy-R}" x2="${cx}" y2="${cy+R}" stroke="rgba(148,163,184,.15)" stroke-width="1"/>
+    <circle cx="${cx}" cy="${cy}" r="3" fill="#38bdf8" stroke="#fff" stroke-width="1.2"/>
+    <text x="${cx}" y="${cy+R+11}" text-anchor="middle" font-size="8.5" fill="rgba(255,255,255,.55)">รัศมี 1,200 กม. จากอำเภอ</text>`;
+
+  quakes.slice(0, 12).forEach((q, idx) => {
+    const dRatio = clamp(q.distKm / 1200, 0.08, 0.96);
+    const dLat = q.lat - place.lat;
+    const dLon = q.lon - place.lon;
+    const ang = Math.atan2(dLon, dLat);
+    const qx = cx + Math.sin(ang) * (dRatio * R);
+    const qy = cy - Math.cos(ang) * (dRatio * R);
+    const col = q.mag >= 5.0 ? '#ef4444' : q.mag >= 4.0 ? '#f59e0b' : '#34d399';
+    const r = clamp((q.mag - 2.0) * 1.4, 2.5, 6.5);
+    s += `<circle cx="${qx.toFixed(1)}" cy="${qy.toFixed(1)}" r="${r.toFixed(1)}" fill="${col}" fill-opacity="0.85" stroke="#fff" stroke-width="${idx===0?'1.2':'0.6'}"/>`;
+  });
+
+  const top3 = quakes.slice(0, 3);
+  if(!top3.length){
+    s += `<text x="140" y="52" font-size="10" fill="#6ee7b7" font-weight="600">✓ ไม่พบแผ่นดินไหว M2.5+ ใน 7 วัน</text>
+          <text x="140" y="68" font-size="9" fill="rgba(255,255,255,.55)">ภายในรัศมี 1,200 กม. รอบพื้นที่อำเภอ</text>`;
+  } else {
+    s += `<text x="132" y="20" font-size="9" font-weight="600" fill="rgba(255,255,255,.75)">แผ่นดินไหวใกล้เคียงล่าสุด (7 วัน):</text>`;
+    top3.forEach((q, i) => {
+      const y = 38 + i * 22;
+      const col = q.mag >= 5.0 ? '#f87171' : q.mag >= 4.0 ? '#fbbf24' : '#6ee7b7';
+      const placeShort = (q.place || 'ภูมิภาคใกล้เคียง').replace(/^.* of /i, '').slice(0, 22);
+      s += `<rect x="132" y="${y-11}" width="180" height="18" rx="4" fill="rgba(255,255,255,.04)"/>
+            <text x="137" y="${y+1}" font-size="9" font-weight="700" fill="${col}">M${q.mag.toFixed(1)}</text>
+            <text x="166" y="${y+1}" font-size="8.5" fill="rgba(255,255,255,.85)">${placeShort}</text>
+            <text x="307" y="${y+1}" text-anchor="end" font-size="8.5" fill="#93c5fd">${Math.round(q.distKm)} กม.</text>`;
+    });
+  }
+  return s;
+}
+
+async function loadAllHazards(place, myTok){
+  const prov = cleanProv(place.province || '');
+  const dist = cleanDist(place.district || place.name || '');
+  const isBkk = prov === 'กรุงเทพมหานคร';
+  const areaName = dist ? `${isBkk?'เขต':'อ.'}${dist}${prov?` ${isBkk?prov:'จ.'+prov}`:''}` : place.name;
+
+  try {
+    const physUrl = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat.toFixed(4)}&longitude=${place.lon.toFixed(4)}&current=cape,wind_gusts_10m,surface_pressure,apparent_temperature,wet_bulb_temperature_2m,soil_moisture_0_to_7cm,soil_moisture_7_to_28cm,soil_moisture_28_to_100cm,boundary_layer_height&hourly=cape,wind_gusts_10m,apparent_temperature,wet_bulb_temperature_2m,soil_moisture_0_to_7cm,soil_moisture_28_to_100cm,boundary_layer_height,et0_fao_evapotranspiration,uv_index,surface_pressure&daily=et0_fao_evapotranspiration,uv_index_max,wind_gusts_10m_max&timezone=Asia%2FBangkok&forecast_days=3`;
+    const startQuake = dISO(new Date(Date.now() - 7*86400000));
+    const quakeUrl = `https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&latitude=${place.lat.toFixed(4)}&longitude=${place.lon.toFixed(4)}&maxradiuskm=1200&minmagnitude=2.5&starttime=${startQuake}&orderby=time&limit=20`;
+
+    const [physRes, quakeRes] = await Promise.allSettled([
+      jget(physUrl, 10000),
+      jget(quakeUrl, 10000)
+    ]);
+    if(myTok !== floodToken) return;
+
+    const phys = physRes.status === 'fulfilled' ? physRes.value : null;
+    const quakeData = quakeRes.status === 'fulfilled' ? quakeRes.value : null;
+    const H = state.hourList || [];
+    const curW = state.w?.current || {};
+    const curAir = state.a?.current || {};
+
+    const pCur = phys?.current || {};
+    const pHourly = phys?.hourly || {};
+    const pTimes = pHourly.time || [];
+    const nowLocalHour = (curW.time || '').slice(0, 13);
+    let hStart = pTimes.findIndex(t => t.slice(0, 13) >= nowLocalHour);
+    if(hStart < 0) hStart = 0;
+    const slice24 = arr => (arr || []).slice(hStart, hStart + 24);
+
+    // 2. ⚡ พายุฤดูร้อน / ลมกระโชก / ฟ้าผ่า (STORM)
+    const cape24 = slice24(pHourly.cape).map(v => v ?? 0);
+    const gust24 = slice24(pHourly.wind_gusts_10m).map((v, i) => v ?? (H[i]?.gust || 0));
+    const press24 = slice24(pHourly.surface_pressure).map(v => v ?? (curW.surface_pressure || 1010));
+    const maxCape = cape24.length ? Math.max(pCur.cape || 0, ...cape24) : (pCur.cape || 0);
+    const maxGust = gust24.length ? Math.max(pCur.wind_gusts_10m || 0, ...gust24) : (curW.wind_gusts_10m || 0);
+    const pressDrop3h = press24.length >= 4 ? Math.max(0, press24[0] - press24[3]) : 0;
+    const hasThunderCode = H.slice(0, 24).some(h => h.code >= 95);
+    const stormLv = (maxCape >= 2500 || maxGust >= 60 || (hasThunderCode && maxGust >= 45)) ? 3
+                  : (maxCape >= 1500 || maxGust >= 42 || hasThunderCode) ? 2
+                  : (maxCape >= 800 || maxGust >= 30 || pressDrop3h >= 2.5) ? 1 : 0;
+    const stormLabels = ['อากาศเสถียร ไม่พบสัญญาณพายุ', 'มีพลังงานสะสมในอากาศ เฝ้าระวังลมเปลี่ยนทิศ', 'เฝ้าระวังพายุฝนฟ้าคะนองและลมกระโชก', 'อันตราย! เสี่ยงพายุรุนแรง ลมกระโชก & ฟ้าผ่า'];
+    state.hazards.storm = {
+      id: 'storm', title: '⚡ พายุ/ฟ้าผ่า', lv: stormLv,
+      badgeText: FLOOD_LEVELS[stormLv].t,
+      box1Title: '⚡ พลังงานพายุสะสม (CAPE 24 ชม.)',
+      box1Val: `สูงสุด ${Math.round(maxCape).toLocaleString()} J/kg`,
+      box1Sub: maxCape >= 1500 ? 'บรรยากาศไม่เสถียรสูง เสี่ยงก่อตัวเมฆ CB/ฟ้าผ่า' : maxCape >= 800 ? 'มีพลังงานความร้อนสะสมปานกลาง' : 'พลังงานสะสมต่ำ โอกาสเกิดพายุต่ำมาก',
+      box1Col: FLOOD_LEVELS[stormLv].c,
+      box2Title: '💨 ลมกระโชกสูงสุด & ความกดอากาศ',
+      box2Val: `${Math.round(maxGust)} กม./ชม.`,
+      box2Sub: `ขณะนี้ ${Math.round(pCur.wind_gusts_10m ?? curW.wind_gusts_10m ?? 0)} กม./ชม. · ความกดลด ${pressDrop3h.toFixed(1)} hPa`,
+      box2Col: maxGust >= 42 ? '#fbbf24' : '#93c5fd',
+      chartHeaderLeft: 'กราฟพลังงานพายุสะสม (CAPE) & ลมกระโชก 24 ชม.',
+      chartHeaderRight: `พีค CAPE <b class="text-amber-300">${Math.round(maxCape)} J/kg</b> · ลม <b class="text-sky-300">${Math.round(maxGust)} กม./ชม.</b>`,
+      svgMarkup: buildHazardDualLineSvg(cape24.length ? cape24 : [0,0,0,0], gust24.map(g=>g*25), null, { col1:'#fbbf24', col2:'#38bdf8', threshY:1500, threshLabel:'เกณฑ์พายุ 1,500 J/kg', unit1:' J/kg' }),
+      note: `วิเคราะห์เสถียรภาพบรรยากาศระดับเขต ${areaName} (ECMWF Physics): ${stormLabels[stormLv]} · ${stormLv >= 2 ? 'แนะนำหลีกเลี่ยงที่โล่งแจ้ง ตรวจสอบป้ายโฆษณาและกิ่งไม้ใหญ่ และถอดปลั๊กอุปกรณ์ไฟฟ้าหากเกิดฟ้าคะนอง' : 'สามารถทำกิจกรรมกลางแจ้งได้ตามปกติ'}`,
+      raw: { maxCape, maxGust, pressDrop3h, hasThunderCode }
+    };
+
+    // 3. 🥵 โรคลมแดด / ความร้อนสะสม / UV (HEAT)
+    const app24 = slice24(pHourly.apparent_temperature).map((v, i) => v ?? (H[i]?.app ?? curW.apparent_temperature ?? 30));
+    const wb24 = slice24(pHourly.wet_bulb_temperature_2m).map(v => v ?? (pCur.wet_bulb_temperature_2m ?? 25));
+    const maxApp = app24.length ? Math.max(curW.apparent_temperature || 0, ...app24) : (curW.apparent_temperature || 32);
+    const maxWb = wb24.length ? Math.max(pCur.wet_bulb_temperature_2m || 0, ...wb24) : (pCur.wet_bulb_temperature_2m || 25);
+    const maxUv = Math.max(curAir.uv_index || 0, ...(phys?.daily?.uv_index_max || [0]));
+    // เกณฑ์กรมอนามัย: <32.9 ปกติ, 33-41 เฝ้าระวัง, 41.1-51 เตือนภัย, >51 อันตราย (หรือ Wet-Bulb >= 30)
+    const heatLv = (maxApp >= 46 || maxWb >= 30.5) ? 3
+                 : (maxApp >= 41 || maxWb >= 28.5 || maxUv >= 11) ? 2
+                 : (maxApp >= 34 || maxWb >= 26.5 || maxUv >= 8) ? 1 : 0;
+    const heatStd = ['เกณฑ์ปลอดภัย (<33°C)', 'ระดับเฝ้าระวัง (34–40°C · ดื่มน้ำบ่อยขึ้น)', 'ระดับเตือนภัย (41–46°C · เสี่ยงตะคริวแดด/เพลียแดด)', 'ระดับอันตราย (>46°C · เสี่ยงโรคลมแดด Heatstroke)'];
+    state.hazards.heat = {
+      id: 'heat', title: '🥵 ลมแดด/ความร้อน', lv: heatLv,
+      badgeText: FLOOD_LEVELS[heatLv].t,
+      box1Title: '🌡️ ดัชนีความร้อนสูงสุด (Heat Index 24 ชม.)',
+      box1Val: `รู้สึกร้อนสุด ${maxApp.toFixed(1)}°C`,
+      box1Sub: `${heatStd[heatLv]} · ตอนนี้ ${(curW.apparent_temperature ?? maxApp).toFixed(1)}°C`,
+      box1Col: FLOOD_LEVELS[heatLv].c,
+      box2Title: '💧 อุณหภูมิกระเปาะเปียก (Wet-Bulb) & UV',
+      box2Val: `Wet-Bulb ${maxWb.toFixed(1)}°C · UV ${maxUv.toFixed(1)}`,
+      box2Sub: maxWb >= 28.5 ? 'ความชื้นสัมพัทธ์อั้นเหงื่อ ร่างกายระบายความร้อนยาก' : 'การระเหยเหงื่อระบายความร้อนของร่างกายยังทำงานได้ปกติ',
+      box2Col: maxWb >= 28.5 ? '#fbbf24' : '#6ee7b7',
+      chartHeaderLeft: 'กราฟดัชนีความร้อน (Heat Index) & กระเปาะเปียก 24 ชม.',
+      chartHeaderRight: `พีคความรู้สึกร้อน <b class="text-orange-300">${maxApp.toFixed(1)}°C</b> · Wet-Bulb <b class="text-sky-300">${maxWb.toFixed(1)}°C</b>`,
+      svgMarkup: buildHazardDualLineSvg(app24, wb24, null, { col1:'#fb923c', col2:'#38bdf8', threshY:41, threshLabel:'เตือนภัยลมแดด 41°C', unit1:'°C' }),
+      note: `ประเมินตามเกณฑ์กรมอนามัยในเขต ${areaName}: ดัชนีความร้อนสูงสุด ${maxApp.toFixed(1)}°C และอุณหภูมิกระเปาะเปียก (Wet-Bulb) ${maxWb.toFixed(1)}°C · ${heatLv >= 2 ? 'ผู้ทำงานกลางแจ้ง ผู้สูงอายุ และเด็กเล็กควรพักในร่มทุก 45 นาที และจิบน้ำเปล่าอย่างต่อเนื่อง' : 'สภาพความร้อนอยู่ในเกณฑ์จัดการได้ แนะนำทาครีมกันแดดเมื่อออกแดดช่วง 11:00–15:00 น.'}`,
+      raw: { maxApp, maxWb, maxUv }
+    };
+
+    // 4. 😷 อากาศปิด / ฝาชีครอบฝุ่นควัน (STAGNATION)
+    const blh24 = slice24(pHourly.boundary_layer_height).map(v => v ?? (pCur.boundary_layer_height ?? 800));
+    const minBlh = blh24.length ? Math.min(...blh24) : (pCur.boundary_layer_height || 600);
+    const curBlh = Math.round(pCur.boundary_layer_height ?? blh24[0] ?? 750);
+    const pm25 = curAir.pm2_5 ?? 15;
+    const avgWind = H.slice(0, 12).reduce((s, h) => s + (h.wind || 5), 0) / Math.max(1, Math.min(12, H.length));
+    const stagLv = (pm25 >= 75 || (pm25 >= 50 && minBlh < 300)) ? 3
+                 : (pm25 >= 37.5 || (minBlh < 280 && avgWind < 8)) ? 2
+                 : (pm25 >= 25 || minBlh < 450) ? 1 : 0;
+    state.hazards.stagnation = {
+      id: 'stagnation', title: '😷 อากาศปิด/ฝุ่น', lv: stagLv,
+      badgeText: FLOOD_LEVELS[stagLv].t,
+      box1Title: '🌫️ เพดานอากาศ (Boundary Layer Height)',
+      box1Val: `ตอนนี้ ${curBlh.toLocaleString()} ม. (ต่ำสุด ${Math.round(minBlh)} ม.)`,
+      box1Sub: minBlh < 350 ? 'เกิดสภาวะฝาชีครอบต่ำ (<350 ม.) ฝุ่นควันสะสมตัวง่ายช่วงเช้ามืด/ค่ำ' : 'เพดานอากาศเปิดกว้าง การลอยตัวระบายอากาศดี',
+      box1Col: FLOOD_LEVELS[stagLv].c,
+      box2Title: '😷 ฝุ่น PM2.5 & อัตราการระบายอากาศ',
+      box2Val: `PM2.5 ${pm25.toFixed(1)} µg/m³`,
+      box2Sub: `ลมเฉลี่ย ${avgWind.toFixed(1)} กม./ชม. · ${pm25 <= 25 ? 'คุณภาพอากาศดี-ปานกลาง' : pm25 <= 37.5 ? 'เริ่มมีผลต่อกลุ่มเสี่ยง' : 'เกินเกณฑ์มาตรฐาน (งดเผา/สวมหน้ากาก)'}`,
+      box2Col: pm25 > 37.5 ? '#f87171' : pm25 > 25 ? '#fbbf24' : '#6ee7b7',
+      chartHeaderLeft: 'กราฟความสูงเพดานบรรยากาศ (Boundary Layer) 24 ชม.',
+      chartHeaderRight: `เพดานต่ำสุด <b class="text-amber-300">${Math.round(minBlh)} ม.</b> · PM2.5 <b class="text-white">${pm25.toFixed(1)} µg/m³</b>`,
+      svgMarkup: buildHazardDualLineSvg(blh24, null, null, { col1:'#a78bfa', threshY:350, threshLabel:'เพดานอากาศปิด 350 ม.', unit1:' ม.' }),
+      note: `วิเคราะห์สภาวะอากาศปิด (Atmospheric Lid) ในเขต ${areaName}: ความสูงชั้นบรรยากาศผสมผสานต่ำสุด ${Math.round(minBlh)} เมตร ร่วมกับค่าฝุ่น PM2.5 ปัจจุบัน ${pm25.toFixed(1)} µg/m³ · ${stagLv >= 2 ? 'เกิดสภาวะอากาศนิ่งและเพดานอากาศกดต่ำ ควรงดการเผาในที่โล่งทุกชนิดและสวมหน้ากากป้องกันฝุ่น' : 'การหมุนเวียนและระบายอากาศในพื้นที่อยู่ในเกณฑ์ดี'}`,
+      raw: { curBlh, minBlh, pm25, avgWind }
+    };
+
+    // 5. 🌾 ความชื้นดิน / เกษตร / ดินชุ่มน้ำ (AGRI & SOIL)
+    const smTop = pCur.soil_moisture_0_to_7cm ?? (pHourly.soil_moisture_0_to_7cm?.[hStart] ?? 0.22);
+    const smDeep = pCur.soil_moisture_28_to_100cm ?? (pHourly.soil_moisture_28_to_100cm?.[hStart] ?? 0.28);
+    const smTopPct = Math.round(clamp((smTop / 0.48) * 100, 5, 100));
+    const smDeepPct = Math.round(clamp((smDeep / 0.48) * 100, 5, 100));
+    const et0Today = phys?.daily?.et0_fao_evapotranspiration?.[0] ?? 4.2;
+    const elev = phys?.elevation ?? 30;
+    const rain3d = state.flood?.rainRisk?.day3Sum || 0;
+    // คำนวณชั่วโมงที่เหมาะกับการพ่นสาร/ตากผลผลิตใน 12 ชม. ข้างหน้า (ลม < 15 กม./ชม. และโอกาสฝน < 30%)
+    const safeHours = H.slice(0, 12).filter(h => (h.wind || 0) < 15 && (h.pop || 0) < 30).length;
+    const isLandslideRisk = elev >= 120 && smDeep >= 0.38 && rain3d >= 70;
+    const isDroughtStress = smTop < 0.12 && et0Today >= 5.0;
+    const agriLv = isLandslideRisk ? 3
+                 : (smDeep >= 0.40 && rain3d >= 45) || isDroughtStress ? 2
+                 : (smTop < 0.16 || smTop > 0.40 || safeHours < 4) ? 1 : 0;
+    const sm24Pct = slice24(pHourly.soil_moisture_0_to_7cm).map(v => Math.round(clamp(((v ?? smTop) / 0.48) * 100, 5, 100)));
+    const smDeep24Pct = slice24(pHourly.soil_moisture_28_to_100cm).map(v => Math.round(clamp(((v ?? smDeep) / 0.48) * 100, 5, 100)));
+    state.hazards.agri = {
+      id: 'agri', title: '🌾 เกษตร/ดิน', lv: agriLv,
+      badgeText: isLandslideRisk ? 'ระวังดินอิ่มตัว/ดินสไลด์' : isDroughtStress ? 'ดินแห้งจัด/พืชขาดน้ำ' : FLOOD_LEVELS[agriLv].t,
+      box1Title: '🌱 ความชื้นในดิน (ผิวดิน 0–7 ซม. / ดินลึก 28–100 ซม.)',
+      box1Val: `ผิวดิน ${smTopPct}% · ดินลึก ${smDeepPct}%`,
+      box1Sub: `ความสูงพื้นที่ ${Math.round(elev)} ม.รทก. · ${smTopPct >= 80 ? 'ดินชุ่มน้ำสูง (งดให้น้ำเพิ่ม)' : smTopPct <= 30 ? 'หน้าดินแห้ง ควรให้น้ำชดเชย' : 'ความชื้นดินสมดุลเหมาะแก่รากพืช'}`,
+      box1Col: FLOOD_LEVELS[agriLv].c,
+      box2Title: '☀️ การคายระเหยน้ำ (FAO ET₀) & ช่วงเวลาทำงาน',
+      box2Val: `ET₀ ${et0Today.toFixed(1)} มม./วัน · ปลอดฝน/ลม ${safeHours}/12 ชม.`,
+      box2Sub: safeHours >= 6 ? 'เหมาะแก่การพ่นปุ๋ย/สารชีวภัณฑ์ หรือตากผลผลิต' : 'มีลมแรงหรือเสี่ยงฝนชะล้าง ควรเลื่อนการพ่นสาร/ตากผลผลิต',
+      box2Col: safeHours >= 6 ? '#6ee7b7' : '#fbbf24',
+      chartHeaderLeft: 'กราฟความชื้นผิวดิน (เส้นทึบ) & ดินชั้นลึก (เส้นประ) 24 ชม.',
+      chartHeaderRight: `ผิวดิน <b class="text-emerald-300">${smTopPct}%</b> · ดินลึก <b class="text-sky-300">${smDeepPct}%</b> · ET₀ <b class="text-amber-300">${et0Today.toFixed(1)} มม.</b>`,
+      svgMarkup: buildHazardDualLineSvg(sm24Pct.length ? sm24Pct : [smTopPct, smTopPct], smDeep24Pct, null, { col1:'#34d399', col2:'#38bdf8', threshY:85, threshLabel:'จุดดินอิ่มตัว 85%', unit1:'%' }),
+      note: `ข้อมูลอุทกวิทยาผิวดิน ECMWF Land-Surface เขต ${areaName} (ความสูง ${Math.round(elev)} ม.): ความชื้นผิวดิน ${smTop.toFixed(2)} m³/m³ (${smTopPct}%) และอัตราการคายระเหยน้ำของพืช (FAO ET₀) ${et0Today.toFixed(1)} มม./วัน · ${isLandslideRisk ? 'คำเตือน: พื้นที่ลาดชันและดินชั้นลึกอิ่มตัวสูงร่วมกับฝนสะสม ควรเฝ้าระวังดินอ่อนตัวหรือดินสไลด์' : `ใน 12 ชม. ข้างหน้ามีช่วงเวลาที่ลมสงบ (<15 กม./ชม.) และโอกาสฝนต่ำรวม ${safeHours} ชั่วโมง`}`,
+      raw: { smTop, smDeep, smTopPct, smDeepPct, et0Today, elev, safeHours }
+    };
+
+    // 6. 🌍 แผ่นดินไหวภูมิภาค (USGS EARTHQUAKE)
+    const features = quakeData?.features || [];
+    const quakes = features.map(f => {
+      const coords = f.geometry?.coordinates || [100, 15, 10];
+      const distKm = haversineKm(place.lat, place.lon, coords[1], coords[0]);
+      return {
+        mag: f.properties?.mag || 0,
+        place: f.properties?.place || 'ภูมิภาคเอเชียตะวันออกเฉียงใต้',
+        time: f.properties?.time || Date.now(),
+        depth: coords[2] || 10,
+        lon: coords[0],
+        lat: coords[1],
+        distKm
+      };
+    }).sort((a, b) => a.distKm - b.distKm);
+
+    const closest = quakes[0] || null;
+    const strongest = [...quakes].sort((a, b) => b.mag - a.mag)[0] || null;
+    let quakeLv = 0;
+    quakes.forEach(q => {
+      const ageHours = (Date.now() - q.time) / 3600000;
+      if((q.mag >= 5.5 && q.distKm <= 500 && ageHours <= 48) || (q.mag >= 4.5 && q.distKm <= 180 && ageHours <= 48)) quakeLv = Math.max(quakeLv, 3);
+      else if((q.mag >= 4.8 && q.distKm <= 600) || (q.mag >= 3.8 && q.distKm <= 250)) quakeLv = Math.max(quakeLv, 2);
+      else if(q.mag >= 4.0 && q.distKm <= 800) quakeLv = Math.max(quakeLv, 1);
+    });
+
+    state.hazards.quake = {
+      id: 'quake', title: '🌍 แผ่นดินไหว', lv: quakeLv,
+      badgeText: quakeLv === 0 ? 'ไม่พบแรงสั่นสะเทือนใกล้เคียง' : FLOOD_LEVELS[quakeLv].t,
+      box1Title: '🌍 แผ่นดินไหวใกล้พื้นที่อำเภอที่สุด (ในรอบ 7 วัน)',
+      box1Val: closest ? `M${closest.mag.toFixed(1)} · ห่าง ${Math.round(closest.distKm).toLocaleString()} กม.` : 'ไม่พบแผ่นดินไหว M2.5+',
+      box1Sub: closest ? `ลึก ${Math.round(closest.depth)} กม. · ${closest.place}` : 'ในรัศมี 1,200 กม. รอบพื้นที่อำเภอ (ข้อมูลสด USGS)',
+      box1Col: FLOOD_LEVELS[quakeLv].c,
+      box2Title: '📡 สถิติการตรวจจับคลื่นไหวสะเทือน (รัศมี 1,200 กม.)',
+      box2Val: `พบ ${quakes.length} ครั้งใน 7 วัน`,
+      box2Sub: strongest ? `ขนาดสูงสุด M${strongest.mag.toFixed(1)} (ห่าง ${Math.round(strongest.distKm).toLocaleString()} กม.)` : 'สภาวะเปลือกโลกในภูมิภาคสงบปกติ',
+      box2Col: quakeLv >= 2 ? '#fbbf24' : '#93c5fd',
+      chartHeaderLeft: 'เรดาร์ตำแหน่งศูนย์กลางแผ่นดินไหวเทียบกับอำเภอ',
+      chartHeaderRight: closest ? `ใกล้สุด <b class="text-sky-300">${Math.round(closest.distKm)} กม.</b> (M${closest.mag.toFixed(1)})` : `<b class="text-emerald-300">สภาวะปกติ</b>`,
+      svgMarkup: buildQuakeRadarSvg(quakes, place),
+      note: `เชื่อมโยงโครงข่ายตรวจวัดแผ่นดินไหวระดับโลก USGS (M2.5+ รัศมี 1,200 กม. จาก ${areaName}): ${closest ? `ตรวจพบจุดศูนย์กลางใกล้สุดขนาด M${closest.mag.toFixed(1)} ที่ความลึก ${Math.round(closest.depth)} กม. ห่างจากอำเภอที่ปักหมุด ${Math.round(closest.distKm).toLocaleString()} กม. (${closest.place}) ${quakeLv === 0 ? 'ซึ่งอยู่ไกลเกินกว่าจะส่งผลกระทบหรือรับรู้แรงสั่นสะเทือนในพื้นที่' : 'อาคารสูงในพื้นที่อาจรับรู้แรงสั่นสะเทือนได้เล็กน้อย โปรดติดตามประกาศจากกองเฝ้าระวังแผ่นดินไหว'}` : 'ไม่พบรายงานแผ่นดินไหวขนาด M2.5 ขึ้นไปในรัศมี 1,200 กม. ในช่วง 7 วันที่ผ่านมา'}`,
+      raw: { quakes, closest, strongest }
+    };
+
+    updateHazardDotsAndSummary();
+    if(state.activeHazardTab && state.activeHazardTab !== 'water'){
+      switchHazardTab(state.activeHazardTab);
+    }
+    if(!els.metricModal.classList.contains('hidden') && state.activeMetric === 'hazards'){
+      openMetricModal('hazards');
+    }
+  } catch(err) {
+    console.warn('loadAllHazards error:', err);
+  }
+}
+
 async function renderFlood(place){
   const myTok=++floodToken;
   const B=els.floodBadge, N=els.floodNow, S=els.floodSvg, T=els.floodNote;
@@ -3280,16 +3696,31 @@ async function renderFlood(place){
   const areaName = dist ? `${isBkk?'เขต':'อ.'}${dist}${prov?` ${isBkk?prov:'จ.'+prov}`:''}` : place.name;
 
   const rainRisk = assessDistrictRainfallFlood();
-  els.floodRainVal.textContent = `วันนี้ ${rainRisk.todayMm.toFixed(1)} มม.`;
   const rainStatusLabels = ['เกณฑ์ปกติ (<35 มม.)', 'ฝนตกหนัก (ระวังน้ำขัง)', 'เฝ้าระวังน้ำท่วมขัง', 'เสี่ยงน้ำท่วมฉับพลัน'];
-  els.floodRainStatus.textContent = `ฝนคาดการณ์ 3 วัน: ${rainRisk.day3Sum.toFixed(1)} มม. · พีค 7 วัน ${rainRisk.maxMm.toFixed(1)} มม. (${rainStatusLabels[rainRisk.lv]})`;
-  els.floodRainStatus.style.color = FLOOD_LEVELS[rainRisk.lv].c;
+  const rainSubTxt = `ฝนคาดการณ์ 3 วัน: ${rainRisk.day3Sum.toFixed(1)} มม. · พีค 7 วัน ${rainRisk.maxMm.toFixed(1)} มม. (${rainStatusLabels[rainRisk.lv]})`;
 
   // วาดกราฟฝนสะสม 7 วันทันทีเพื่อไม่ให้กรอบกราฟว่างเปล่า
   const rainFallbackSvg = buildDistrictRainfallSvg(rainRisk);
-  S.innerHTML = rainFallbackSvg;
 
-  state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, todayVal:null, maxVal:null, dThai:'—', note:'', svgMarkup: rainFallbackSvg };
+  state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, finalLv:rainRisk.lv, todayVal:null, maxVal:null, dThai:'—', note:'', svgMarkup: rainFallbackSvg };
+  state.hazards.water = {
+    id: 'water', title: '🌊 น้ำท่วม', lv: rainRisk.lv,
+    badgeText: FLOOD_LEVELS[rainRisk.lv].t,
+    box1Title: '🌧️ ฝนสะสมในอำเภอ (น้ำท่วมขัง/รอระบาย)',
+    box1Val: `วันนี้ ${rainRisk.todayMm.toFixed(1)} มม.`,
+    box1Sub: rainSubTxt,
+    box1Col: FLOOD_LEVELS[rainRisk.lv].c,
+    box2Title: '🌊 อัตราการไหลของลำน้ำในพื้นที่ (GloFAS)',
+    box2Val: 'กำลังตรวจสอบลำน้ำ…',
+    box2Sub: 'กำลังดึงข้อมูล Copernicus GloFAS',
+    box2Col: 'rgba(255,255,255,.65)',
+    chartHeaderLeft: 'กราฟแนวโน้มระดับน้ำ / ปริมาณฝนสะสมรายวันในเขตอำเภอ',
+    chartHeaderRight: `ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`,
+    svgMarkup: rainFallbackSvg,
+    note: `กำลังประมวลผลข้อมูลอุทกวิทยาในเขต ${areaName}…`
+  };
+  if(state.activeHazardTab === 'water') switchHazardTab('water');
+  loadAllHazards(place, myTok);
 
   try{
     const fc=await jget(floodUrl(place.lat,place.lon,
@@ -3298,17 +3729,19 @@ async function renderFlood(place){
     const q=(fc.daily&&fc.daily.river_discharge)||[], times=(fc.daily&&fc.daily.time)||[];
 
     if(q.length<3||q.every(v=>v==null)){
-      els.floodRiverVal.textContent = 'ไม่มีลำน้ำสายหลัก';
-      els.floodRiverStatus.textContent = 'ประเมินจากฝนในอำเภอแทน';
-      const L = FLOOD_LEVELS[rainRisk.lv];
-      B.textContent = L.t;
-      B.style.color = L.c; B.style.borderColor = L.c+'66'; B.style.background = L.c+'1f';
-      if(rainRisk.lv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
-      N.innerHTML = `ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`;
       const noteTxt = `พื้นที่ ${areaName} ไม่ได้ทับแนวแม่น้ำสายหลักในแบบจำลอง GloFAS ระบบจึงประเมินความเสี่ยงน้ำท่วมขังและน้ำรอการระบายจากปริมาณฝนสะสมในเขตอำเภอ (ECMWF IFS) โดยตรง`;
-      T.textContent = noteTxt;
-      S.innerHTML = rainFallbackSvg;
       state.flood = { areaName, rainRisk, hasRiver:false, riverLv:0, finalLv:rainRisk.lv, note:noteTxt, svgMarkup: rainFallbackSvg };
+      state.hazards.water = {
+        ...state.hazards.water,
+        lv: rainRisk.lv,
+        badgeText: FLOOD_LEVELS[rainRisk.lv].t,
+        box2Val: 'ไม่มีลำน้ำสายหลัก',
+        box2Sub: 'ประเมินจากฝนในอำเภอแทน',
+        svgMarkup: rainFallbackSvg,
+        note: noteTxt
+      };
+      updateHazardDotsAndSummary();
+      if(state.activeHazardTab === 'water') switchHazardTab('water');
       return;
     }
 
@@ -3343,18 +3776,10 @@ async function renderFlood(place){
     const dThai=new Intl.DateTimeFormat('th-TH',{day:'numeric',month:'short'}).format(new Date(times[maxIdx]+'T12:00:00Z'));
     const fmtFlow = v => v!=null ? (v>=10 ? Math.round(v).toString() : v.toFixed(1)) : '—';
     const riverStatusLabels = ['ระดับน้ำปกติของฤดูกาล', 'สูงกว่าค่าเฉลี่ยรายเดือน (P90)', 'เฝ้าระวังน้ำเอ่อริมตลิ่ง (P97)', 'เสี่ยงน้ำล้นตลิ่ง (P99.5)'];
-    els.floodRiverVal.textContent = `${fmtFlow(todayVal)} ลบ.ม./วิ`;
-    els.floodRiverStatus.textContent = `พีคคาดการณ์ ${fmtFlow(maxVal)} ลบ.ม./วิ (${dThai}) · ${riverStatusLabels[riverLv]}`;
-    els.floodRiverStatus.style.color = FLOOD_LEVELS[riverLv].c;
 
     const finalLv = Math.max(riverLv, rainRisk.lv);
     const L = FLOOD_LEVELS[finalLv];
-    B.textContent = L.t;
-    B.style.color = L.c; B.style.borderColor = L.c+'66'; B.style.background = L.c+'1f';
-    if(finalLv>=2){ B.classList.add('flood-pulse'); els.navFloodDot.classList.remove('hidden'); }
     if(finalLv===3) toast(`แจ้งเตือน: พบความเสี่ยงน้ำท่วมในเขต ${areaName} ภายใน 7 วันข้างหน้า`,'error',6000);
-
-    N.innerHTML=`ฝนคาดการณ์ 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)}</b> มม.`;
 
     const noteParts = [];
     if(riverLv === 0 && rainRisk.lv === 0){
@@ -3368,9 +3793,8 @@ async function renderFlood(place){
       }
     }
     const noteTxt = noteParts.join(' · ');
-    T.textContent = noteTxt;
 
-    let svgMarkup = '';
+    let svgMarkup = rainFallbackSvg;
     if(pts.length>1){
       const W=320, H=110, top=8, bot=82, padX=8;
       const mn=Math.min(...pts.map(p=>p.v)), mx=Math.max(...pts.map(p=>p.v));
@@ -3388,7 +3812,6 @@ async function renderFlood(place){
         <text x="4" y="104" font-size="9.5" fill="rgba(255,255,255,.45)">ย้อนหลัง ${todayIdx} วัน</text>
         <text x="${dx}" y="104" font-size="9.5" text-anchor="middle" font-weight="600" fill="rgba(255,255,255,.7)">วันนี้</text>
         <text x="${W-4}" y="104" font-size="9.5" text-anchor="end" fill="rgba(255,255,255,.45)">พยากรณ์ +${q.length-1-todayIdx} วัน</text>`;
-      S.innerHTML = svgMarkup;
     }
 
     state.flood = {
@@ -3396,14 +3819,37 @@ async function renderFlood(place){
       todayVal: fmtFlow(todayVal), maxVal: fmtFlow(maxVal), dThai,
       riverStatus: riverStatusLabels[riverLv], note: noteTxt, svgMarkup, pts, times, todayIdx
     };
+    state.hazards.water = {
+      ...state.hazards.water,
+      lv: finalLv,
+      badgeText: L.t,
+      box2Val: `${fmtFlow(todayVal)} ลบ.ม./วิ`,
+      box2Sub: `พีคคาดการณ์ ${fmtFlow(maxVal)} ลบ.ม./วิ (${dThai}) · ${riverStatusLabels[riverLv]}`,
+      box2Col: FLOOD_LEVELS[riverLv].c,
+      chartHeaderLeft: 'กราฟอัตราการไหลของลำน้ำในเขตอำเภอ (GloFAS)',
+      chartHeaderRight: `ไหลวันนี้ <b class="text-sky-300">${fmtFlow(todayVal)} ลบ.ม./วิ</b> · ฝน 3 วัน <b class="text-white">${rainRisk.day3Sum.toFixed(1)} มม.</b>`,
+      svgMarkup,
+      note: noteTxt
+    };
+    updateHazardDotsAndSummary();
+    if(state.activeHazardTab === 'water') switchHazardTab('water');
     if(!els.metricModal.classList.contains('hidden') && state.activeMetric === 'water'){
       openMetricModal('water');
     }
   }catch(e){
     if(myTok!==floodToken) return;
-    B.textContent='ประเมินจากน้ำฝนสะสม';
-    S.innerHTML = rainFallbackSvg;
-    T.textContent=`ประเมินความเสี่ยงจากปริมาณฝนสะสมในเขต ${areaName}: ฝนวันนี้ ${rainRisk.todayMm.toFixed(1)} มม. · สะสม 3 วัน ${rainRisk.day3Sum.toFixed(1)} มม.`;
+    const noteTxt = `ประเมินความเสี่ยงจากปริมาณฝนสะสมในเขต ${areaName}: ฝนวันนี้ ${rainRisk.todayMm.toFixed(1)} มม. · สะสม 3 วัน ${rainRisk.day3Sum.toFixed(1)} มม.`;
+    state.hazards.water = {
+      ...state.hazards.water,
+      lv: rainRisk.lv,
+      badgeText: 'ประเมินจากน้ำฝนสะสม',
+      box2Val: 'ไม่มีลำน้ำสายหลัก',
+      box2Sub: 'ประเมินจากฝนในอำเภอแทน',
+      svgMarkup: rainFallbackSvg,
+      note: noteTxt
+    };
+    updateHazardDotsAndSummary();
+    if(state.activeHazardTab === 'water') switchHazardTab('water');
   }
 }
 
@@ -3763,6 +4209,9 @@ function selectRadarStation(stationId){
   }
   renderRadarStationList();
   renderRadarMapMarkers();
+  if(window.innerWidth < 640){
+    toggleRadarLeftSidebar(false);
+  }
 }
 
 function setRadarViewTab(tab){
@@ -3786,14 +4235,17 @@ function setRadarViewTab(tab){
 function toggleRadarLeftSidebar(forceOpen){
   const sb = document.getElementById('radarLeftSidebar');
   const btnExp = document.getElementById('btnRadarExpandLeft');
+  const ncCard = document.getElementById('radarNowcastCard');
   if(!sb || !btnExp) return;
   radarState.leftSidebarOpen = typeof forceOpen === 'boolean' ? forceOpen : !radarState.leftSidebarOpen;
   if(radarState.leftSidebarOpen){
     sb.classList.remove('-translate-x-[115%]');
     btnExp.classList.add('hidden');
+    if(window.innerWidth < 640 && ncCard) ncCard.classList.add('hidden');
   } else {
     sb.classList.add('-translate-x-[115%]');
     btnExp.classList.remove('hidden');
+    if(window.innerWidth < 640 && ncCard && radarState.showNowcastCard) ncCard.classList.remove('hidden');
   }
 }
 
@@ -4509,6 +4961,7 @@ function renderSun(){
    รองรับ: ลม · น้ำ/น้ำท่วม · ฝน 24 ชม. · ฝุ่น PM2.5/AQI · UV · ความชื้น · ความรู้สึก · ความกดอากาศ · รายวัน · แหล่งที่มาของข้อมูล
    ============================================================ */
 const METRIC_TABS = [
+  { id:'hazards',   label:'🛡️ เฝ้าระวัง 6 ภัยคุกคาม' },
   { id:'water',     label:'🌊 น้ำ & น้ำท่วม' },
   { id:'wind',      label:'💨 ลม & ลมกระโชก' },
   { id:'rain',      label:'🌧️ ปริมาณฝน' },
@@ -4598,7 +5051,63 @@ function openMetricModal(type = 'wind'){
   let sub = placeLabel;
   let body = '';
 
-  if(type === 'sources'){
+  if(type === 'hazards'){
+    title = '🛡️ ศูนย์วิเคราะห์และเตรียมรับมือ 6 ภัยคุกคามรายอำเภอ';
+    sub = `ประเมินด้วยฟิสิกส์บรรยากาศ อุทกวิทยาผิวดิน และคลื่นไหวสะเทือนระดับโลก · ${placeLabel}`;
+    const hzOrder = [
+      { key:'water',      icon:'🌊', name:'1. อุทกภัย & น้ำท่วมขัง (Flood & River)', src:'Copernicus GloFAS + ECMWF IFS HRES 9km' },
+      { key:'storm',      icon:'⚡', name:'2. พายุฤดูร้อน ลมกระโชก & ฟ้าผ่า (Storm & CAPE)', src:'ECMWF Convective CAPE (J/kg) + Wind Gust 10m' },
+      { key:'heat',       icon:'🥵', name:'3. โรคลมแดด ความร้อนสะสม & รังสี UV (Heatstroke)', src:'เกณฑ์กรมอนามัย + Wet-Bulb Temperature (°C)' },
+      { key:'stagnation', icon:'😷', name:'4. สภาวะอากาศปิด & ฝาชีครอบฝุ่นควัน (Atmospheric Lid)', src:'Planetary Boundary Layer Height (m) + CAMS PM2.5' },
+      { key:'agri',       icon:'🌾', name:'5. ความชื้นดิน ภัยแล้งเกษตร & ดินอิ่มตัว (Soil & Agri)', src:'ECMWF Land-Surface Soil Moisture (0–100cm) + FAO ET₀' },
+      { key:'quake',      icon:'🌍', name:'6. แผ่นดินไหวและแรงสั่นสะเทือนภูมิภาค (Seismic Monitor)', src:'USGS Earthquake API Real-time (M2.5+ รัศมี 1,200 กม.)' }
+    ];
+    const cardsHtml = hzOrder.map(item => {
+      const h = state.hazards?.[item.key];
+      const lv = h ? (h.lv || 0) : 0;
+      const L = FLOOD_LEVELS[lv] || FLOOD_LEVELS[0];
+      return `<div class="glass-in rounded-2xl p-4 space-y-2.5 border" style="border-color:${L.c}33">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <p class="text-sm font-semibold text-white">${item.name}</p>
+            <p class="text-[11px] text-white/50">แหล่งข้อมูล: ${item.src}</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full border" style="color:${L.c};border-color:${L.c}66;background:${L.c}1f">${h?.badgeText || L.t}</span>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div class="rounded-xl bg-black/25 p-2.5 border border-white/5">
+            <p class="text-[11px] text-white/55">${h?.box1Title || 'ตัวชี้วัดที่ 1'}</p>
+            <p class="text-sm font-semibold text-white mt-0.5">${h?.box1Val || 'กำลังคำนวณ…'}</p>
+            <p class="text-[11px] mt-0.5" style="color:${h?.box1Col || L.c}">${h?.box1Sub || '—'}</p>
+          </div>
+          <div class="rounded-xl bg-black/25 p-2.5 border border-white/5">
+            <p class="text-[11px] text-white/55">${h?.box2Title || 'ตัวชี้วัดที่ 2'}</p>
+            <p class="text-sm font-semibold text-white mt-0.5">${h?.box2Val || 'กำลังคำนวณ…'}</p>
+            <p class="text-[11px] mt-0.5" style="color:${h?.box2Col || '#cbd5e1'}">${h?.box2Sub || '—'}</p>
+          </div>
+        </div>
+        ${h?.svgMarkup ? `<div class="rounded-xl bg-black/20 p-2.5 border border-white/5">
+          <div class="flex items-center justify-between text-[11px] text-white/60 mb-1">
+            <span>${h.chartHeaderLeft || ''}</span>
+            <span>${h.chartHeaderRight || ''}</span>
+          </div>
+          <svg viewBox="0 0 320 110" class="w-full block">${h.svgMarkup}</svg>
+        </div>` : ''}
+        <p class="text-xs text-white/80 leading-relaxed bg-white/[0.03] rounded-xl p-2.5 border border-white/5">${h?.note || 'กำลังดึงข้อมูลวิเคราะห์ระดับอำเภอ…'}</p>
+      </div>`;
+    }).join('');
+
+    body = `
+      <div class="glass-in rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p class="text-xs text-white/60">พื้นที่อำเภอที่กำลังเฝ้าระวังแบบครบวงจร</p>
+          <p class="text-base font-semibold text-amber-200 mt-0.5">📍 ${state.flood?.areaName || placeLabel}</p>
+        </div>
+        <span class="text-xs font-medium px-3 py-1 rounded-full bg-sky-500/15 text-sky-200 border border-sky-400/30">วิเคราะห์สด 6 มิติ (All-Hazard Physics)</span>
+      </div>
+      <div class="space-y-3">${cardsHtml}</div>`;
+  }
+  else if(type === 'sources'){
     title = 'แหล่งที่มาของข้อมูลและการตรวจสอบ (Audit)';
     sub = 'ระบบข้อมูลสภาพอากาศและอุทกวิทยาแบบมาตรฐานเดียว (Single Source of Truth)';
     const can = state.canonical;
@@ -5476,7 +5985,7 @@ function bindEvents(){
 }
 
 /* ---------- ระบบนับยอดผู้เข้าชม (Style 3: Cyber Neon Pill) ---------- */
-const BASE_VISITOR_COUNT = 1094;
+const BASE_VISITOR_COUNT = 4022;
 
 function formatVisitorCount(num) {
   const val = Math.max(0, Math.floor(num));
@@ -5512,25 +6021,25 @@ async function initVisitorCounter() {
   const el = document.getElementById('visitorCountNum');
   if (!el) return;
 
-  // อ่านค่ายอดเข้าชมล่าสุดที่บันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือน้อยกว่า 1094 ให้ตั้งต้นที่ 1094)
+  // อ่านค่ายอดเข้าชมล่าสุดที่บันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือน้อยกว่า 4022 ให้ตั้งต้นที่ 4022 แล้วนับต่อเป็น 4023, 4024...)
   const rawStored = parseInt(localStorage.getItem('mekha_real_visitors') || '0', 10);
   const prevTotal = rawStored >= BASE_VISITOR_COUNT ? rawStored : BASE_VISITOR_COUNT;
 
-  // ทุกครั้งที่เปิดเข้าเว็บ ให้นับเพิ่ม 1 ครั้งเสมอตามความต้องการของผู้ใช้ (+1 Real-time)
+  // ทุกครั้งที่เปิดเข้าเว็บ ให้นับเพิ่ม 1 ครั้งเสมอตามความต้องการของผู้ใช้ (4022 -> 4023 -> 4024...)
   const newTotal = prevTotal + 1;
   localStorage.setItem('mekha_real_visitors', String(newTotal));
 
-  // แสดงตัวเลขเดิมก่อนแล้วหมุนตัวเลขขึ้น +1 ให้เห็นชัดเจน
+  // แสดงตัวเลขเดิม (4,022) ก่อนแล้วหมุนตัวเลขขึ้น +1 (4,023...) ให้เห็นชัดเจน
   el.textContent = formatVisitorCount(prevTotal);
   animateCounter(el, prevTotal, newTotal);
 
   // ซิงก์ยอดเข้าชมกับระบบคลาวด์ในเบื้องหลัง
   try {
-    const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-live/increment', { cache: 'no-cache' });
+    const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-v4022/increment', { cache: 'no-cache' });
     if (res.ok) {
       const data = await res.json();
       if (data && typeof data.value === 'number') {
-        const cloudTotal = BASE_VISITOR_COUNT + Math.max(0, data.value - 1);
+        const cloudTotal = BASE_VISITOR_COUNT + Math.max(1, data.value);
         if (cloudTotal > newTotal) {
           localStorage.setItem('mekha_real_visitors', String(cloudTotal));
           animateCounter(el, newTotal, cloudTotal);
