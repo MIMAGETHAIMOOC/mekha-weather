@@ -944,7 +944,7 @@ tailwind.config = {
         <span class="text-xs">👁️</span>
         <span class="text-[11px] text-indigo-200 font-medium tracking-wide">ยอดเข้าชม</span>
         <div id="visitorCountNum" class="bg-black/65 px-2.5 py-0.5 rounded border border-indigo-400/30 font-mono text-xs font-bold text-sky-300 tracking-widest shadow-inner">
-          004,022
+          004,156
         </div>
       </div>
       <button type="button" data-metric="sources" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full glass-in border border-white/15 text-white/85 hover:bg-white/15 text-xs font-medium transition">
@@ -6014,8 +6014,10 @@ function bindEvents(){
   });
 }
 
-/* ---------- ระบบนับยอดผู้เข้าชม (Style 3: Cyber Neon Pill) ---------- */
-const BASE_VISITOR_COUNT = 4022;
+/* ---------- ระบบนับยอดผู้เข้าชม Real-time (Style 3: Cyber Neon Pill) ---------- */
+const BASE_VISITOR_COUNT = 4156;
+const COUNT_API_KEY = 'mekha-weather-live-visitors';
+let lastVisitorDisplay = 4156;
 
 function formatVisitorCount(num) {
   const val = Math.max(0, Math.floor(num));
@@ -6047,38 +6049,67 @@ function animateCounter(el, start, end) {
   requestAnimationFrame(step);
 }
 
+async function syncVisitorCount(isInitialHit = false) {
+  const el = document.getElementById('visitorCountNum');
+  if (!el) return;
+
+  const endpoint = isInitialHit
+    ? `https://countapi.mileshilliard.com/api/v1/hit/${COUNT_API_KEY}`
+    : `https://countapi.mileshilliard.com/api/v1/get/${COUNT_API_KEY}`;
+
+  try {
+    const res = await fetch(endpoint, { cache: 'no-cache' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data.value === 'number') {
+        const cloudTotal = Math.max(BASE_VISITOR_COUNT, data.value);
+        localStorage.setItem('mekha_real_visitors_v4156', String(cloudTotal));
+        if (cloudTotal > lastVisitorDisplay) {
+          animateCounter(el, lastVisitorDisplay, cloudTotal);
+          lastVisitorDisplay = cloudTotal;
+        } else {
+          el.textContent = formatVisitorCount(cloudTotal);
+          lastVisitorDisplay = cloudTotal;
+        }
+        return;
+      }
+    }
+  } catch (e) {
+    console.warn('Visitor counter sync error:', e);
+  }
+
+  // กรณีออฟไลน์หรือเครือข่ายขัดข้อง ให้ใช้ LocalStorage เป็นโหมดสำรอง
+  if (isInitialHit) {
+    const rawStored = parseInt(localStorage.getItem('mekha_real_visitors_v4156') || '0', 10);
+    const fallbackTotal = Math.max(BASE_VISITOR_COUNT, rawStored + 1);
+    localStorage.setItem('mekha_real_visitors_v4156', String(fallbackTotal));
+    if (fallbackTotal > lastVisitorDisplay) {
+      animateCounter(el, lastVisitorDisplay, fallbackTotal);
+      lastVisitorDisplay = fallbackTotal;
+    }
+  }
+}
+
 async function initVisitorCounter() {
   const el = document.getElementById('visitorCountNum');
   if (!el) return;
 
-  // อ่านค่ายอดเข้าชมล่าสุดที่บันทึกไว้ในเครื่อง (ถ้ายังไม่มี หรือน้อยกว่า 4022 ให้ตั้งต้นที่ 4022 แล้วนับต่อเป็น 4023, 4024...)
-  const rawStored = parseInt(localStorage.getItem('mekha_real_visitors') || '0', 10);
-  const prevTotal = rawStored >= BASE_VISITOR_COUNT ? rawStored : BASE_VISITOR_COUNT;
+  // อ่านยอดที่บันทึกไว้ล่าสุดขึ้นมาแสดงทันทีก่อน เพื่อความรวดเร็วและไม่กระตุก
+  const rawStored = parseInt(localStorage.getItem('mekha_real_visitors_v4156') || '0', 10);
+  lastVisitorDisplay = Math.max(BASE_VISITOR_COUNT, rawStored);
+  el.textContent = formatVisitorCount(lastVisitorDisplay);
 
-  // ทุกครั้งที่เปิดเข้าเว็บ ให้นับเพิ่ม 1 ครั้งเสมอตามความต้องการของผู้ใช้ (4022 -> 4023 -> 4024...)
-  const newTotal = prevTotal + 1;
-  localStorage.setItem('mekha_real_visitors', String(newTotal));
+  // นับเพิ่ม 1 ครั้งทันทีแบบ Real-time จากทุกช่องทาง (ทั้งเว็บและแอป APK)
+  await syncVisitorCount(true);
 
-  // แสดงตัวเลขเดิม (4,022) ก่อนแล้วหมุนตัวเลขขึ้น +1 (4,023...) ให้เห็นชัดเจน
-  el.textContent = formatVisitorCount(prevTotal);
-  animateCounter(el, prevTotal, newTotal);
+  // ตรวจสอบยอดใหม่อัตโนมัติทุก 30 วินาทีแบบ Real-time หากมีผู้อื่นเข้าใช้งานพร้อมกัน
+  setInterval(() => {
+    if (!document.hidden) syncVisitorCount(false);
+  }, 30000);
 
-  // ซิงก์ยอดเข้าชมกับระบบคลาวด์ในเบื้องหลัง
-  try {
-    const res = await fetch('https://counterapi.com/api/counter/mekha-miximage-v4022/increment', { cache: 'no-cache' });
-    if (res.ok) {
-      const data = await res.json();
-      if (data && typeof data.value === 'number') {
-        const cloudTotal = BASE_VISITOR_COUNT + Math.max(1, data.value);
-        if (cloudTotal > newTotal) {
-          localStorage.setItem('mekha_real_visitors', String(cloudTotal));
-          animateCounter(el, newTotal, cloudTotal);
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('Visitor counter sync:', e);
-  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) syncVisitorCount(false);
+  });
 }
 
 /* ---------- เริ่มต้นการทำงาน ---------- */

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mekha-weather-v36';
+const CACHE_NAME = 'mekha-weather-v37';
 const ASSETS = [
   './',
   './index.html',
