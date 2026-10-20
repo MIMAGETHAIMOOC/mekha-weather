@@ -725,23 +725,30 @@ tailwind.config = {
     <!-- Map Canvas -->
     <div id="cyberInlineMapCanvas" class="w-full h-[320px] sm:h-[380px] z-10"></div>
     
-    <!-- Floating Layer Controls on the Right Edge (แบบในภาพตัวอย่าง) -->
-    <div class="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2 p-1.5 rounded-2xl bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-2xl">
-      <button id="btnCyberLayerRadar" type="button" onclick="openRadarStudio()" title="เปิดเรดาร์กลุ่มฝนสดเต็มจอ" class="w-8 h-8 rounded-xl flex items-center justify-center text-sky-400 hover:bg-white/10 transition active:scale-95">
+    <!-- Floating Layer Controls on the Right Edge (สลับ Google Maps & นำทาง) -->
+    <div class="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5 p-1.5 rounded-2xl bg-slate-950/90 border border-white/15 backdrop-blur-xl shadow-2xl">
+      <!-- 1. Google Maps ถนนภาษาไทย -->
+      <button id="btnGoogleRoadmap" type="button" onclick="switchGoogleMapLayer('roadmap')" title="Google Maps: แผนที่ถนนภาษาไทย" class="w-8 h-8 rounded-xl flex items-center justify-center text-sky-300 bg-white/15 hover:bg-white/25 transition active:scale-95 shadow">
+        <span class="text-sm">🗺️</span>
+      </button>
+      <!-- 2. Google Maps ดาวเทียม Satellite -->
+      <button id="btnGoogleSatellite" type="button" onclick="switchGoogleMapLayer('satellite')" title="Google Maps: ภาพถ่ายดาวเทียมความคมชัดสูง" class="w-8 h-8 rounded-xl flex items-center justify-center text-amber-300 hover:bg-white/15 transition active:scale-95">
+        <span class="text-sm">🛰️</span>
+      </button>
+      <!-- 3. เรดาร์กลุ่มฝนสดเต็มจอ -->
+      <button id="btnCyberLayerRadar" type="button" onclick="openRadarStudio()" title="เปิดเรดาร์กลุ่มฝนสด & สถานีทั่วไทย" class="w-8 h-8 rounded-xl flex items-center justify-center text-emerald-400 hover:bg-white/15 transition active:scale-95">
         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><circle cx="12" cy="12" r="3"/></svg>
       </button>
-      <button id="btnCyberLayerWind" type="button" onclick="document.querySelector('[data-metric=\'wind\']')?.click()" title="ตรวจวัดกระแสลม & PM2.5" class="w-8 h-8 rounded-xl flex items-center justify-center text-teal-400 hover:bg-white/10 transition active:scale-95">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-      </button>
-      <button id="btnCyberLayerTemp" type="button" onclick="document.querySelector('[data-metric=\'feelslike\']')?.click()" title="ตรวจวัดอุณหภูมิความรู้สึก" class="w-8 h-8 rounded-xl flex items-center justify-center text-amber-400 hover:bg-white/10 transition active:scale-95">
-        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+      <!-- 4. เปิดนำทางใน Google Maps -->
+      <button id="btnOpenGoogleMaps" type="button" onclick="openInGoogleMaps()" title="เปิดพิกัดนำทางในแอป Google Maps" class="w-8 h-8 rounded-xl flex items-center justify-center text-rose-400 hover:bg-white/15 transition active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       </button>
     </div>
 
-    <!-- Map Label Pill -->
-    <div class="absolute left-3 bottom-3 z-20 pointer-events-none">
-      <span class="px-2.5 py-1 rounded-full bg-slate-950/85 border border-white/15 text-[10px] text-white/90 font-medium backdrop-blur-md shadow">
-        📍 แผนที่สภาพอากาศสด &amp; หมุดพิกัด
+    <!-- Map Label Pill with Google Maps indicator -->
+    <div class="absolute left-3 bottom-3 z-20 flex items-center gap-1.5 pointer-events-auto">
+      <span id="mapBadgeLabel" class="px-2.5 py-1 rounded-full bg-slate-950/85 border border-white/15 text-[10px] text-white/90 font-medium backdrop-blur-md shadow cursor-pointer" onclick="openInGoogleMaps()" title="แตะเพื่อเปิดใน Google Maps">
+        🗺️ Google Maps · ภาษาไทย ↗
       </span>
     </div>
   </div>
@@ -3068,6 +3075,68 @@ window.shiftDay = shiftDay;
 
 let inlineCyberMap = null;
 let inlineMarkersGroup = null;
+let cyberTileLayer = null;
+let currentGoogleMapStyle = 'roadmap';
+
+const GOOGLE_TILE_LAYERS = {
+  roadmap: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=th',
+  satellite: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}&hl=th',
+  terrain: 'https://mt{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}&hl=th'
+};
+
+function switchGoogleMapLayer(style){
+  currentGoogleMapStyle = style;
+  if (!inlineCyberMap || !window.L) return;
+  if (cyberTileLayer) {
+    inlineCyberMap.removeLayer(cyberTileLayer);
+  }
+  const url = GOOGLE_TILE_LAYERS[style] || GOOGLE_TILE_LAYERS.roadmap;
+  cyberTileLayer = L.tileLayer(url, {
+    subdomains: '0123',
+    maxZoom: 20,
+    attribution: 'Google Maps'
+  }).addTo(inlineCyberMap);
+
+  // Toggle map container filter based on style
+  const mapContainer = document.querySelector('.cyber-map-container');
+  if (mapContainer) {
+    if (style === 'satellite') {
+      mapContainer.classList.remove('cyber-map-container');
+    } else {
+      mapContainer.classList.add('cyber-map-container');
+    }
+  }
+
+  // Update active button state
+  const btnRoad = document.getElementById('btnGoogleRoadmap');
+  const btnSat = document.getElementById('btnGoogleSatellite');
+  const labelEl = document.getElementById('mapBadgeLabel');
+  if (btnRoad && btnSat) {
+    if (style === 'satellite') {
+      btnSat.classList.add('bg-white/20', 'text-amber-300');
+      btnRoad.classList.remove('bg-white/20', 'text-sky-300');
+      if (labelEl) labelEl.textContent = '🛰️ Google Maps · ดาวเทียม (ภาษาไทย) ↗';
+      toast('สลับเป็น Google Maps ภาพถ่ายดาวเทียม (ภาษาไทย)', 'info', 1500);
+    } else {
+      btnRoad.classList.add('bg-white/20', 'text-sky-300');
+      btnSat.classList.remove('bg-white/20', 'text-amber-300');
+      if (labelEl) labelEl.textContent = '🗺️ Google Maps · แผนที่ถนน (ภาษาไทย) ↗';
+      toast('สลับเป็น Google Maps แผนที่ถนน (ภาษาไทย)', 'info', 1500);
+    }
+  }
+}
+
+function openInGoogleMaps(){
+  const cur = state.place || DEFAULT_PLACE;
+  const lat = cur.latitude ?? cur.lat ?? 13.7563;
+  const lon = cur.longitude ?? cur.lon ?? 100.5018;
+  const name = cur.name || 'พิกัดสภาพอากาศ';
+  const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`;
+  window.open(url, '_blank', 'noopener,noreferrer');
+  toast(`เปิดพิกัด ${name} ใน Google Maps แล้ว`, 'success', 2000);
+}
+window.switchGoogleMapLayer = switchGoogleMapLayer;
+window.openInGoogleMaps = openInGoogleMaps;
 
 function initCyberInlineMap(){
   const canvasEl = document.getElementById('cyberInlineMapCanvas');
@@ -3081,14 +3150,16 @@ function initCyberInlineMap(){
       center: [lat, lon],
       zoom: 11,
       minZoom: 5,
-      maxZoom: 17,
+      maxZoom: 18,
       zoomControl: false,
       attributionControl: false
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      subdomains: 'abcd',
-      maxZoom: 19
+    // เริ่มต้นด้วย Google Maps ภาษาไทย
+    cyberTileLayer = L.tileLayer(GOOGLE_TILE_LAYERS[currentGoogleMapStyle], {
+      subdomains: '0123',
+      maxZoom: 20,
+      attribution: 'Google Maps'
     }).addTo(inlineCyberMap);
 
     inlineMarkersGroup = L.layerGroup().addTo(inlineCyberMap);
@@ -3123,13 +3194,13 @@ function renderCyberInlineMarkers(){
   const mainIcon = L.divIcon({
     className: '',
     html: `
-      <div class="cyber-marker">
+      <div class="cyber-marker" onclick="openInGoogleMaps()">
         <div class="cyber-marker-bubble" style="border-color:#22c55e; box-shadow:0 0 14px rgba(34,197,94,0.45);">
           <span class="text-[10px] text-emerald-300 font-mono">${curUv}</span>
           <span class="text-sm font-bold text-white">${Math.round(curTemp)}°C</span>
           <span class="text-xs">${condEmoji}</span>
         </div>
-        <div class="cyber-marker-badge">${cur.name || 'พิกัดของคุณ'}</div>
+        <div class="cyber-marker-badge">📍 ${cur.name || 'พิกัดของคุณ'}</div>
       </div>
     `,
     iconSize: [110, 52],
