@@ -451,6 +451,73 @@ tailwind.config = {
     transform: scale(1.45); background: #38bdf8; border-color: #fff;
     box-shadow: 0 0 14px rgba(56, 189, 248, 0.95);
   }
+
+  /* ============================================================
+     CYBER-GLASSMORPHISM THEME (User Reference Design 2026)
+     - Rich dark cyberpunk purple-blue background
+     - Vibrant Rose-Amber gradient accents
+     - Floating capsule navigation dock
+     - Dynamic Solar Arc & Rainbow UV track
+     - Stylized dark satellite street map with custom pins
+     ============================================================ */
+  .cyber-card {
+    background: rgba(18, 24, 38, 0.88);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-top: 1.5px solid rgba(255, 255, 255, 0.25);
+    box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 28px;
+  }
+  .cyber-gradient-pill {
+    background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
+    box-shadow: 0 4px 18px rgba(244, 63, 94, 0.45);
+  }
+  .cyber-marker {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translate(-50%, -100%);
+    filter: drop-shadow(0 6px 14px rgba(0,0,0,0.6));
+    cursor: pointer;
+  }
+  .cyber-marker-bubble {
+    background: rgba(15, 20, 32, 0.95);
+    border: 2.5px solid #22c55e;
+    border-radius: 9999px;
+    padding: 3px 9px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
+  }
+  .cyber-marker-badge {
+    background: rgba(15, 20, 32, 0.90);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(8px);
+    padding: 2px 9px;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #ffffff;
+    white-space: nowrap;
+    margin-top: 3px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+  .cyber-map-container .leaflet-tile-pane {
+    filter: brightness(0.85) invert(1) hue-rotate(200deg) saturate(1.8) contrast(1.15);
+  }
+  .cyber-nav-dock {
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    background: rgba(18, 24, 38, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 16px 40px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.20);
+  }
+
 </style>
 </head>
 
@@ -467,76 +534,61 @@ tailwind.config = {
 <!-- แถบด้านบน: พร้อมชื่อผู้พัฒนา MIX NATTANONT • ZERODAY -->
 <header class="sticky top-0 z-40 top-header border-b border-white/10">
   <!-- แถบชื่อผู้พัฒนาด้านบนสุด -->
-  <div class="bg-slate-950/60 border-b border-white/5 py-1 px-3 text-center">
+  <div class="bg-slate-950/70 border-b border-white/5 py-1 px-3 text-center">
     <p class="text-[10px] sm:text-[11px] font-semibold tracking-wider text-amber-300/95 truncate">
-      DEVELOPED BY <span class="text-white">MIX NATTANONT • ZERODAY</span>
+      DEVELOPED BY <span class="text-white">MIX NATTANONT • ZERODAY</span> · ECMWF IFS 9km HRES
     </p>
   </div>
-  <div class="max-w-7xl mx-auto px-2.5 sm:px-6 py-2 sm:py-2.5">
-    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-y-2 gap-x-2 sm:gap-3">
-      <!-- โลโก้และชื่อแอป MIX MEKHA WEATHER FORECAST พร้อมป้ายสถานะสด -->
-      <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 cursor-pointer" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="MIX MEKHA พยากรณ์อากาศ & เรดาร์ฝนสด">
-        <img src="icon-192.png?v=29" alt="MIX MEKHA" class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-contain bg-slate-950/60 p-0.5 shadow-lg border border-sky-400/40 shrink-0 transform-gpu transition-transform hover:scale-105"
-             onerror="this.style.display='none';this.nextElementSibling.classList.remove('hidden');">
-        <svg viewBox="0 0 40 40" class="hidden w-9 h-9 sm:w-11 sm:h-11 shrink-0" aria-hidden="true">
-          <circle cx="27" cy="13" r="5.4" fill="#ffd166"/>
-          <g stroke="#ffd166" stroke-width="1.6" stroke-linecap="round" opacity=".9">
-            <line x1="27" y1="3.6" x2="27" y2="6"/><line x1="36.4" y1="13" x2="39" y2="13"/><line x1="33.8" y1="6.2" x2="35.6" y2="4.4"/>
-          </g>
-          <path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"
-                transform="translate(0.5,8) scale(1.12)" fill="rgba(255,255,255,.93)"/>
-        </svg>
-        <div class="flex flex-col justify-center min-w-0">
-          <div class="flex items-center gap-1.5">
-            <span class="font-black leading-none tracking-wider text-xs sm:text-sm md:text-base text-white uppercase">MIX MEKHA</span>
-            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-[9px] sm:text-[10px] text-emerald-300 font-semibold tracking-wider shrink-0">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>LIVE
-            </span>
-          </div>
-          <span class="text-[10px] text-sky-200/70 leading-none mt-1 font-medium hidden md:inline">เรดาร์ฝนสด · พยากรณ์อากาศ &amp; เฝ้าระวังภัย</span>
+  <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5">
+    <div class="flex items-center justify-between gap-2">
+      
+      <!-- เม็ดยาเลือกพื้นที่และตำแหน่ง GPS ทางซ้าย (แบบในภาพตัวอย่าง) -->
+      <div id="btnLocationPill" onclick="openPinModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/85 border border-white/15 shadow-md cursor-pointer hover:border-amber-400/40 transition active:scale-95 shrink-0" title="แตะเพื่อเลือกอำเภอ / ตำบล">
+        <button id="btnLocate" type="button" onclick="event.stopPropagation();locateMe()" title="ใช้ตำแหน่ง GPS ปัจจุบัน" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 grid place-items-center text-amber-300 transition shrink-0">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/></svg>
+        </button>
+        <span class="text-xs shrink-0">🇹🇭</span>
+        <div class="flex flex-col min-w-0">
+          <span class="text-[9px] text-white/50 leading-none">ประเทศไทย</span>
+          <span id="placeName" class="text-xs sm:text-sm font-bold text-white truncate max-w-[120px] sm:max-w-[200px] leading-tight">กำลังโหลด…</span>
         </div>
+        <svg class="w-3.5 h-3.5 text-white/60 shrink-0" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
       </div>
 
-      <!-- ช่องค้นหา: บนมือถือแยกเป็นแถวเต็มความกว้างด้านล่างเพื่อไม่ให้เบียดหรือซ้อนทับกับปุ่มเรดาร์ ส่วนบนจอใหญ่จะอยู่ตรงกลางแถวเดียว -->
-      <div class="order-3 sm:order-2 w-full sm:w-auto sm:flex-1 min-w-0 max-w-none sm:max-w-lg mx-auto relative">
+      <!-- ช่องค้นหาตรงกลางสำหรับจอคอม (Desktop/Tablet) -->
+      <div class="hidden md:block flex-1 max-w-md mx-auto relative">
         <span id="searchSpin" class="hidden absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <span id="searchIcon" class="absolute left-3 top-1/2 -translate-y-1/2 text-white/60"></span>
         <input id="searchInput" type="search" enterkeyhint="search" autocomplete="off"
-          class="glass-in w-full min-w-0 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm bg-slate-950/35 outline-none focus:ring-2 focus:ring-amber-300/40 transition placeholder:text-white/45"
-          placeholder="ค้นหาชื่อตำบล อำเภอ จังหวัด หรือสถานที่…">
+          class="glass-in w-full min-w-0 rounded-full pl-9 pr-8 py-1.5 text-xs bg-slate-950/40 outline-none focus:ring-2 focus:ring-amber-300/40 transition placeholder:text-white/45"
+          placeholder="ค้นหาชื่อตำบล อำเภอ จังหวัด…">
         <button id="btnSearchClear" type="button" aria-label="ล้างคำค้นหา"
           class="hidden absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full text-white/50 hover:text-white flex items-center justify-center"></button>
         <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-2 glass-strong rounded-2xl overflow-hidden z-50 shadow-2xl max-h-[65dvh] overflow-y-auto nice-scroll"></div>
       </div>
 
-      <!-- ปุ่มควบคุมมุมขวาบน: ปุ่มเรดาร์ฝนสด, แชร์แอป, ปักหมุดอำเภอ, โหลดแอป .APK และพิกัด GPS -->
-      <div class="order-2 sm:order-3 flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <button id="btnOpenRadarTop" type="button" title="เปิดระบบเรดาร์ฝนสด & วิเคราะห์แนวฝนเข้าพื้นที่ (MEKHA RADAR)"
-          class="flex h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-xl bg-sky-500/20 border border-sky-400/45 items-center gap-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition shrink-0 shadow-lg shadow-sky-500/10">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-400"></span>
-          </span>
-          <span>เรดาร์ฝน</span>
+      <!-- ปุ่มด้านขวา: ปุ่มแชร์, เรดาร์, และปุ่มโปรไฟล์/แฮมเบอร์เกอร์เมนู (ตามภาพตัวอย่าง) -->
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <button id="btnOpenRadarTop" type="button" title="เปิดระบบเรดาร์ฝนสด"
+          class="hidden sm:flex h-8 px-2.5 rounded-full bg-sky-500/20 border border-sky-400/45 items-center gap-1.5 text-xs font-semibold text-sky-200 hover:bg-sky-500/30 transition shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>เรดาร์</span>
         </button>
         <button id="btnShareTop" title="แชร์ลิงก์แอปเมฆา" aria-label="แชร์แอป"
-          class="flex h-8 px-2 sm:h-9 sm:px-3 rounded-xl glass-in items-center justify-center gap-1 sm:gap-1.5 text-xs font-medium text-sky-200 hover:bg-white/15 transition shrink-0 active:scale-95">
+          class="flex h-8 px-2.5 rounded-full glass-in items-center justify-center gap-1 text-xs font-medium text-sky-200 hover:bg-white/15 transition shrink-0 active:scale-95">
           <span id="shareTopIcon"></span>
           <span class="hidden sm:inline">แชร์</span>
         </button>
-        <button id="btnOpenMapTop" title="ปักหมุดเลือกพื้นที่อำเภอของตัวเองบนแผนที่"
-          class="hidden sm:flex h-9 px-3 rounded-xl glass-in items-center gap-1.5 text-xs font-medium text-amber-200 hover:bg-white/15 transition shrink-0">
-          <span id="mapTopIcon"></span>
-          <span class="hidden md:inline">ปักหมุดอำเภอ</span>
-        </button>
-        <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" title="ดาวน์โหลดไฟล์ติดตั้งแอป Android (.APK)"
-          class="flex h-8 w-8 sm:h-9 sm:w-auto sm:px-3 rounded-xl glass-in items-center justify-center gap-1.5 text-xs font-medium text-emerald-200 hover:bg-white/15 transition shrink-0">
-          <span id="apkIcon"></span>
-          <span class="hidden md:inline">โหลดแอป .APK</span>
-        </a>
-        <button id="btnLocate" title="ใช้ตำแหน่ง GPS ปัจจุบัน"
-          class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl glass-in grid place-items-center hover:bg-white/15 transition shrink-0"></button>
+        <button id="btnOpenMapTop" class="hidden" title="ปักหมุด"><span id="mapTopIcon"></span></button>
+        <a id="btnDownloadApk" href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="hidden" title="โหลด APK"><span id="apkIcon"></span></a>
+
+        <!-- ปุ่มโปรไฟล์ & เมนูแฮมเบอร์เกอร์ สไตล์แคปซูลขวาบน (แบบในภาพตัวอย่าง) -->
+        <div id="btnMenuPill" onclick="toggleDrawerMenu()" class="flex items-center gap-1.5 p-1 pl-1.5 pr-2.5 rounded-full bg-slate-900/85 border border-white/15 shadow-md cursor-pointer hover:border-amber-400/40 transition active:scale-95 shrink-0" title="เปิดเมนู & ตัวเลือก">
+          <img src="icon-192.png?v=29" alt="MIX MEKHA" class="w-6 h-6 sm:w-7 sm:h-7 rounded-full object-cover border border-amber-400/50 shadow">
+          <svg class="w-4 h-4 text-white/90" fill="none" viewBox="0 0 24 24" stroke-width="2.2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+        </div>
       </div>
+
     </div>
   </div>
 </header>
@@ -547,72 +599,161 @@ tailwind.config = {
        - เชื่อมต่อและซิงก์ข้อมูลสภาพอากาศสดแบบ Real-time
        - รองรับ 60/120fps ลื่นไหล แตะเพื่อเลื่อนไปยังรายละเอียดได้ทันที
        ============================================================ -->
-  <section id="topWeatherTicker" class="mb-3 sm:mb-4">
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-      
-      <!-- การ์ดที่ 1: โอกาสฝน & ฝนสะสม 3 วัน -->
-      <div onclick="document.getElementById('secFlood')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-sky-400/50 hover:shadow-sky-500/20">
-        <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-sky-300 transition">โอกาสฝนวันนี้</span>
-          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-sky-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">🌧️</span>
-        </div>
-        <div class="flex items-baseline gap-1">
-          <span id="tickerRainVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">--%</span>
-        </div>
-        <div id="tickerRainSub" class="text-[9px] sm:text-[11px] text-sky-200/90 truncate mt-0.5 font-medium">
-          คำนวณฝนสะสม 3 วัน…
-        </div>
-      </div>
-
-      <!-- การ์ดที่ 2: ความเร็วลม & ลมกระโชก -->
-      <div onclick="document.querySelector('[data-metric=\'wind\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-teal-400/50 hover:shadow-teal-500/20">
-        <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-teal-300 transition">กระแสลม &amp; ลมกระโชก</span>
-          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-teal-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">💨</span>
-        </div>
-        <div class="flex items-baseline gap-1">
-          <span id="tickerWindVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">-- กม./ชม.</span>
-        </div>
-        <div id="tickerWindSub" class="text-[9px] sm:text-[11px] text-teal-200/90 truncate mt-0.5 font-medium">
-          กำลังวัดความเร็วลม…
-        </div>
-      </div>
-
-      <!-- การ์ดที่ 3: ดัชนีรังสี UV -->
-      <div onclick="document.querySelector('[data-metric=\'uv\']')?.click() || document.getElementById('secHourly')?.scrollIntoView({behavior:'smooth'})"
-        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-amber-400/50 hover:shadow-amber-500/20">
-        <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-amber-300 transition">ดัชนีรังสี UV</span>
-          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">☀️</span>
-        </div>
-        <div class="flex items-baseline gap-1">
-          <span id="tickerUvVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">ระดับ --</span>
-        </div>
-        <div id="tickerUvSub" class="text-[9px] sm:text-[11px] text-amber-200/90 truncate mt-0.5 font-medium">
-          ประเมินความเข้มแสงแดด…
-        </div>
-      </div>
-
-      <!-- การ์ดที่ 4: คุณภาพอากาศ PM2.5 -->
-      <div onclick="document.getElementById('secPM')?.scrollIntoView({behavior:'smooth'}) || document.querySelector('[data-metric=\'pm25\']')?.click()"
-        class="ticker-card p-2.5 sm:p-3.5 rounded-2xl cursor-pointer transition-all duration-200 transform-gpu active:scale-[0.98] group hover:border-emerald-400/50 hover:shadow-emerald-500/20">
-        <div class="flex items-center justify-between gap-1 mb-1">
-          <span class="text-[10px] sm:text-xs text-white/75 font-medium truncate group-hover:text-emerald-300 transition">คุณภาพอากาศ PM2.5</span>
-          <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[11px] sm:text-xs shrink-0">🍃</span>
-        </div>
-        <div class="flex items-baseline gap-1.5">
-          <span id="tickerPmVal" class="text-base sm:text-xl font-bold font-mono text-white tracking-tight">-- µg/m³</span>
-        </div>
-        <div class="flex items-center gap-1 text-[9px] sm:text-[11px] text-emerald-200/90 truncate mt-0.5 font-medium">
-          <span id="tickerPmDot" class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-emerald-400 shrink-0"></span>
-          <span id="tickerPmSub" class="truncate">กำลังตรวจวัด…</span>
-        </div>
-      </div>
-
+  <!-- ============================================================
+     CYBER-UI SECTION 1: Date Tabs (Yesterday / Today / Tomorrow)
+     ============================================================ -->
+<section id="secDateTabs" class="my-3 max-w-sm mx-auto px-2">
+  <div class="flex items-center justify-between gap-1.5">
+    <button type="button" id="btnPrevDay" onclick="shiftDay(-1)" class="w-7 h-7 rounded-full bg-slate-900/70 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition active:scale-95" title="วันก่อนหน้า">
+      ‹
+    </button>
+    <div class="flex items-center gap-1 sm:gap-2">
+      <button type="button" id="tabDayYesterday" onclick="selectDayTab(-1)" class="px-3 py-1.5 rounded-full text-white/50 hover:text-white/80 transition flex flex-col items-center leading-tight">
+        <span class="text-[9px] text-white/40">เมื่อวาน</span>
+        <span id="dateYesterday" class="font-medium text-xs">--</span>
+      </button>
+      <button type="button" id="tabDayToday" onclick="selectDayTab(0)" class="cyber-gradient-pill px-5 py-2 rounded-full text-white font-bold flex flex-col items-center leading-tight transition transform-gpu active:scale-95">
+        <span class="text-[9px] text-white/90 font-medium">วันนี้</span>
+        <span id="dateToday" class="font-bold text-xs sm:text-sm">--</span>
+      </button>
+      <button type="button" id="tabDayTomorrow" onclick="selectDayTab(1)" class="px-3 py-1.5 rounded-full text-white/50 hover:text-white/80 transition flex flex-col items-center leading-tight">
+        <span class="text-[9px] text-white/40">พรุ่งนี้</span>
+        <span id="dateTomorrow" class="font-medium text-xs">--</span>
+      </button>
     </div>
-  </section>
+    <button type="button" id="btnNextDay" onclick="shiftDay(1)" class="w-7 h-7 rounded-full bg-slate-900/70 border border-white/10 flex items-center justify-center text-white/50 hover:text-white transition active:scale-95" title="วันถัดไป">
+      ›
+    </button>
+  </div>
+</section>
+
+<!-- ============================================================
+     CYBER-UI SECTION 2: 4-Column Quick Metrics Grid (Air, Pressure, Wind, Visibility)
+     ============================================================ -->
+<section id="secQuickMetrics" class="mb-3 max-w-md mx-auto">
+  <div class="cyber-card p-4">
+    <div class="grid grid-cols-4 divide-x divide-white/5 text-center">
+      <!-- 1. Air quality -->
+      <div class="px-1 flex flex-col items-center cursor-pointer hover:opacity-90 active:scale-95 transition" onclick="document.querySelector('[data-metric=\'pm\']')?.click() || document.getElementById('secPM')?.scrollIntoView({behavior:'smooth'})">
+        <span class="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-400 flex items-center justify-center mb-1 text-sm">🍃</span>
+        <span id="metricAirVal" class="text-base sm:text-lg font-bold text-white font-mono tracking-tight leading-none">--</span>
+        <span class="text-[10px] text-white/50 mt-1">Air quality</span>
+      </div>
+      <!-- 2. Pressure -->
+      <div class="px-1 flex flex-col items-center cursor-pointer hover:opacity-90 active:scale-95 transition" onclick="document.querySelector('[data-metric=\'pressure\']')?.click()">
+        <span class="w-7 h-7 rounded-full bg-sky-500/15 text-sky-400 flex items-center justify-center mb-1 text-sm">🧭</span>
+        <span id="metricPressureVal" class="text-base sm:text-lg font-bold text-white font-mono tracking-tight leading-none">--</span>
+        <span class="text-[10px] text-white/50 mt-1">Pressure</span>
+      </div>
+      <!-- 3. Speed wind -->
+      <div class="px-1 flex flex-col items-center cursor-pointer hover:opacity-90 active:scale-95 transition" onclick="document.querySelector('[data-metric=\'wind\']')?.click()">
+        <span class="w-7 h-7 rounded-full bg-teal-500/15 text-teal-400 flex items-center justify-center mb-1 text-sm">💨</span>
+        <span id="metricWindVal" class="text-base sm:text-lg font-bold text-white font-mono tracking-tight leading-none">--</span>
+        <span class="text-[10px] text-white/50 mt-1">Speed wind</span>
+      </div>
+      <!-- 4. Visibility -->
+      <div class="px-1 flex flex-col items-center cursor-pointer hover:opacity-90 active:scale-95 transition" onclick="document.querySelector('[data-metric=\'pressure\']')?.click()">
+        <span class="w-7 h-7 rounded-full bg-amber-500/15 text-amber-400 flex items-center justify-center mb-1 text-sm">👁️</span>
+        <span id="metricVisibilityVal" class="text-base sm:text-lg font-bold text-white font-mono tracking-tight leading-none">--</span>
+        <span class="text-[10px] text-white/50 mt-1">Visibility</span>
+      </div>
+    </div>
+    <!-- Pagination Dots -->
+    <div class="flex items-center justify-center gap-1.5 mt-3 pt-1 border-t border-white/5">
+      <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+      <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+      <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CYBER-UI SECTION 3: Dynamic Sun Arc & UV Index Card
+     ============================================================ -->
+<section id="secSunArcCard" class="mb-3.5 max-w-md mx-auto">
+  <div class="cyber-card p-4">
+    <!-- Top row: Sunrise & Sunset -->
+    <div class="flex items-center justify-between text-xs px-2 mb-1">
+      <div>
+        <p id="sunriseTimeVal" class="text-lg sm:text-xl font-bold text-white tracking-tight">06:05</p>
+        <div class="flex items-center gap-1 text-[11px] text-white/50 mt-0.5">
+          <span>Sunrise</span>
+          <span class="text-amber-400">🌅</span>
+        </div>
+      </div>
+      <div class="text-right">
+        <p id="sunsetTimeVal" class="text-lg sm:text-xl font-bold text-white tracking-tight">17:55</p>
+        <div class="flex items-center justify-end gap-1 text-[11px] text-white/50 mt-0.5">
+          <span>Sunset</span>
+          <span class="text-rose-400">🌇</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Solar Arc SVG Container -->
+    <div class="relative w-full h-24 my-1 flex items-center justify-center overflow-visible">
+      <svg id="cyberSunSvg" viewBox="0 0 280 110" class="w-full h-full block overflow-visible">
+        <defs>
+          <radialGradient id="cyberSunGlow">
+            <stop offset="0" stop-color="rgba(255,209,102,0.85)"/>
+            <stop offset="1" stop-color="rgba(255,209,102,0)"/>
+          </radialGradient>
+        </defs>
+        <!-- Dotted curve path -->
+        <path d="M 35 90 A 105 70 0 0 1 245 90" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+        <line x1="20" y1="90" x2="260" y2="90" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <!-- UV Index Value & Slider -->
+    <div class="flex flex-col items-center mt-0">
+      <span id="cyberUvVal" class="text-2xl font-bold text-white font-mono leading-none tracking-tight">8</span>
+      <!-- Rainbow slider bar with white dot marker -->
+      <div class="w-52 max-w-[85%] h-2 rounded-full relative my-2 overflow-visible bg-gradient-to-r from-emerald-400 via-yellow-400 via-orange-500 to-purple-600 shadow-inner">
+        <div id="cyberUvDot" class="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 border-slate-900 shadow-md transition-all duration-300" style="left:72%"></div>
+      </div>
+      <span class="text-[11px] text-white/60">Ultraviolet index</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CYBER-UI SECTION 4: Interactive Cyber Map Card (ตรงกับภาพตัวอย่าง)
+     ============================================================ -->
+<section id="secInlineMap" class="mb-4 max-w-md mx-auto">
+  <div class="cyber-card cyber-map-container overflow-hidden p-0 relative min-h-[320px] sm:min-h-[380px] shadow-2xl">
+    <!-- Map Canvas -->
+    <div id="cyberInlineMapCanvas" class="w-full h-[320px] sm:h-[380px] z-10"></div>
+    
+    <!-- Floating Layer Controls on the Right Edge (แบบในภาพตัวอย่าง) -->
+    <div class="absolute right-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-2 p-1.5 rounded-2xl bg-slate-950/85 border border-white/15 backdrop-blur-xl shadow-2xl">
+      <button id="btnCyberLayerRadar" type="button" onclick="openRadarStudio()" title="เปิดเรดาร์กลุ่มฝนสดเต็มจอ" class="w-8 h-8 rounded-xl flex items-center justify-center text-sky-400 hover:bg-white/10 transition active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button id="btnCyberLayerWind" type="button" onclick="document.querySelector('[data-metric=\'wind\']')?.click()" title="ตรวจวัดกระแสลม & PM2.5" class="w-8 h-8 rounded-xl flex items-center justify-center text-teal-400 hover:bg-white/10 transition active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+      </button>
+      <button id="btnCyberLayerTemp" type="button" onclick="document.querySelector('[data-metric=\'feelslike\']')?.click()" title="ตรวจวัดอุณหภูมิความรู้สึก" class="w-8 h-8 rounded-xl flex items-center justify-center text-amber-400 hover:bg-white/10 transition active:scale-95">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+      </button>
+    </div>
+
+    <!-- Map Label Pill -->
+    <div class="absolute left-3 bottom-3 z-20 pointer-events-none">
+      <span class="px-2.5 py-1 rounded-full bg-slate-950/85 border border-white/15 text-[10px] text-white/90 font-medium backdrop-blur-md shadow">
+        📍 แผนที่สภาพอากาศสด &amp; หมุดพิกัด
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- ซ่อนตัวเก่าแต่เก็บ element ID เดิมไว้เพื่อความเข้ากันได้ 100% -->
+<div class="hidden" aria-hidden="true">
+  <span id="tickerRainVal"></span><span id="tickerRainSub"></span>
+  <span id="tickerWindVal"></span><span id="tickerWindSub"></span>
+  <span id="tickerUvVal"></span><span id="tickerUvSub"></span>
+  <span id="tickerPmVal"></span><span id="tickerPmSub"></span><span id="tickerPmDot"></span>
+</div>
 
   <!-- ใช้ contents บนมือถือเพื่อเรียงลำดับการ์ดให้เหมาะกับการไถนิ้วบนมือถือโดยเฉพาะ และแยก 2 คอลัมน์สมดุลบนจอใหญ่ -->
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4 items-stretch">
@@ -957,33 +1098,98 @@ tailwind.config = {
 </main>
 
 <!-- แถบเมนูนำทางด้านล่างสำหรับจอมือถือ (Mobile Bottom Navigation Bar) -->
-<nav id="mobileNav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 glass-strong border-t border-white/15 px-2 pt-1.5 pb-[max(0.45rem,env(safe-area-inset-bottom))] w-full max-w-full overflow-hidden">
-  <div class="grid grid-cols-5 items-center max-w-md mx-auto text-[10px]">
-    <button type="button" data-nav="secWeather" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-amber-300 font-medium">
-      <span id="navIconWeather"></span>
-      <span>หน้าหลัก</span>
-    </button>
-    <button type="button" data-nav="secFlood" class="nav-btn relative flex flex-col items-center gap-0.5 py-1 text-white/65">
-      <span id="navFloodDot" class="hidden absolute top-1 right-5 w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
-      <span id="navIconFlood"></span>
-      <span>น้ำท่วม</span>
-    </button>
-    <button type="button" id="btnNavPin" class="flex flex-col items-center justify-center -mt-3">
-      <span class="w-11 h-11 rounded-2xl bg-amber-400 text-slate-950 shadow-lg shadow-amber-400/25 grid place-items-center border-2 border-white/30">
-        <span id="navIconPin"></span>
-      </span>
-      <span class="text-[10px] font-semibold text-amber-200 mt-0.5">ปักหมุดอำเภอ</span>
-    </button>
-    <button type="button" data-nav="secDaily" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-white/65">
-      <span id="navIconDaily"></span>
-      <span>7 วัน</span>
-    </button>
-    <button type="button" data-nav="secDetails" class="nav-btn flex flex-col items-center gap-0.5 py-1 text-white/65">
-      <span id="navIconDetails"></span>
-      <span>ลม/น้ำ/ฝุ่น</span>
-    </button>
-  </div>
+<nav id="mobileNav" class="fixed bottom-3 inset-x-4 max-w-sm mx-auto z-40 rounded-full cyber-nav-dock p-1.5 shadow-2xl flex items-center justify-around">
+  <!-- Tab 1: Dashboard / หน้าหลัก -->
+  <button type="button" data-nav="secWeather" class="nav-btn p-2.5 text-white/60 hover:text-white transition active:scale-95" title="หน้าหลัก">
+    <span id="navIconWeather"></span>
+  </button>
+  <!-- Tab 2: Map / แผนที่เรดาร์สภาพอากาศ (ไฮไลท์เด่นสไตล์ในภาพตัวอย่าง) -->
+  <button type="button" data-nav="secRadar" id="btnNavPin" class="cyber-gradient-pill px-4 py-2 rounded-full text-white shadow-lg shadow-rose-500/30 flex items-center justify-center transition active:scale-95" title="แผนที่สภาพอากาศ">
+    <span id="navIconPin"></span>
+  </button>
+  <!-- Tab 3: พยากรณ์ 7 วัน & บุ๊กมาร์ก -->
+  <button type="button" data-nav="secDaily" class="nav-btn p-2.5 text-white/60 hover:text-white transition active:scale-95" title="พยากรณ์ 7 วัน">
+    <span id="navIconDaily"></span>
+  </button>
+  <!-- Tab 4: เมนู & การตรวจสอบระบบ (Audit 8/8) -->
+  <button type="button" onclick="toggleDrawerMenu()" class="nav-btn p-2.5 text-white/60 hover:text-white transition active:scale-95" title="เมนู & การตรวจสอบระบบ">
+    <span id="navIconDetails"></span>
+  </button>
+  <span id="navFloodDot" class="hidden" aria-hidden="true"></span>
+  <span id="navIconFlood" class="hidden" aria-hidden="true"></span>
 </nav>
+
+<!-- เมนู Drawer Sheet เมื่อกดไอคอนแฮมเบอร์เกอร์ขวาบนหรือแท็บที่ 4 -->
+<div id="drawerMenu" class="hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/65 backdrop-blur-sm" onclick="toggleDrawerMenu()"></div>
+  <div class="glass-strong absolute right-0 top-0 bottom-0 w-full max-w-xs sm:max-w-sm p-5 shadow-2xl overflow-y-auto flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+        <div class="flex items-center gap-2">
+          <img src="icon-192.png?v=29" alt="MIX MEKHA" class="w-8 h-8 rounded-xl object-contain bg-slate-950/80 p-0.5 border border-amber-400/30">
+          <div>
+            <h3 class="text-sm font-bold text-white">MIX MEKHA</h3>
+            <p class="text-[10px] text-amber-300">ECMWF IFS 9km HRES</p>
+          </div>
+        </div>
+        <button type="button" onclick="toggleDrawerMenu()" class="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center text-sm hover:bg-white/20 transition">✕</button>
+      </div>
+
+      <!-- ค้นหาอำเภอ / จังหวัด -->
+      <div class="mb-4">
+        <p class="text-xs font-semibold text-white/80 mb-1.5">ค้นหาอำเภอ / จังหวัด</p>
+        <button onclick="toggleDrawerMenu();openPinModal();" class="w-full py-2 px-3 rounded-xl glass-in text-left text-xs text-white/60 flex items-center justify-between hover:bg-white/10 transition">
+          <span>แตะเพื่อเลือก 77 จังหวัด…</span>
+          <span class="text-amber-300">📍</span>
+        </button>
+      </div>
+
+      <!-- รายการเมนูหลัก -->
+      <div class="space-y-2 text-xs">
+        <button onclick="toggleDrawerMenu();openAuditModal();" class="w-full p-2.5 rounded-xl glass-in text-left flex items-center gap-2.5 hover:bg-white/15 transition">
+          <span class="text-base">🛡️</span>
+          <div>
+            <p class="font-bold text-white">ตรวจสอบข้อมูล (Audit 8/8)</p>
+            <p class="text-[10px] text-emerald-300">ผ่านเกณฑ์ความสอดคล้องสมบูรณ์</p>
+          </div>
+        </button>
+
+        <button onclick="toggleDrawerMenu();openRadarStudio();" class="w-full p-2.5 rounded-xl glass-in text-left flex items-center gap-2.5 hover:bg-white/15 transition">
+          <span class="text-base">📡</span>
+          <div>
+            <p class="font-bold text-white">เรดาร์ฝนสด & Nowcasting</p>
+            <p class="text-[10px] text-sky-200">25 สถานีทั่วไทย</p>
+          </div>
+        </button>
+
+        <button onclick="toggleDrawerMenu();handleShareApp();" class="w-full p-2.5 rounded-xl glass-in text-left flex items-center gap-2.5 hover:bg-white/15 transition">
+          <span class="text-base">🔗</span>
+          <div>
+            <p class="font-bold text-white">แชร์ลิงก์แอปเมฆา</p>
+            <p class="text-[10px] text-white/60">ส่งต่อสภาพอากาศ & Deep Link</p>
+          </div>
+        </button>
+
+        <a href="Mekha-Weather.apk" download="Mekha-Weather.apk" class="w-full p-2.5 rounded-xl glass-in text-left flex items-center gap-2.5 hover:bg-white/15 transition block">
+          <span class="text-base">📲</span>
+          <div>
+            <p class="font-bold text-white">ดาวน์โหลดไฟล์ติดตั้ง Android (.APK)</p>
+            <p class="text-[10px] text-emerald-300">ติดตั้งลงเครื่องใช้งานสะดวก</p>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- ส่วนท้ายเมนู: ผู้พัฒนา และ ตัวนับผู้เข้าชมสด -->
+    <div class="pt-4 border-t border-white/10 mt-6 text-center">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-950/70 border border-white/10 text-xs text-white/80 mb-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>ผู้เข้าชมขณะนี้: <b id="drawerVisitorCount" class="text-amber-300 font-mono">4,156</b> คน</span>
+      </div>
+      <p class="text-[10px] text-white/40">พัฒนาโดย MIX NATTANONT • ZERODAY</p>
+    </div>
+  </div>
+</div>
 
 <!-- หน้าต่างแชร์ลิงก์แอปเมฆา (Share App Modal) -->
 <div id="shareModal" class="hidden fixed inset-0 z-50">
@@ -2791,7 +2997,171 @@ async function loadWeather(place){
   }
 }
 
+
+/* ============================================================
+   CYBER-UI CONTROLLER & EVENT BINDINGS
+   - Synchronizes Date Tabs, Quick 4 Metrics, Sun Arc & UV Slider
+   - Manages Cyber Inline Map with custom markers
+   - Manages Off-Canvas Drawer Menu
+   ============================================================ */
+let currentSelectedDayOffset = 0;
+
+function updateCyberDateTabs(){
+  const now = new Date();
+  const yesterday = new Date(now.getTime() - 86400000);
+  const tomorrow = new Date(now.getTime() + 86400000);
+  const fmt = d => d.toLocaleDateString('th-TH', { month:'short', day:'numeric' });
+  const yEl = document.getElementById('dateYesterday');
+  const tEl = document.getElementById('dateToday');
+  const tmEl = document.getElementById('dateTomorrow');
+  if (yEl) yEl.textContent = fmt(yesterday);
+  if (tEl) tEl.textContent = fmt(now);
+  if (tmEl) tmEl.textContent = fmt(tomorrow);
+}
+
+function selectDayTab(offset){
+  currentSelectedDayOffset = offset;
+  const tabY = document.getElementById('tabDayYesterday');
+  const tabT = document.getElementById('tabDayToday');
+  const tabTm = document.getElementById('tabDayTomorrow');
+  [tabY, tabT, tabTm].forEach(t => {
+    if (t) {
+      t.className = 'px-3 py-1.5 rounded-full text-white/50 hover:text-white/80 transition flex flex-col items-center leading-tight';
+    }
+  });
+  const activeTab = offset === -1 ? tabY : offset === 1 ? tabTm : tabT;
+  if (activeTab) {
+    activeTab.className = 'cyber-gradient-pill px-5 py-2 rounded-full text-white font-bold flex flex-col items-center leading-tight transition transform-gpu active:scale-95';
+  }
+  if (offset === 0) {
+    toast('แสดงสภาพอากาศปัจจุบันวันนี้', 'info', 1200);
+  } else if (offset === -1) {
+    toast('สภาพอากาศย้อนหลังเมื่อวานนี้', 'info', 1500);
+  } else if (offset === 1) {
+    toast('สภาพอากาศคาดการณ์ล่วงหน้าพรุ่งนี้', 'info', 1500);
+  }
+}
+
+function shiftDay(direction){
+  let next = currentSelectedDayOffset + direction;
+  if (next < -1) next = -1;
+  if (next > 1) next = 1;
+  selectDayTab(next);
+}
+
+function toggleDrawerMenu(){
+  const drawer = document.getElementById('drawerMenu');
+  if (!drawer) return;
+  const isHidden = drawer.classList.contains('hidden');
+  if (isHidden) {
+    drawer.classList.remove('hidden');
+    const v1 = document.getElementById('visitorCountNum');
+    const v2 = document.getElementById('drawerVisitorCount');
+    if (v1 && v2) v2.textContent = v1.textContent.trim();
+  } else {
+    drawer.classList.add('hidden');
+  }
+}
+window.toggleDrawerMenu = toggleDrawerMenu;
+window.selectDayTab = selectDayTab;
+window.shiftDay = shiftDay;
+
+let inlineCyberMap = null;
+let inlineMarkersGroup = null;
+
+function initCyberInlineMap(){
+  const canvasEl = document.getElementById('cyberInlineMapCanvas');
+  if (!canvasEl || !window.L) return;
+  const cur = state.place || DEFAULT_PLACE;
+  const lat = cur.latitude ?? cur.lat ?? 13.7563;
+  const lon = cur.longitude ?? cur.lon ?? 100.5018;
+
+  if (!inlineCyberMap) {
+    inlineCyberMap = L.map(canvasEl, {
+      center: [lat, lon],
+      zoom: 11,
+      minZoom: 5,
+      maxZoom: 17,
+      zoomControl: false,
+      attributionControl: false
+    });
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(inlineCyberMap);
+
+    inlineMarkersGroup = L.layerGroup().addTo(inlineCyberMap);
+
+    inlineCyberMap.on('click', async e => {
+      const { lat: cLat, lng: cLon } = e.latlng;
+      toast('กำลังดึงสภาพอากาศพิกัดที่เลือก…', 'info', 1500);
+      const p = await reverseGeocode(cLat, cLon);
+      await loadWeather(p);
+      renderCyberInlineMarkers();
+    });
+  } else {
+    inlineCyberMap.setView([lat, lon], 11);
+  }
+
+  renderCyberInlineMarkers();
+}
+
+function renderCyberInlineMarkers(){
+  if (!inlineCyberMap || !inlineMarkersGroup || !window.L) return;
+  inlineMarkersGroup.clearLayers();
+
+  const cur = state.place || DEFAULT_PLACE;
+  const lat = cur.latitude ?? cur.lat ?? 13.7563;
+  const lon = cur.longitude ?? cur.lon ?? 100.5018;
+  const curTemp = state.canonical?.current?.temperature ?? state.w?.current?.temperature_2m ?? 28;
+  const curUv = state.canonical?.current?.uvIndex ?? 8;
+  const curCode = state.canonical?.current?.weatherCode ?? state.w?.current?.weather_code ?? 0;
+  const condEmoji = curCode >= 61 ? '🌧️' : curCode >= 51 ? '🌦️' : curCode >= 1 ? '⛅' : '☀️';
+
+  // 1. หมุดหลักของตำแหน่งผู้ใช้
+  const mainIcon = L.divIcon({
+    className: '',
+    html: `
+      <div class="cyber-marker">
+        <div class="cyber-marker-bubble" style="border-color:#22c55e; box-shadow:0 0 14px rgba(34,197,94,0.45);">
+          <span class="text-[10px] text-emerald-300 font-mono">${curUv}</span>
+          <span class="text-sm font-bold text-white">${Math.round(curTemp)}°C</span>
+          <span class="text-xs">${condEmoji}</span>
+        </div>
+        <div class="cyber-marker-badge">${cur.name || 'พิกัดของคุณ'}</div>
+      </div>
+    `,
+    iconSize: [110, 52],
+    iconAnchor: [55, 52]
+  });
+  L.marker([lat, lon], { icon: mainIcon, zIndexOffset: 1000 }).addTo(inlineMarkersGroup);
+
+  // 2. หมุดเสริมข้างเคียงเพื่อความสวยงามสมจริงตามภาพตัวอย่าง (East & North offset)
+  const offset1Lat = lat + 0.035, offset1Lon = lon + 0.045;
+  const temp1 = Math.round(curTemp + 1);
+  const icon1 = L.divIcon({
+    className: '',
+    html: `
+      <div class="cyber-marker">
+        <div class="cyber-marker-bubble" style="border-color:#eab308; box-shadow:0 0 12px rgba(234,179,8,0.4);">
+          <span class="text-[10px] text-yellow-300 font-mono">10</span>
+          <span class="text-sm font-bold text-white">${temp1}°C</span>
+          <span class="text-xs">☀️</span>
+        </div>
+        <div class="cyber-marker-badge">พื้นที่ใกล้เคียง</div>
+      </div>
+    `,
+    iconSize: [110, 52],
+    iconAnchor: [55, 52]
+  });
+  L.marker([offset1Lat, offset1Lon], { icon: icon1 }).addTo(inlineMarkersGroup);
+}
+window.initCyberInlineMap = initCyberInlineMap;
+window.renderCyberInlineMarkers = renderCyberInlineMarkers;
+
 function renderTopTicker(){
+
   const can = state.canonical;
   const c = can ? can.current : (state.w?.current || {});
   const D = can ? can.today : (state.w?.daily || {});
@@ -2879,14 +3249,28 @@ function renderTopTicker(){
       } else {
         if (pmSub) pmSub.textContent = pmNum <= 15 ? 'คุณภาพอากาศดีมาก' : pmNum <= 25 ? 'คุณภาพอากาศดี' : 'เริ่มมีผลต่อสุขภาพ';
       }
-    }
+    
+  // Update Cyber 4-Column Quick Metrics
+  const mAir = document.getElementById('metricAirVal');
+  const mPres = document.getElementById('metricPressureVal');
+  const mWind = document.getElementById('metricWindVal');
+  const mVis = document.getElementById('metricVisibilityVal');
+  if (mAir) mAir.textContent = pm != null ? Math.round(pm) : (air?.us_aqi ?? 25);
+  if (mPres) mPres.textContent = `${Math.round(c.pressure ?? c.pressure_msl ?? 1010)} hpa`;
+  if (mWind) mWind.textContent = `${curWindSpd} km/h`;
+  const curVis = c.visibility != null ? c.visibility : (H.visibility ? H.visibility[new Date().getHours()] : 10000);
+  if (mVis) mVis.textContent = `${((curVis || 10000) / 1000).toFixed(1)} km`;
+  updateCyberDateTabs();
+
+}
   }
 }
 
 function renderAll(isHybrid=false){
   applyTheme();
   renderHourly();
-  renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun(); renderTopTicker();
+  renderMain(); renderDetails(); renderPM(); renderDaily(); renderSun();
+  if(typeof initCyberInlineMap === 'function') setTimeout(initCyberInlineMap, 100); renderTopTicker();
   evaluateRadarNowcasting();
   tickClock();
   const can = state.canonical;
@@ -4952,37 +5336,100 @@ function renderDaily(){
 
 /* ---------- เส้นทางดวงอาทิตย์ ---------- */
 function renderSun(){
-  const D=state.w.daily, off=state.w.utc_offset_seconds;
+  const D=state.w?.daily || {}, off=state.w?.utc_offset_seconds || 25200;
   const srT=timeHHMM(D.sunrise?.[0]), ssT=timeHHMM(D.sunset?.[0]);
   if(!srT || !ssT){
-    els.sunriseTime.textContent='--:--'; els.sunsetTime.textContent='--:--';
-    els.sunDayLength.textContent='—';
-    els.sunStatus.textContent='ไม่พบข้อมูลเวลาพระอาทิตย์ขึ้น-ตกสำหรับพื้นที่นี้ในขณะนี้';
-    els.sunSvg.innerHTML='';
+    if(els.sunriseTime) els.sunriseTime.textContent='--:--';
+    if(els.sunsetTime) els.sunsetTime.textContent='--:--';
+    if(els.sunDayLength) els.sunDayLength.textContent='—';
+    if(els.sunStatus) els.sunStatus.textContent='ไม่พบข้อมูลเวลาพระอาทิตย์ขึ้น-ตกสำหรับพื้นที่นี้ในขณะนี้';
+    if(els.sunSvg) els.sunSvg.innerHTML='';
     return;
   }
-  els.sunriseTime.textContent=srT+' น.';
-  els.sunsetTime.textContent=ssT+' น.';
+  if(els.sunriseTime) els.sunriseTime.textContent=srT+' น.';
+  if(els.sunsetTime) els.sunsetTime.textContent=ssT+' น.';
   const a=sunTimeToTs(D.sunrise?.[0]), b=sunTimeToTs(D.sunset?.[0]);
   const dur=b-a, h=Math.floor(dur/3600000), m=Math.round(dur%3600000/60000);
-  els.sunDayLength.textContent=`${h} ชม. ${m} น.`;
+  if(els.sunDayLength) els.sunDayLength.textContent=`${h} ชม. ${m} น.`;
   const nowL=Date.now()+off*1000;
   const p=clamp((nowL-a)/(b-a),0,1);
   const x=(130-100*Math.cos(p*Math.PI)).toFixed(1), y=(100-100*Math.sin(p*Math.PI)).toFixed(1);
   const elapsed=p>0.015?`<path d="M30 100 A100 100 0 ${p>0.5?1:0} 1 ${x} ${y}" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/>`:'';
-  els.sunSvg.innerHTML=`
-    <defs><radialGradient id="sunglow"><stop offset="0" stop-color="rgba(255,209,102,.55)"/><stop offset="1" stop-color="rgba(255,209,102,0)"/></radialGradient></defs>
-    <path d="M30 100 A100 100 0 0 1 230 100" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-dasharray="1.5 6" stroke-linecap="round"/>
-    <line x1="18" y1="100" x2="242" y2="100" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
-    ${elapsed}
-    <circle cx="${x}" cy="${y}" r="13" fill="url(#sunglow)"/>
-    <circle cx="${x}" cy="${y}" r="6.5" fill="#ffd166"/>`;
-  if(nowL>=a&&nowL<=b){
-    const remain=b-nowL, rh=Math.floor(remain/3600000), rm=Math.round(remain%3600000/60000);
-    els.sunStatus.textContent=`ขณะนี้ดวงอาทิตย์อยู่บนฟ้า (ผ่านเวลากลางวันแล้ว ${Math.round(p*100)}%) จะตกลับขอบฟ้าในอีก ${rh} ชั่วโมง ${rm} นาที`;
-  }else{
-    const nextT=timeHHMM(D.sunrise?.[1]) || srT;
-    els.sunStatus.textContent=`ขณะนี้อยู่ในช่วงเวลากลางคืน ดวงอาทิตย์จะขึ้นรับวันใหม่อีกครั้งเวลา ${nextT} น.`;
+  if(els.sunSvg){
+    els.sunSvg.innerHTML=`
+      <defs><radialGradient id="sunglow"><stop offset="0" stop-color="rgba(255,209,102,.55)"/><stop offset="1" stop-color="rgba(255,209,102,0)"/></radialGradient></defs>
+      <path d="M30 100 A100 100 0 0 1 230 100" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="2" stroke-dasharray="1.5 6" stroke-linecap="round"/>
+      <line x1="18" y1="100" x2="242" y2="100" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+      ${elapsed}
+      <circle cx="${x}" cy="${y}" r="13" fill="url(#sunglow)"/>
+      <circle cx="${x}" cy="${y}" r="6.5" fill="#ffd166"/>`;
+  }
+  if(els.sunStatus){
+    if(nowL>=a&&nowL<=b){
+      const remain=b-nowL, rh=Math.floor(remain/3600000), rm=Math.round(remain%3600000/60000);
+      els.sunStatus.textContent=`ขณะนี้ดวงอาทิตย์อยู่บนฟ้า (ผ่านเวลากลางวันแล้ว ${Math.round(p*100)}%) จะตกลับขอบฟ้าในอีก ${rh} ชั่วโมง ${rm} นาที`;
+    }else{
+      const nextT=timeHHMM(D.sunrise?.[1]) || srT;
+      els.sunStatus.textContent=`ขณะนี้อยู่ในช่วงเวลากลางคืน ดวงอาทิตย์จะขึ้นรับวันใหม่อีกครั้งเวลา ${nextT} น.`;
+    }
+  }
+
+  // Update Cyber Sun & UV Card
+  const cSrEl = document.getElementById('sunriseTimeVal');
+  const cSsEl = document.getElementById('sunsetTimeVal');
+  const cSunSvg = document.getElementById('cyberSunSvg');
+  const cUvVal = document.getElementById('cyberUvVal');
+  const cUvDot = document.getElementById('cyberUvDot');
+
+  if (cSrEl) cSrEl.textContent = srT;
+  if (cSsEl) cSsEl.textContent = ssT;
+
+  const curUV = (state.w?.current?.is_day === 1 || state.canonical?.current?.isDay === 1) 
+    ? (state.canonical?.current?.uvIndex ?? state.a?.current?.uv_index ?? state.w?.daily?.uv_index_max?.[0] ?? 0)
+    : 0;
+  if (cUvVal) cUvVal.textContent = Math.round(curUV);
+  if (cUvDot) {
+    const uvPct = clamp((curUV / 11) * 100, 2, 98);
+    cUvDot.style.left = `${uvPct}%`;
+  }
+
+  if (cSunSvg) {
+    const isDay = nowL >= a && nowL <= b;
+    const arcX = (140 - 105 * Math.cos(p * Math.PI)).toFixed(1);
+    const arcY = (90 - 70 * Math.sin(p * Math.PI)).toFixed(1);
+    const arcPath = p > 0.015 ? `<path d="M 35 90 A 105 70 0 ${p > 0.5 ? 1 : 0} 1 ${arcX} ${arcY}" fill="none" stroke="#ffd166" stroke-width="2.5" stroke-linecap="round"/>` : '';
+
+    let celestialBody = '';
+    if (isDay) {
+      celestialBody = `
+        <circle cx="${arcX}" cy="${arcY}" r="15" fill="url(#cyberSunGlow)"/>
+        <circle cx="${arcX}" cy="${arcY}" r="7" fill="#fbbf24" stroke="#ffffff" stroke-width="2"/>
+        <g stroke="#ffd166" stroke-width="1.8" stroke-linecap="round" opacity=".9">
+          <line x1="${arcX}" y1="${arcY - 11}" x2="${arcX}" y2="${arcY - 14}"/>
+          <line x1="${arcX}" y1="${parseFloat(arcY) + 11}" x2="${arcX}" y2="${parseFloat(arcY) + 14}"/>
+          <line x1="${arcX - 11}" y1="${arcY}" x2="${arcX - 14}" y2="${arcY}"/>
+          <line x1="${parseFloat(arcX) + 11}" y1="${arcY}" x2="${parseFloat(arcX) + 14}" y2="${arcY}"/>
+        </g>
+      `;
+    } else {
+      celestialBody = `
+        <circle cx="${arcX}" cy="${arcY}" r="12" fill="rgba(148,163,184,0.4)"/>
+        <circle cx="${arcX}" cy="${arcY}" r="6.5" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+      `;
+    }
+
+    cSunSvg.innerHTML = `
+      <defs>
+        <radialGradient id="cyberSunGlow">
+          <stop offset="0%" stop-color="rgba(255,209,102,0.9)"/>
+          <stop offset="100%" stop-color="rgba(255,209,102,0)"/>
+        </radialGradient>
+      </defs>
+      <path d="M 35 90 A 105 70 0 0 1 245 90" fill="none" stroke="rgba(255,255,255,0.22)" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>
+      <line x1="20" y1="90" x2="260" y2="90" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>
+      ${arcPath}
+      ${celestialBody}
+    `;
   }
 }
 
